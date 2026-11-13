@@ -1,0 +1,72 @@
+name: APK derle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'www/**'
+      - 'android-res/**'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Uygulama dosyalarını hazırla
+        run: |
+          mkdir -p proje && cp -r www android-res package.json capacitor.config.json proje/
+          ls proje
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Android SDK 36
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null || echo "SDK kurulumu atlandı, Gradle kendisi indirecek"
+
+      - name: Android projesini hazırla
+        working-directory: proje
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add android
+          npx cap sync android
+          # Uygulama simgesi
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          cp -r android-res/mipmap-* android/app/src/main/res/
+          # Sabit imza anahtarı: güncellemeler eski sürümün üstüne kurulabilsin
+          mkdir -p ~/.android && cp android-res/debug.keystore ~/.android/debug.keystore
+          # Sürüm numarası
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+
+      - name: APK derle
+        working-directory: proje/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -q
+          cp app/build/outputs/apk/debug/app-debug.apk ../../tecvid-ogren.apk
+
+      - name: Releases'a koy
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Tecvid Öğren 1.0.${{ github.run_number }}
+          body: |
+            Telefona kurmak için aşağıdaki **tecvid-ogren.apk** dosyasına dokun.
+            Güncellemeler eskisinin üstüne kurulur, ilerlemen silinmez.
+          files: tecvid-ogren.apk
+          make_latest: true

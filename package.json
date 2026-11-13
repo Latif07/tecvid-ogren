@@ -1,0 +1,12 @@
+{
+  "name": "tecvid-ogren",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Adım adım tecvid öğreten, test eden ve ilerlemeyi takip eden uygulama",
+  "dependencies": {
+    "@capacitor/android": "8.6.2",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/cli": "8.6.2",
+    "@capacitor/core": "8.6.2"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "appId": "com.latif07.tecvidogren",
+  "appName": "Tecvid Öğren",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}
