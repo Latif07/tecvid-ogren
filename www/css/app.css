@@ -67,7 +67,7 @@ main { max-width: 640px; margin: 0 auto; padding: 14px 16px 40px; }
 .bolumler { display: flex; flex-direction: column; gap: 8px; }
 .bolum { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--kart); border: 1px solid var(--cizgi); border-radius: 14px; padding: 12px; box-shadow: var(--golge); margin-bottom: 8px; }
 .kart .bolum { box-shadow: none; }
-.bolum.kilitli { opacity: .5; cursor: default; }
+.bolum.kilitli { opacity: .72; }
 .bolum.ara { border-color: var(--altin); }
 .bolum .ikon { font-size: 1.5rem; width: 34px; text-align: center; flex: none; }
 .bolum .bad { flex: 1; font-weight: 600; font-size: .95rem; }
@@ -136,3 +136,21 @@ select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid 
 textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 10px; border: 1px solid var(--cizgi); background: var(--bg); color: var(--metin); padding: 8px; }
 .kaynak { padding-left: 18px; font-size: .88rem; } .kaynak li { margin: 4px 0; }
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #222; color: #fff; padding: 10px 16px; border-radius: 12px; z-index: 99; font-size: .9rem; max-width: 90vw; }
+
+/* --- hesap --- */
+.hesapbtn { margin-left: auto; background: rgba(255,255,255,.16); border: 0; color: #fff; border-radius: 99px; padding: 7px 14px; font-weight: 650; font-size: .88rem; }
+.hesap-uyari { border-color: var(--altin); background: linear-gradient(135deg, var(--kart), var(--altin-acik)); }
+.hesap-uyari p { margin: 0; }
+.secim { border-color: var(--ana2); }
+.secim.kilit { border-color: var(--altin); background: linear-gradient(135deg, var(--kart), var(--altin-acik)); }
+.secim p { margin: 0; }
+.sekmeler.ic { position: static; border: 1px solid var(--cizgi); border-radius: 14px; margin-bottom: 14px; }
+.form label { display: block; font-weight: 600; font-size: .9rem; margin: 10px 0; }
+.form input { display: block; width: 100%; margin-top: 6px; font: inherit; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--cizgi); background: var(--bg); color: var(--metin); }
+.form input:focus { outline: none; border-color: var(--ana); }
+.btn.google { background: #fff; color: #1f1f1f; border: 1.5px solid #dadce0; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn.google .g { font-weight: 800; color: #4285f4; font-size: 1.15rem; }
+.ayrac { display: flex; align-items: center; gap: 10px; color: var(--soluk); font-size: .82rem; margin: 16px 0 4px; }
+.ayrac::before, .ayrac::after { content: ""; flex: 1; height: 1px; background: var(--cizgi); }
+.hata { color: var(--kotu); min-height: 1.2em; margin: 6px 0 0; font-size: .9rem; }
+.link { background: none; border: 0; color: var(--ana); text-decoration: underline; padding: 10px 0; display: block; margin: 4px auto 0; }

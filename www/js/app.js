@@ -13,7 +13,67 @@
   const bos = () => ({ ilerleme: {}, okunan: {}, srs: {}, gecmis: [], ayar: { hiz: 1 }, seri: { son: '', gun: 0 } });
   let S;
   try { S = Object.assign(bos(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { S = bos(); }
-  const kaydet = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Kaydedilemedi: ' + e.message); } };
+  let yuklemeZamanlayici = null, sonEsitleme = null, esitleniyor = false;
+  const kaydet = () => {
+    S.degisti = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Kaydedilemedi: ' + e.message); }
+    clearTimeout(yuklemeZamanlayici); yuklemeZamanlayici = setTimeout(buluta, 1500);
+  };
+  // ------------------------------------------------------------ bulut eşitleme
+  const B = () => window.Bulut;
+  const girisli = () => !!(B() && B().kullanici());
+  function birlestir(a, b) {
+    const r = bos(); r.ayar = Object.assign({}, b.ayar, a.ayar);
+    for (const id of new Set([...Object.keys(a.ilerleme || {}), ...Object.keys(b.ilerleme || {})])) {
+      const x = (a.ilerleme || {})[id] || {}, y = (b.ilerleme || {})[id] || {};
+      r.ilerleme[id] = { en: Math.max(x.en || 0, y.en || 0), deneme: Math.max(x.deneme || 0, y.deneme || 0), gecti: !!(x.gecti || y.gecti) };
+    }
+    for (const id of new Set([...Object.keys(a.okunan || {}), ...Object.keys(b.okunan || {})])) r.okunan[id] = Math.max((a.okunan || {})[id] || 0, (b.okunan || {})[id] || 0);
+    for (const k of new Set([...Object.keys(a.srs || {}), ...Object.keys(b.srs || {})])) {
+      const x = (a.srs || {})[k], y = (b.srs || {})[k];
+      r.srs[k] = !x ? y : !y ? x : ((x.son || 0) >= (y.son || 0) ? x : y);
+    }
+    const g = new Map(); [...(b.gecmis || []), ...(a.gecmis || [])].forEach(h => g.set(String(h.id), h));
+    r.gecmis = [...g.values()].sort((m, n) => m.tarih - n.tarih).slice(-3000);
+    const sa = a.seri || {}, sb = b.seri || {};
+    r.seri = (sa.son || '') > (sb.son || '') ? sa : (sb.son || '') > (sa.son || '') ? sb : { son: sa.son || '', gun: Math.max(sa.gun || 0, sb.gun || 0) };
+    r.degisti = Math.max(a.degisti || 0, b.degisti || 0);
+    return r;
+  }
+  async function buluta() {
+    if (!girisli() || esitleniyor) return;
+    esitleniyor = true;
+    try {
+      const uzak = await B().indir();
+      if (uzak && (uzak.degisti || 0) > (S.degisti || 0) - 1) { S = birlestir(S, Object.assign(bos(), uzak)); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
+      await B().yukle(S); sonEsitleme = Date.now();
+    } catch (e) { /* internet yoksa sonra tekrar denenir */ }
+    finally { esitleniyor = false; }
+  }
+  async function esitle(sessiz) {
+    if (!girisli() || esitleniyor) return;
+    esitleniyor = true;
+    try {
+      const uzak = await B().indir();
+      if (uzak) S = birlestir(S, Object.assign(bos(), uzak));
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+      await B().yukle(S); sonEsitleme = Date.now();
+      if (!sessiz) toast('Verilerin hesabınla eşitlendi ✓');
+    } catch (e) { if (!sessiz) toast('Eşitlenemedi: ' + (e.message || 'internet bağlantısı yok')); }
+    finally { esitleniyor = false; }
+    if (!oturum) ciz();
+  }
+  function bulutBagla() {
+    if (!window.Bulut || bulutBagla.tamam) return; bulutBagla.tamam = true;
+    let onceki = null;
+    window.Bulut.dinle(u => {
+      const uid = u ? u.uid : null; if (uid === onceki) return; onceki = uid;
+      if (u) esitle(true); else if (!oturum && ekranYigini.length) ciz();
+    });
+  }
+  window.addEventListener('bulut-hazir', bulutBagla);
+  window.addEventListener('online', () => esitle(true));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') esitle(true); });
 
   const bugun = () => new Date().toISOString().slice(0, 10);
   const simdi = () => Date.now();
@@ -39,13 +99,14 @@
 
   // ------------------------------------------------------------ kilitler
   function gecti(id) { return !!(S.ilerleme[id] && S.ilerleme[id].gecti); }
+  // Bir bölüm açıktır: ilk bölümse, bir önceki bölüm geçildiyse ya da kendisi (geçiş testiyle) geçildiyse.
+  // Kilitli bölümler de okunabilir ve testine doğrudan girilebilir; %80 alınca açılır.
   function acikMi(u) {
     const i = U.indexOf(u);
-    for (let j = 0; j < i; j++) if (!gecti(U[j].id)) return false;
-    return true;
+    return i === 0 || gecti(u.id) || gecti(U[i - 1].id);
   }
   const acikDersler = () => dersler.filter(acikMi);
-  const ogrenilenKurallar = () => benzersiz(acikDersler().flatMap(u => u.kurallar));
+  const ogrenilenKurallar = (ek) => benzersiz(acikDersler().concat(ek ? [ek] : []).flatMap(u => u.kurallar));
 
   // ------------------------------------------------------------ ses
   const pad = (n, k = 3) => String(n).padStart(k, '0');
@@ -103,7 +164,7 @@
     const ex = u.ornek[+p[2]]; const kural = R[ex.k];
     const ust = ayetHTML(ex);
     if (p[3] === 'kural') {
-      const ogrenilen = ogrenilenKurallar().filter(k => k !== ex.k);
+      const ogrenilen = ogrenilenKurallar(u).filter(k => k !== ex.k);
       const ayniGrup = karistir(ogrenilen.filter(k => R[k].grup === kural.grup));
       const diger = karistir(ogrenilen.filter(k => R[k].grup !== kural.grup));
       const yanlis = ayniGrup.concat(diger).slice(0, 3).map(k => R[k].ad);
@@ -124,7 +185,7 @@
   function anahtarlar(u) {
     const k = [];
     (u.sorular || []).forEach((_, i) => k.push(`c:${u.id}:${i}`));
-    const ogrenilenSayi = ogrenilenKurallar().length;
+    const ogrenilenSayi = ogrenilenKurallar(u).length;
     (u.ornek || []).forEach((ex, i) => {
       if (ogrenilenSayi >= 3) k.push(`e:${u.id}:${i}:kural`);
       k.push(`e:${u.id}:${i}:oku`);
@@ -167,7 +228,7 @@
     if (CapApp) CapApp.addListener('backButton', () => { if (ekranYigini.length > 1) geri(); else CapApp.exitApp(); });
   } catch (e) { /* tarayıcıda yok */ }
 
-  const ust = (baslik, geriVar = true) => `<header class="ust">${geriVar ? '<button class="geri" data-git="geri" aria-label="Geri">‹</button>' : '<span class="logo">۞</span>'}<h1>${baslik}</h1></header>`;
+  const ust = (baslik, geriVar = true, sag = '') => `<header class="ust">${geriVar ? '<button class="geri" data-git="geri" aria-label="Geri">‹</button>' : '<span class="logo">۞</span>'}<h1>${baslik}</h1>${sag}</header>`;
   app.addEventListener('click', e => {
     const g = e.target.closest('[data-git]'); if (!g) return;
     const hedef = g.dataset.git;
@@ -188,11 +249,15 @@
     U.forEach((u, i) => {
       const acik = acikMi(u), ok = gecti(u.id), il = S.ilerleme[u.id];
       const durum = ok ? `<span class="rozet ok">✓ %${il.en}</span>` : acik ? `<span class="rozet simdi">Şimdi</span>` : `<span class="rozet kilit">🔒</span>`;
-      liste += `<button class="bolum ${acik ? '' : 'kilitli'} ${u.ara ? 'ara' : ''}" ${acik ? `data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}"` : ''}>
-        <span class="ikon">${u.ikon}</span><span class="bad"><small>${u.ara ? (u.final ? 'Final' : 'Ara sınav') : 'Bölüm ' + i}</small>${esc(u.ad)}</span>${durum}</button>`;
+      liste += `<button class="bolum ${acik ? '' : 'kilitli'} ${u.ara ? 'ara' : ''}" data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}">
+        <span class="ikon">${u.ikon}</span><span class="bad"><small>${u.ara ? (u.final ? 'Final' : 'Ara sınav') : 'Bölüm ' + dersler.indexOf(u)}</small>${esc(u.ad)}</span>${durum}</button>`;
     });
-    app.innerHTML = `${ust('Tecvid Öğren', false)}
+    const k = B() && B().kullanici();
+    const hesapUyari = B() && B().hazir && !k && !S.hesapUyariKapali;
+    app.innerHTML = `${ust('Tecvid Öğren', false, `<button class="hesapbtn" data-git="hesap" aria-label="Hesap">${k ? '👤' : 'Giriş'}</button>`)}
       <main>
+        ${hesapUyari ? `<section class="kart hesap-uyari"><div><h2>☁️ İlerlemen kaybolmasın</h2><p>Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.</p></div>
+          <div class="satir sola"><button class="btn" data-git="hesap">Giriş yap / Hesap aç</button><button class="btn ikincil" id="uyariKapat">Sonra</button></div></section>` : ''}
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>tamam</small></div>
           <div><p class="buyukyazi">${siradaki ? 'Sıradaki: ' + esc(siradaki.ad) : 'Maşallah! Bütün müfredatı bitirdin. 🎉'}</p>
@@ -210,8 +275,10 @@
           <button data-git="ayarlar">⚙️<span>Ayarlar</span></button>
         </nav>
         <h2 class="baslik">Bölümler</h2>
+        <p class="soluk kucukyazi">🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, %${GECME} alınca bölüm açılır.</p>
         <div class="bolumler">${liste}</div>
       </main>`;
+    const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
   };
 
   EKRAN.ders = function (id, sekme = 'ders') {
@@ -222,11 +289,15 @@
     const sekmeler = [['ders', '📖 Ders'], ['ornek', '🔍 Örnekler'], ['alistirma', '✍️ Alıştırma'], ['test', '✅ Test']]
       .filter(s => s[0] !== 'ornek' || (u.ornek && u.ornek.length));
     let icerik = '';
+    const kilitli = !acikMi(u), gecildi = gecti(id);
+    const secim = gecildi ? '' : `<section class="kart secim ${kilitli ? 'kilit' : ''}">
+        <p>${kilitli ? '🔒 <b>Bu bölüm henüz kilitli.</b> Konuyu biliyorsan doğrudan teste gir; %' + GECME + ' alırsan bölüm açılır. İstersen önce konuyu oku.' : 'Nasıl ilerlemek istersin? Konuyu biliyorsan doğrudan teste girebilirsin.'}</p>
+        <div class="satir"><button class="btn ikincil" data-sekme="ders">📖 Konuyu öğren</button><button class="btn" data-git="testBasla|bolum|${id}">⚡ Direkt teste gir</button></div></section>`;
     if (sekme === 'ders') {
       const i = Math.min(+(EKRAN.ders._sayfa && EKRAN.ders._sayfa[id]) || 0, u.sayfalar.length - 1);
       const s = u.sayfalar[i];
       if (i + 1 > okunan) { S.okunan[id] = i + 1; kaydet(); }
-      icerik = `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>
+      icerik = (i === 0 ? secim : '') + `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>
         <div class="satir">
           <button class="btn ikincil" data-sayfa="${i - 1}" ${i === 0 ? 'disabled' : ''}>‹ Önceki</button>
           ${i < u.sayfalar.length - 1 ? `<button class="btn" data-sayfa="${i + 1}">Sonraki ›</button>` : `<button class="btn" data-sekme="${u.ornek && u.ornek.length ? 'ornek' : 'alistirma'}">${u.ornek && u.ornek.length ? 'Örneklere geç ›' : 'Alıştırmaya geç ›'}</button>`}
@@ -245,7 +316,9 @@
       icerik = `<article class="kart"><h2>Bölüm testi</h2>
         <p>10 soru. Geçmek için en az <b>%${GECME}</b> alman gerekir. Testte önceki bölümlerden de birkaç tekrar sorusu çıkar.</p>
         ${il ? `<p>En iyi sonucun: <b>%${il.en}</b> · ${il.deneme} deneme ${il.gecti ? '· <span class="yesil">Geçtin ✓</span>' : ''}</p>` : ''}
-        ${hepsiOkundu ? `<button class="btn genis" data-git="testBasla|bolum|${id}">Teste başla</button>` : `<p class="uyari">Önce dersin bütün sayfalarını oku (${okunan}/${u.sayfalar.length}).</p><button class="btn genis ikincil" data-sekme="ders">Derse dön</button>`}
+        ${kilitli ? `<p class="uyari">🔒 Bu bölüm kilitli. Testi geçersen (%${GECME}) bölüm açılır.</p>` : ''}
+        ${!hepsiOkundu && !gecildi ? `<p class="soluk">Dersi henüz bitirmedin (${okunan}/${u.sayfalar.length} sayfa). Konuyu biliyorsan yine de teste girebilirsin.</p>` : ''}
+        <button class="btn genis" data-git="testBasla|bolum|${id}">${kilitli ? '⚡ Geçiş testine gir' : 'Teste başla'}</button>
       </article>`;
     }
     app.innerHTML = `${ust(esc(u.ad))}
@@ -284,6 +357,7 @@
       <p>${n} soru, şu bölümlerden: ${u.kapsar.map(k => esc(unitById(k).ad)).join(', ')}.</p>
       <p>Geçmek için en az <b>%${GECME}</b>. Geçemezsen zayıf konuları tekrar edip yeniden dene. Sonraki bölümler bu sınavı geçince açılır.</p>
       ${il ? `<p>En iyi sonucun: <b>%${il.en}</b> · ${il.deneme} deneme</p>` : ''}
+      ${acikMi(u) ? '' : `<p class="uyari">🔒 Bu sınav kilitli ama girebilirsin. %${GECME} alırsan açılır ve geçilmiş sayılır.</p>`}
       <button class="btn genis" id="bas">Sınava başla</button></article></main>`;
     $('#bas').onclick = () => {
       const havuz = u.kapsar.flatMap(k => anahtarlar(unitById(k)));
@@ -411,7 +485,7 @@
         <div class="satir sola"><label>Soru sayısı: <select id="adet"><option>10</option><option selected>20</option><option>30</option><option>50</option></select></label></div>
         <button class="btn" id="karma">Başla</button></article>
       <article class="kart"><h2>🎯 Zayıf konular testi</h2><p>En çok yanlış yaptığın 15 soru.</p><button class="btn" id="zayifT">Başla</button></article>
-      <article class="kart"><h2>🏁 Ara sınavlar ve final</h2>${U.filter(u => u.ara).map(u => `<button class="bolum ${acikMi(u) ? '' : 'kilitli'}" ${acikMi(u) ? `data-git="sinavGiris|${u.id}"` : ''}><span class="ikon">${u.ikon}</span><span class="bad">${esc(u.ad)}</span>${gecti(u.id) ? `<span class="rozet ok">✓ %${S.ilerleme[u.id].en}</span>` : acikMi(u) ? '' : '<span class="rozet kilit">🔒</span>'}</button>`).join('')}</article>
+      <article class="kart"><h2>🏁 Ara sınavlar ve final</h2>${U.filter(u => u.ara).map(u => `<button class="bolum ${acikMi(u) ? '' : 'kilitli'}" data-git="sinavGiris|${u.id}"><span class="ikon">${u.ikon}</span><span class="bad">${esc(u.ad)}</span>${gecti(u.id) ? `<span class="rozet ok">✓ %${S.ilerleme[u.id].en}</span>` : acikMi(u) ? '' : '<span class="rozet kilit">🔒</span>'}</button>`).join('')}</article>
     </main>`;
     const tum = () => acik.flatMap(anahtarlar);
     $('#hizli').onclick = () => oturumBaslat({ tur: 'hizli', baslik: 'Hızlı test', anahtarlar: sec(tum(), 5, false), puanli: true });
@@ -484,9 +558,67 @@
     </svg><p class="soluk ortala kucukyazi">Kesikli çizgi: geçme sınırı (%${GECME})</p>`;
   }
 
+  EKRAN.hesap = function (mod = 'giris') {
+    const b = B();
+    if (!b || !b.hazir) {
+      app.innerHTML = `${ust('Hesap')}<main><article class="kart"><h2>Hesap sistemi hazırlanıyor</h2><p>Bu sürümde hesap sistemi henüz etkin değil. Verilerin bu telefonda saklanıyor; Ayarlar'dan yedek alabilirsin.</p></article></main>`;
+      return;
+    }
+    const k = b.kullanici();
+    if (k) {
+      app.innerHTML = `${ust('Hesabım')}<main>
+        <article class="kart"><h2>👤 ${esc(k.email || k.displayName || 'Hesap')}</h2>
+          <p class="soluk">${sonEsitleme ? 'Son eşitleme: ' + tarihStr(sonEsitleme) : 'Eşitleme bekleniyor…'}</p>
+          <p>İlerlemen, test geçmişin ve açtığın bölümler bu hesapta saklanır. Başka bir telefonda aynı hesapla girersen kaldığın yerden devam edersin.</p>
+          <button class="btn genis" id="esitle">🔄 Şimdi eşitle</button>
+          <button class="btn genis ikincil" id="cikis">Çıkış yap</button></article></main>`;
+      $('#esitle').onclick = () => esitle(false);
+      $('#cikis').onclick = async () => {
+        if (!confirm('Çıkış yapılsın mı? İlerlemen hesabında kalır; bu telefondan silinir.')) return;
+        try { await b.yukle(S); } catch (e) { if (!confirm('Son değişiklikler hesaba yüklenemedi (internet yok). Yine de çıkış yapılsın mı? Yüklenmemiş ilerleme kaybolur.')) return; }
+        await b.cikis(); S = bos(); S.hesapUyariKapali = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+        toast('Çıkış yapıldı'); anaSayfa();
+      };
+      return;
+    }
+    const kayit = mod === 'kayit';
+    app.innerHTML = `${ust(kayit ? 'Hesap aç' : 'Giriş yap')}<main>
+      <div class="sekmeler ic"><button class="${kayit ? '' : 'aktif'}" data-mod="giris">Giriş yap</button><button class="${kayit ? 'aktif' : ''}" data-mod="kayit">Hesap aç</button></div>
+      <article class="kart form">
+        <button class="btn genis google" id="google"><span class="g">G</span> Google ile ${kayit ? 'hesap aç' : 'giriş yap'}</button>
+        <div class="ayrac"><span>veya e-posta ile</span></div>
+        <label>E-posta<input id="eposta" type="email" autocomplete="email" inputmode="email" placeholder="ornek@mail.com"></label>
+        <label>Şifre<input id="sifre" type="password" autocomplete="${kayit ? 'new-password' : 'current-password'}" placeholder="${kayit ? 'En az 6 karakter' : 'Şifren'}"></label>
+        ${kayit ? '<label>Şifre (tekrar)<input id="sifre2" type="password" autocomplete="new-password"></label>' : ''}
+        <p class="hata" id="hata"></p>
+        <button class="btn genis" id="gonder">${kayit ? 'Hesap aç' : 'Giriş yap'}</button>
+        ${kayit ? '' : '<button class="link" id="unuttum">Şifremi unuttum</button>'}
+        <p class="soluk kucukyazi">Giriş yapınca bu telefondaki ilerlemen hesabına eklenir; hiçbir şey kaybolmaz.</p>
+      </article></main>`;
+    app.querySelectorAll('[data-mod]').forEach(x => x.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['hesap', [x.dataset.mod]]; ciz(); });
+    const hata = m => { $('#hata').textContent = m || ''; };
+    const mesgul = (btn, v) => { btn.disabled = v; btn.dataset.yazi = btn.dataset.yazi || btn.textContent; btn.textContent = v ? 'Bekle…' : btn.dataset.yazi; };
+    const tamam = () => { toast('Giriş yapıldı ✓ Verilerin eşitleniyor'); anaSayfa(); };
+    $('#google').onclick = async e => { hata(); mesgul(e.currentTarget, true); try { await b.googleIle(); tamam(); } catch (x) { hata(x.message); mesgul($('#google'), false); } };
+    $('#gonder').onclick = async e => {
+      hata(); const ep = $('#eposta').value, sf = $('#sifre').value;
+      if (!ep || !sf) return hata('E-posta ve şifreyi gir.');
+      if (kayit && sf !== $('#sifre2').value) return hata('Şifreler aynı değil.');
+      const btn = e.currentTarget; mesgul(btn, true);
+      try { await (kayit ? b.kayit(ep, sf) : b.giris(ep, sf)); tamam(); } catch (x) { hata(x.message); mesgul(btn, false); }
+    };
+    const u = $('#unuttum'); if (u) u.onclick = async () => {
+      const ep = $('#eposta').value; if (!ep) return hata('Önce e-posta adresini yaz.');
+      try { await b.sifreSifirla(ep); toast('Şifre sıfırlama bağlantısı e-postana gönderildi'); } catch (x) { hata(x.message); }
+    };
+  };
+
   EKRAN.ayarlar = function () {
     const yedek = JSON.stringify(S);
+    const hk = B() && B().kullanici();
     app.innerHTML = `${ust('Ayarlar')}<main>
+      <article class="kart"><h2>👤 Hesap</h2><p>${hk ? 'Giriş yapıldı: <b>' + esc(hk.email || '') + '</b>' : 'Giriş yapmadın. Verilerin sadece bu telefonda.'}</p>
+        <button class="btn" data-git="hesap">${hk ? 'Hesabım' : 'Giriş yap / Hesap aç'}</button></article>
       <article class="kart"><h2>🔊 Ses hızı</h2>
         <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div></article>
       <article class="kart"><h2>💾 Yedek</h2><p>İlerlemen ve geçmişin telefonda saklanır. Uygulamayı silmeden önce ya da yeni bir telefona geçerken yedeğini kopyalayıp bir yere (not, e-posta) kaydet.</p>
@@ -502,12 +634,19 @@
     app.querySelectorAll('[data-hiz]').forEach(b => b.onclick = () => { S.ayar.hiz = +b.dataset.hiz; kaydet(); ciz(); });
     $('#kopyala').onclick = async () => { try { await navigator.clipboard.writeText(yedek); toast('Kopyalandı'); } catch (e) { const t = $('#yedek'); t.select(); document.execCommand('copy'); toast('Kopyalandı'); } };
     $('#geriyukle').onclick = () => {
-      try { const v = JSON.parse($('#yukle').value); if (!v.ilerleme || !v.gecmis) throw new Error('Geçersiz yedek'); S = Object.assign(bos(), v); kaydet(); toast('Yedek yüklendi'); anaSayfa(); }
+      try { const v = JSON.parse($('#yukle').value); if (!v.ilerleme || !v.gecmis) throw new Error('Geçersiz yedek'); S = birlestir(Object.assign(bos(), v), S); kaydet(); toast('Yedek yüklendi'); anaSayfa(); }
       catch (e) { toast('Yedek okunamadı: ' + e.message); }
     };
-    $('#sifirla').onclick = () => { if (confirm('Emin misin? Bütün ilerleme ve test geçmişi silinecek.')) { S = bos(); kaydet(); anaSayfa(); } };
+    $('#sifirla').onclick = async () => {
+      if (!confirm('Emin misin? Bütün ilerleme ve test geçmişi silinecek' + (girisli() ? ' (hesabındakiler de).' : '.'))) return;
+      S = bos(); S.hesapUyariKapali = true; clearTimeout(yuklemeZamanlayici);
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+      if (girisli()) { try { await B().yukle(S); } catch (e) { toast('Hesaptaki veriler silinemedi: internet yok'); } }
+      anaSayfa();
+    };
   };
 
   anaSayfa();
+  bulutBagla();
   window.__TECVID = { S: () => S, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();
