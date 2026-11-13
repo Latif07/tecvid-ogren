@@ -45,6 +45,10 @@ jobs:
           npm install --no-audit --no-fund
           npx cap add android
           npx cap sync android
+          # Firebase: google-services.json ve Google girişi
+          cp android-res/google-services.json android/app/google-services.json
+          sed -i "s/^ext {/ext {\n    rgcfaIncludeGoogle = true/" android/variables.gradle
+          grep -n rgcfaIncludeGoogle android/variables.gradle
           # Uygulama simgesi
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           cp -r android-res/mipmap-* android/app/src/main/res/

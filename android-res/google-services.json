@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "709737165179",
+    "project_id": "tecvid-ogren",
+    "storage_bucket": "tecvid-ogren.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709737165179:android:7e7e133aa586e7492c4dde",
+        "android_client_info": {
+          "package_name": "com.latif07.tecvidogren"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "709737165179-m9od7qt3gvmnhqg07v347t82hau9c5tm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.latif07.tecvidogren",
+            "certificate_hash": "ad516329a8ed720e795d0fed6061a34596d23f0e"
+          }
+        },
+        {
+          "client_id": "709737165179-8qha5r51n7jh5s4hbue4mq95363j3e3p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMgqWnP03hSUV8PYiA6uKbltQQWH5GCOg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "709737165179-8qha5r51n7jh5s4hbue4mq95363j3e3p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

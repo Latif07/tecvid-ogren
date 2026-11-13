@@ -66,6 +66,7 @@
   function bulutBagla() {
     if (!window.Bulut || bulutBagla.tamam) return; bulutBagla.tamam = true;
     let onceki = null;
+    if (!oturum && ekranYigini.length) ciz();
     window.Bulut.dinle(u => {
       const uid = u ? u.uid : null; if (uid === onceki) return; onceki = uid;
       if (u) esitle(true); else if (!oturum && ekranYigini.length) ciz();
