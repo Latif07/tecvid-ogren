@@ -257,8 +257,6 @@
     const hesapUyari = B() && B().hazir && !k && !S.hesapUyariKapali;
     app.innerHTML = `${ust('Tecvid Öğren', false, `<button class="hesapbtn" data-git="hesap" aria-label="Hesap">${k ? '👤' : 'Giriş'}</button>`)}
       <main>
-        ${hesapUyari ? `<section class="kart hesap-uyari"><div><h2>☁️ İlerlemen kaybolmasın</h2><p>Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.</p></div>
-          <div class="satir sola"><button class="btn" data-git="hesap">Giriş yap / Hesap aç</button><button class="btn ikincil" id="uyariKapat">Sonra</button></div></section>` : ''}
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>tamam</small></div>
           <div><p class="buyukyazi">${siradaki ? 'Sıradaki: ' + esc(siradaki.ad) : 'Maşallah! Bütün müfredatı bitirdin. 🎉'}</p>
@@ -275,6 +273,8 @@
           <button data-git="zayif">🎯<span>Zayıf konular</span></button>
           <button data-git="ayarlar">⚙️<span>Ayarlar</span></button>
         </nav>
+        ${hesapUyari ? `<section class="kart hesap-uyari" style="margin-top:14px"><div><h2>☁️ İlerlemen kaybolmasın</h2><p>Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.</p></div>
+          <div class="satir sola"><button class="btn" data-git="hesap">Giriş yap / Hesap aç</button><button class="btn ikincil" id="uyariKapat">Sonra</button></div></section>` : ''}
         <h2 class="baslik">Bölümler</h2>
         <p class="soluk kucukyazi">🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, %${GECME} alınca bölüm açılır.</p>
         <div class="bolumler">${liste}</div>
