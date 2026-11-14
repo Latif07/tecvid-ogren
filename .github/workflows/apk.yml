@@ -52,6 +52,9 @@ jobs:
           # Mikrofon izni (kendi okuyuşunu kaydetme)
           sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' android/app/src/main/AndroidManifest.xml
           grep -n RECORD_AUDIO android/app/src/main/AndroidManifest.xml
+          # Sesli yönerge (TextToSpeech): Android 11+ paket görünürlüğü için TTS_SERVICE sorgusu
+          sed -i 's#<application#<queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n    <application#' android/app/src/main/AndroidManifest.xml
+          grep -n TTS_SERVICE android/app/src/main/AndroidManifest.xml
           # Uygulama simgesi
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           cp -r android-res/mipmap-* android/app/src/main/res/

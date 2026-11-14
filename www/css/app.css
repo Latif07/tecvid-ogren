@@ -506,3 +506,46 @@ body.cocuk-modu .alt-menu button { font-size: .8rem; } body.cocuk-modu .alt-menu
 .c-album > div { aspect-ratio: 1; display: grid; place-items: center; font-size: 1.7rem; border-radius: 16px; background: var(--kart); border: 2px dashed var(--cizgi); color: var(--soluk); font-weight: 800; font-size: 1.2rem; }
 .c-album > div.acik { border-style: solid; border-color: #ffd24a; font-size: 1.8rem; background: linear-gradient(180deg, #fffbe8, var(--kart)); animation: sevin .5s ease; }
 @media (prefers-reduced-motion: reduce) { .maskot.zipla, .maskot.don, .c-durak.simdi, .mujde { animation: none; } }
+
+/* ---------------------------------------------------------------- sesli yönerge, harf sesleri */
+.c-balon { display: flex; align-items: center; gap: 8px; }
+.c-balon-yazi { flex: 1; }
+.c-hoparlor { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: #ffd24a33; font-size: 1.15rem; }
+.c-dinle { border: 2px solid var(--ana2); background: var(--iyi-bg); color: var(--ana); border-radius: 99px; padding: 8px 18px; font-weight: 800; font-size: 1.05rem; margin: 4px 0 8px; }
+.c-dinle.buyuk { font-size: 1.3rem; padding: 14px 26px; box-shadow: 0 5px 0 var(--ana2); }
+.c-ornekler div.sesli { cursor: pointer; outline: 2px solid var(--ana2); }
+.c-ornekler small { font-size: .7rem; }
+.c-yon { text-align: center; font-weight: 800; color: #f2a516; margin: 8px 0 0; font-size: 1.05rem; }
+.ses-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 12px; }
+.ses-hucre { background: var(--kart); border: 1.5px solid var(--cizgi); border-radius: 16px; padding: 8px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.ses-hucre .ar { font-size: 2rem; line-height: 1.5; } .ses-hucre small { color: var(--soluk); font-size: .75rem; }
+.ses-hucre.var { border-color: var(--iyi); background: var(--iyi-bg); }
+.ses-hucre.kayitta { border-color: var(--kotu); animation: nabizK 1s ease-in-out infinite; }
+@keyframes nabizK { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--kotu) 30%, transparent); } }
+.ses-dugmeler { display: flex; gap: 4px; margin-top: 6px; }
+.ses-dugmeler button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--cizgi); background: var(--bg); font-size: .85rem; padding: 0; }
+.ses-dugmeler .ses-kaydet { color: var(--kotu); font-size: 1rem; }
+
+/* ---------------------------------------------------------------- bugünkü dersim */
+.gunluk-kart { display: block; background: linear-gradient(135deg, var(--ust-bg), var(--ana2)); color: #fff; border-radius: 20px; padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--golge); cursor: pointer; }
+.gunluk-kart.tamam { background: linear-gradient(135deg, #1f8a4c, #2fae88); }
+.gunluk-ust { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.gunluk-ikon { font-size: 1.8rem; } .gunluk-ust b { display: block; font-size: 1.1rem; } .gunluk-ust small { opacity: .85; }
+.gunluk-ust > div { flex: 1; } .gunluk-ok { font-size: 1.8rem; opacity: .8; }
+.gunluk-kart .pano-cubuk { background: rgba(255, 255, 255, .22); } .gunluk-kart .pano-cubuk div { background: #ffd24a; }
+.gunluk-adimlar { display: grid; gap: 8px; margin: 12px 0; }
+.gunluk-adim { display: flex; align-items: center; gap: 12px; text-align: left; background: var(--kart); border: 1.5px solid var(--cizgi); border-radius: 16px; padding: 12px; font-weight: 600; }
+.gunluk-adim.simdi { border-color: var(--altin); box-shadow: 0 0 0 3px color-mix(in srgb, var(--altin) 25%, transparent); }
+.gunluk-adim.bitti { opacity: .7; } .gunluk-adim.bitti span:last-child { text-decoration: line-through; }
+.gunluk-no { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); font-weight: 800; }
+.gunluk-adim.bitti .gunluk-no { background: var(--iyi); color: #fff; } .gunluk-adim.simdi .gunluk-no { background: var(--altin); color: #fff; }
+.gunluk-serit { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--altin-acik); border: 1px solid var(--altin); border-radius: 14px; padding: 8px 12px; margin-bottom: 12px; font-size: .88rem; font-weight: 650; flex-wrap: wrap; }
+.yarim-kart { margin-bottom: 14px; flex-wrap: wrap; }
+.tanitim ul { padding-left: 18px; margin: 6px 0 10px; } .tanitim li { margin: 4px 0; font-size: .92rem; }
+
+/* ---------------------------------------------------------------- hızlı kontrol, ebeveyn özeti */
+.hizli-kontrol { border-color: var(--ana2); }
+.hk-baslik { margin: 0 0 4px; font-weight: 800; color: var(--ana); font-size: .9rem; }
+.ozet-kart .c-istat { margin-top: 12px; }
+.karisan { margin: 4px 0 8px; padding-left: 20px; } .karisan .ar { font-size: 1.5rem; line-height: 1.3; }
+.oneri { background: var(--bg); border-radius: 12px; padding: 10px 12px; margin: 8px 0 0; font-size: .92rem; }

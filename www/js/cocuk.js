@@ -70,6 +70,55 @@
     } catch (e) { }
   }
 
+  // ------------------------------------------------------------ sesli yönerge
+  // Telefonda (APK) Android'in kendi konuşma motoru (TextToSpeech eklentisi); tarayıcıda Web Speech API.
+  // Android WebView'de speechSynthesis yoktur; bu yüzden eklenti kullanılır.
+  const Sesli = {
+    acik: true,
+    soyle(metin) {
+      if (!this.acik || !metin) return;
+      metin = String(metin).replace(/<[^>]+>/g, '').replace(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+/g, '').replace(/[🙂✨🎉🎯✏️⭐▶›]/gu, '').replace(/\s+/g, ' ').trim();
+      if (!metin) return;
+      const lang = EN ? 'en-GB' : 'tr-TR';
+      const TTS = window.capEklenti && window.capEklenti('TextToSpeech');
+      if (TTS) { TTS.stop().catch(() => { }).then(() => TTS.speak({ text: metin, lang, rate: .95 })).catch(() => { }); return; }
+      try { const ss = window.speechSynthesis; if (!ss) return; ss.cancel(); const u = new SpeechSynthesisUtterance(metin); u.lang = lang; u.rate = .95; ss.speak(u); } catch (e) { }
+    },
+    sus() { const TTS = window.capEklenti && window.capEklenti('TextToSpeech'); if (TTS) TTS.stop().catch(() => { }); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { } }
+  };
+  window.Sesli = Sesli;
+
+  // ------------------------------------------------------------ hocanın kaydettiği harf sesleri (bu telefonda, IndexedDB)
+  // Anahtarlar: 'h:<harf>' (harfin okunuşu), 'hr:<harf>:<0|1|2>' (üstün/esre/ötreli hece)
+  const HarfSes = (function () {
+    const anahtarlar = new Set(); let db = null, hazir = null, calan = null;
+    function ac() {
+      if (hazir) return hazir;
+      hazir = new Promise(coz => {
+        try {
+          const r = indexedDB.open('husn-harf-ses', 1);
+          r.onupgradeneeded = () => r.result.createObjectStore('ses');
+          r.onsuccess = () => { db = r.result; const tx = db.transaction('ses').objectStore('ses').getAllKeys(); tx.onsuccess = () => { (tx.result || []).forEach(k => anahtarlar.add(k)); coz(); }; tx.onerror = () => coz(); };
+          r.onerror = () => coz();
+        } catch (e) { coz(); }
+      });
+      return hazir;
+    }
+    const islem = (mod, f) => ac().then(() => new Promise((ok, no) => { if (!db) return no(new Error('db')); const st = db.transaction('ses', mod).objectStore('ses'); const r = f(st); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }));
+    return {
+      ac, var: k => anahtarlar.has(k), sayi: on => [...anahtarlar].filter(k => k.startsWith(on)).length,
+      kaydet: (k, blob) => islem('readwrite', st => st.put(blob, k)).then(() => anahtarlar.add(k)),
+      sil: k => islem('readwrite', st => st.delete(k)).then(() => anahtarlar.delete(k)),
+      al: k => islem('readonly', st => st.get(k)),
+      async cal(k) {
+        if (!anahtarlar.has(k)) return false;
+        try { const b = await this.al(k); if (!b) return false; Sesli.sus(); if (calan) { calan.pause(); URL.revokeObjectURL(calan.src); } calan = new Audio(URL.createObjectURL(b)); await calan.play(); return true; } catch (e) { return false; }
+      }
+    };
+  })();
+  window.HarfSes = HarfSes;
+  HarfSes.ac();
+
   // ------------------------------------------------------------ yıldız maskot (canlı tasviri yok: yüzsüz yıldız)
   const MASKOT = (boy = 72, cls = '') => `<svg class="maskot ${cls}" width="${boy}" height="${boy}" viewBox="0 0 100 100" aria-hidden="true">
     <defs><radialGradient id="mg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff6c8"/><stop offset=".45" stop-color="#ffd24a"/><stop offset="1" stop-color="#f2a516"/></radialGradient></defs>
@@ -184,8 +233,9 @@
       }
       if (tur === 'sepet') {
         const digerleri = benzerleri(h, 6);
-        return { tip: 'sepet', soru: t('{0} harflerini sepete topla!', `<span class="ar">${h}</span>`), harf: h, kutular: karistir([h, h, h, ...digerleri]) };
+        return { tip: 'sepet', soru: t('{0} harflerini sepete topla!', `<span class="ar">${h}</span>`), sesli: t('{0} harflerini sepete topla!', adi(h)), harf: h, kutular: karistir([h, h, h, ...digerleri]) };
       }
+      if (tur === 'dinle') return secenekli({ soru: t('Dinle ve duyduğun harfe dokun!'), ses: 'h:' + h, dogru: h, secenek: karistir([h, ...benzerleri(h, 2)]), arSec: true });
     }
     function harekeSorusu(tur, i, h) {
       h = h || sec1(HAREKE_HARF);
@@ -195,6 +245,7 @@
       if (tur === 'oku') return secenekli({ soru: t('Nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir(harfler.map(x => hece(x, i))) });
       if (tur === 'bul') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), dogru: h + HAREKE[i], secenek: karistir(harfler.map(x => x + HAREKE[i])), arSec: true });
       if (tur === 'okuV') return secenekli({ soru: t('Nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir([0, 1, 2].map(j => hece(h, j))) });
+      if (tur === 'dinleV') return secenekli({ soru: t('Dinle: hangisini duydun?'), ses: 'hr:' + h + ':' + i, dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
       if (tur === 'bulV') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
     }
     // Okuma Adası: yalnız ince harflerle hece/kelime parçaları (okunuşlar kesin)
@@ -246,15 +297,24 @@
         const turler = kk ? ['ayni', 'ayni', 'ayni', 'ayni'] : ['oku', 'bul', 'oku', 'bul', 'oku', 'bul'];
         q = turler.map(x => okumaSorusu(d.k, x));
       }
-      return q.filter(Boolean);
+      q = q.filter(Boolean);
+      // Hocanın kaydettiği ses varsa "dinle ve bul" soruları eklenir
+      if (d.tur === 'harf' && HarfSes.var('h:' + d.harf)) q.splice(1, 0, harfSorusu('dinle', d.harf));
+      if (d.tur === 'tekrar') { const l = HARF.slice(0, d.son + 1).filter(h => HarfSes.var('h:' + h)); if (l.length) q.splice(1, 0, harfSorusu('dinle', sec1(l))); }
+      if (d.tur === 'hareke') { const i = d.h >= 0 ? d.h : rnd(3); const l = HAREKE_HARF.filter(h => HarfSes.var('hr:' + h + ':' + i)); if (l.length) q.splice(1, 0, harekeSorusu('dinleV', i, sec1(l))); }
+      return q;
     }
 
     // ---------------------------------------------------------- durak oturumu
     let D = null;
+    const DKEY = () => 'tecvid-ogren.durak.' + profil().id;
+    const durakSakla = () => { try { if (D && D.adim !== 'bitti') localStorage.setItem(DKEY(), JSON.stringify(D)); else localStorage.removeItem(DKEY()); } catch (e) { } };
+    const yarimDurak = () => { try { const x = JSON.parse(localStorage.getItem(DKEY()) || 'null'); return x && x.adim !== 'bitti' && durakBul(x.id) ? x : null; } catch (e) { return null; } };
     const tanissiz = d => d.tur === 'tekrar' || d.id === 'k4' || d.id === 'o6';
     const yeniD = d => ({ id: d.id, adim: tanissiz(d) ? 'oyun' : 'tanis', sorular: sorularHazirla(d), i: 0, hata: 0 });   // { id, adim: 'tanis'|'ciz'|'oyun'|'bitti', sorular, i, hata, buSoruHata }
     function durakBaslat(id) {
-      D = yeniD(durakBul(id));
+      const y = yarimDurak();
+      D = y && y.id === id ? y : yeniD(durakBul(id));
       git('cocukDurak', id);
     }
     api.durakBaslat = durakBaslat;
@@ -264,12 +324,12 @@
         const h = d.harf, b = BILGI[h];
         const nokta = h === 'لا' ? t('Lam ile elif birleşince lamelif olur.') : b[0] === 0 ? t('Hiç noktası yok.') : t('{0} noktası var, harfin {1}.', b[0], b[1] === 'alt' ? t('altında') : t('üstünde'));
         const sekiller = h === 'لا' || h === 'ا' ? '' : `<div class="c-sekiller"><div>${ar(h)}<small>${t('Tek')}</small></div><div>${ar(h + (BITISMEZ.has(h) ? '' : 'ـ'))}<small>${t('Başta')}</small></div><div>${ar((BITISMEZ.has(h) ? 'ـ' + h : 'ـ' + h + 'ـ'))}<small>${t('Ortada')}</small></div><div>${ar('ـ' + h)}<small>${t('Sonda')}</small></div></div>`;
-        return `<div class="c-tanis"><div class="c-dev-harf">${ar(h)}</div><h2>${esc(adi(h))}</h2><p>${nokta}</p>${kucuk() ? '' : sekiller}</div>`;
+        return `<div class="c-tanis"><div class="c-dev-harf">${ar(h)}</div><h2>${esc(adi(h))}</h2>${HarfSes.var('h:' + h) ? `<button class="c-dinle" data-hses="h:${h}">🔊 ${t('Dinle')}</button>` : ''}<p>${nokta}</p>${kucuk() ? '' : sekiller}</div>`;
       }
       if (d.tur === 'hareke') {
         const i = d.h, ornek = ['ب', 'ت', 'ق'];
         const anlat = [t('Harfin <b>üstündeki</b> küçük eğik çizgiye <b>üstün</b> denir. Harfe “e” sesi verir; kalın harflerde “a” olur.'), t('Harfin <b>altındaki</b> küçük eğik çizgiye <b>esre</b> denir. Harfe “i” sesi verir; kalın harflerde “ı” olur.'), t('Harfin üstündeki küçük <b>vav</b> gibi işarete <b>ötre</b> denir. Harfe “u” sesi verir.')][i];
-        return `<div class="c-tanis"><h2>${HAREKE_AD[i]}</h2><p>${anlat}</p><div class="c-ornekler">${ornek.map(h => `<div>${ar(h + HAREKE[i], 'buyuk')}<b>${hece(h, i)}</b></div>`).join('')}</div></div>`;
+        return `<div class="c-tanis"><h2>${HAREKE_AD[i]}</h2><p>${anlat}</p><div class="c-ornekler">${ornek.map(h => `<div ${HarfSes.var('hr:' + h + ':' + i) ? `class="sesli" data-hses="hr:${h}:${i}" role="button"` : ''}>${ar(h + HAREKE[i], 'buyuk')}<b>${hece(h, i)}</b>${HarfSes.var('hr:' + h + ':' + i) ? '<small>🔊</small>' : ''}</div>`).join('')}</div></div>`;
       }
       const O = {
         hece: [t('Harekeli harfler yan yana gelince hece olur. Sağdan sola oku!'), ['بَتَ', 'كَتَبَ', 'جَلَسَ']],
@@ -309,7 +369,16 @@
       const iz = document.createElement('canvas'); iz.width = W; iz.height = H; const ix = iz.getContext('2d');
       ix.lineCap = ix.lineJoin = 'round'; ix.lineWidth = W * .085; ix.strokeStyle = '#000';
       const renk = getComputedStyle(document.documentElement).getPropertyValue('--cocuk-iz').trim() || '#c9e7dc';
-      const yeniden = () => { cx.clearRect(0, 0, W, H); harfCiz(cx, renk); cx.drawImage(iz, 0, 0); };
+      // Önce yazı yönü gösterilir: harf sağdan sola doğru belirir, bir kalem noktası yolu izler
+      let anim = 1;
+      const yeniden = () => {
+        cx.clearRect(0, 0, W, H);
+        if (anim < 1) { cx.save(); cx.beginPath(); cx.rect(W * (1 - anim) - 2, 0, W * anim + 4, H); cx.clip(); harfCiz(cx, renk); cx.restore(); cx.beginPath(); cx.arc(W * (1 - anim), H * .5, 9, 0, 7); cx.fillStyle = '#f2a516'; cx.fill(); }
+        else harfCiz(cx, renk);
+        cx.drawImage(iz, 0, 0);
+      };
+      const azHareket = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!azHareket) { anim = 0; const t0 = performance.now(); const adim = n => { anim = Math.min(1, (n - t0) / 1400); yeniden(); if (anim < 1) requestAnimationFrame(adim); }; requestAnimationFrame(adim); }
       const hazir = () => document.fonts && document.fonts.load ? document.fonts.load(font).catch(() => { }) : Promise.resolve();
       let piksel = null;
       hazir().then(() => { mx.clearRect(0, 0, W, H); harfCiz(mx, '#000'); const d = mx.getImageData(0, 0, W, H).data; piksel = []; for (let y = 0; y < H; y += 3) for (let x = 0; x < W; x += 3) if (d[(y * W + x) * 4 + 3] > 128) piksel.push(y * W + x); yeniden(); });
@@ -332,9 +401,9 @@
     function soruHTML(q) {
       if (q.tip === 'sepet') return `<div class="c-sepet-alan"><div class="c-kutular">${q.kutular.map((h, i) => `<button class="c-kutu" data-k="${i}" data-h="${h}">${ar(h)}</button>`).join('')}</div>
         <div class="c-sepet" aria-live="polite"><span class="c-sepet-ikon">🧺</span><span class="c-sepet-ic"></span><b>0 / 3</b></div></div>`;
-      return `${q.goster ? `<div class="c-goster">${q.goster}</div>` : ''}<div class="c-secenekler ${q.arSec ? 'ar-sec' : ''} n${q.secenek.length}">${q.secenek.map((s, i) => `<button class="c-secenek" data-i="${i}">${q.arSec ? ar(s) : esc(s)}</button>`).join('')}</div>`;
+      return `${q.ses ? `<div class="c-goster"><button class="c-dinle buyuk" data-hses="${q.ses}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.goster ? `<div class="c-goster">${q.goster}</div>` : ''}<div class="c-secenekler ${q.arSec ? 'ar-sec' : ''} n${q.secenek.length}">${q.secenek.map((s, i) => `<button class="c-secenek" data-i="${i}">${q.arSec ? ar(s) : esc(s)}</button>`).join('')}</div>`;
     }
-    function konus(m) { const b = document.querySelector('.c-balon'); if (b) { b.innerHTML = m; b.classList.remove('yeni'); void b.offsetWidth; b.classList.add('yeni'); } }
+    function konus(m, sesli) { const b = document.querySelector('.c-balon-yazi'); if (b) { b.innerHTML = m; const k = b.parentNode; k.classList.remove('yeni'); void k.offsetWidth; k.classList.add('yeni'); } Sesli.soyle(sesli || m); }
 
     EKRAN.cocukDurak = function (id) {
       const d = durakBul(id);
@@ -346,7 +415,7 @@
       const ilerle = Math.round(suan / Math.max(1, toplamAdim) * 100);
       let govde = '', balon = '';
       if (D.adim === 'tanis') { balon = d.tur === 'harf' ? t('Bu harfle tanışalım!') : t('Yeni bir şey öğreniyoruz!'); govde = `<article class="kart c-kart">${tanisHTML(d)}</article><button class="btn genis c-btn" id="cIleri">${d.tur === 'harf' ? t('Hadi çizelim ✏️') : t('Hadi oynayalım 🎯')}</button>`; }
-      else if (D.adim === 'ciz') { balon = t('Parmağınla harfin üstünden geç!'); govde = `<article class="kart c-kart"><div class="c-cizim-kap" id="cizimKap"></div><p class="soluk ortala kucukyazi">${t('Harfin çoğunu boyayınca biter.')}</p></article><div class="satir"><button class="btn ikincil" id="cTemizle">${t('Sil')}</button><button class="btn" id="cAtla">${t('Oyuna geç ›')}</button></div>`; }
+      else if (D.adim === 'ciz') { balon = t('Parmağınla harfin üstünden geç!'); govde = `<article class="kart c-kart"><div class="c-cizim-kap" id="cizimKap"></div><p class="c-yon">${t('← Sağdan sola yazılır')}</p><p class="soluk ortala kucukyazi">${t('Harfin çoğunu boyayınca biter.')}</p></article><div class="satir"><button class="btn ikincil" id="cTemizle">${t('Sil')}</button><button class="btn" id="cAtla">${t('Oyuna geç ›')}</button></div>`; }
       else if (D.adim === 'oyun') { const q = D.sorular[D.i]; balon = q.soru; govde = `<article class="kart c-kart c-soru" data-tip="${q.tip}">${soruHTML(q)}</article>`; }
       else {
         const y = D.yildiz; const kalan = DURAK.indexOf(d) + 1 < DURAK.length ? DURAK[DURAK.indexOf(d) + 1] : null;
@@ -356,10 +425,18 @@
           <h2>${esc(OVGU())}</h2>${D.yeniCikartma ? `<p class="c-yeni-cikartma">${t('Yeni çıkartma kazandın:')} <span>${D.yeniCikartma}</span></p>` : ''}</article>
           ${m}
           <div class="satir">${kalan ? `<button class="btn ikincil" data-git="ana">${t('Haritaya dön')}</button><button class="btn" id="cSonraki">${t('Sonraki durak ›')}</button>` : `<button class="btn" data-git="ana">${t('Haritaya dön')}</button>`}</div>
-          ${!kalan ? `<article class="kart c-kart"><h2>${t('🎓 Harf yolculuğunu bitirdin!')}</h2><p>${t('Artık tecvid derslerine hazırsın. Bir büyüğünden profilini “13 ve üstü” yapmasını isteyebilirsin.')}</p></article>` : ''}`;
+          ${!kalan ? `<article class="kart c-kart"><h2>${t('🎓 Harf yolculuğunu bitirdin!')}</h2><p>${t('Artık tecvid derslerine hazırsın. Bir büyüğünle birlikte derslere geçebilirsin.')}</p><button class="btn genis" id="cBuyuge">${t('📘 Tecvid derslerine geç')}</button></article>` : ''}`;
       }
       app.innerHTML = `${ust(esc(d.ad))}<div class="ilerleme c-ilerleme"><div style="width:${ilerle}%"></div></div>
-        <main class="cocuk-ekran"><div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon">${balon}</div></div>${govde}</main>`;
+        <main class="cocuk-ekran"><div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${balon}</span><button class="c-hoparlor" aria-label="${t('Sesli oku')}">🔊</button></div></div>${govde}</main>`;
+      Sesli.acik = S().ayar.sesliYonerge !== false;
+      const sq = D.adim === 'oyun' ? D.sorular[D.i] : null;
+      const sesliMetin = sq ? (sq.sesli || sq.soru) : balon;
+      app.querySelector('.c-hoparlor').onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses); else Sesli.soyle(sesliMetin); };
+      if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => Sesli.soyle(sesliMetin), 200); }
+      app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses));
+      durakSakla();
+      const gec = document.getElementById('cBuyuge'); if (gec) gec.onclick = () => api.buyugeGec();
       const ileri = document.getElementById('cIleri'); if (ileri) ileri.onclick = () => { D.adim = adimlar[adimlar.indexOf('tanis') + 1]; api.ciz(); window.scrollTo(0, 0); };
       if (D.adim === 'ciz') {
         const kap = document.getElementById('cizimKap');
@@ -376,12 +453,13 @@
       document.querySelectorAll('.c-secenek,.c-kutu').forEach(b => b.disabled = true);
       setTimeout(sonra, 950);
     }
-    function yanlisCevap(el, ipucu) {
-      D.hata++; tik(false); el.classList.remove('salla'); void el.offsetWidth; el.classList.add('salla', 'soluk-sec');
+    function yanlisCevap(el, ipucu, dogru, secilen) {
+      D.hata++;
+      if (dogru && secilen && HARF.includes(dogru) && HARF.includes(secilen)) { const c = C(); c.hata = c.hata || {}; const k = dogru + '|' + secilen; c.hata[k] = (c.hata[k] || 0) + 1; kaydet(); } tik(false); el.classList.remove('salla'); void el.offsetWidth; el.classList.add('salla', 'soluk-sec');
       konus(t('Bir daha dene 🙂') + (ipucu ? ' ' + ipucu : ''));
     }
     function sonrakiSoru(d) {
-      if (D.i + 1 < D.sorular.length) { D.i++; api.ciz(); return; }
+      if (D.i + 1 < D.sorular.length) { D.i++; durakSakla(); api.ciz(); return; }
       durakBitir(d);
     }
     function oyunBagla(d) {
@@ -389,12 +467,12 @@
       if (q.tip === 'sec') {
         document.querySelectorAll('.c-secenek').forEach(b => b.onclick = () => {
           const s = q.secenek[+b.dataset.i];
-          if (s === q.dogru) dogruCevap(b, () => sonrakiSoru(d)); else yanlisCevap(b, q.ipucu);
+          if (s === q.dogru) dogruCevap(b, () => sonrakiSoru(d)); else yanlisCevap(b, q.ipucu, q.dogru, s);
         });
       } else if (q.tip === 'sepet') {
         let n = 0; const sepet = document.querySelector('.c-sepet'), ic = sepet.querySelector('.c-sepet-ic'), say = sepet.querySelector('b');
         document.querySelectorAll('.c-kutu').forEach(b => b.onclick = () => {
-          if (b.dataset.h !== q.harf) { yanlisCevap(b, t('Bu {0} değil.', esc(adi(q.harf) || ''))); return; }
+          if (b.dataset.h !== q.harf) { yanlisCevap(b, t('Bu {0} değil.', esc(adi(q.harf) || '')), q.harf, b.dataset.h); return; }
           // harf özenle sepete taşınır
           const r1 = b.getBoundingClientRect(), r2 = sepet.getBoundingClientRect();
           b.style.setProperty('--dx', (r2.left + r2.width / 2 - r1.left - r1.width / 2) + 'px'); b.style.setProperty('--dy', (r2.top + r2.height / 2 - r1.top - r1.height / 2) + 'px');
@@ -413,7 +491,7 @@
       const yeniToplam = toplamYildiz();
       D.yeniCikartma = Math.floor(yeniToplam / CIKARTMA_ADIM) > Math.floor(oncekiToplam / CIKARTMA_ADIM) ? CIKARTMA[Math.min(CIKARTMA.length - 1, Math.floor(yeniToplam / CIKARTMA_ADIM) - 1)] : null;
       seriGuncelle(); kaydet();
-      D.yildiz = y; D.adim = 'bitti'; api.ciz(); window.scrollTo(0, 0);
+      D.yildiz = y; D.adim = 'bitti'; durakSakla(); api.ciz(); window.scrollTo(0, 0);
       setTimeout(() => Konfeti.kutla(), 200);
     }
     function mujde(n) {
@@ -425,7 +503,7 @@
     // ---------------------------------------------------------- ana ekran: Harf Yolculuğu haritası
     const KAYMA = [0, 58, 86, 58, 0, -58, -86, -58];
     EKRAN.cocuk = function () {
-      const p = profil(), s = siradaki(), bugunY = C().gun[bugun()] || 0;
+      const p = profil(), yarim = yarimDurak(), s = yarim ? durakBul(yarim.id) : siradaki(), bugunY = C().gun[bugun()] || 0;
       let harita = '', k = 0;
       ADALAR.forEach(a => {
         const l = DURAK.filter(d => d.ada === a.id), bitti = l.filter(d => yildiz(d.id)).length;
@@ -445,7 +523,7 @@
         <section class="c-kahraman">${MASKOT(86, 'zipla')}<div><p class="c-selam">${ad ? t('Selâmün aleyküm {0}!', ad) : t('Selâmün aleyküm!')}</p>
           <p>${s ? t('Sıradaki durak: <b>{0}</b>', esc(s.ad)) : t('Bütün durakları bitirdin! Maşallah! 🎉')}</p>
           <div class="c-hedef"><span>${bugunY ? '✅' : '🎯'}</span>${bugunY ? t('Bugünkü hedef tamam! Yarın görüşürüz.') : t('Bugünkü hedef: 1 durak')}</div></div></section>
-        ${s ? `<button class="btn genis c-btn" data-durak="${s.id}">${t('▶ Devam et')}</button>` : ''}
+        ${s ? `<button class="btn genis c-btn" data-durak="${s.id}">${yarim ? t('▶ Kaldığın yerden devam et') : t('▶ Devam et')}</button>` : ''}
         <div class="c-harita">${harita}</div>
         <p class="soluk ortala kucukyazi">${t('Kısa ve sık çalışmak en iyisi: her gün bir durak yeter.')}</p>
       </main>`;
@@ -473,6 +551,42 @@
         <div class="c-album">${CIKARTMA.map((e, i) => `<div class="${i < cikSay ? 'acik' : ''}">${i < cikSay ? e : '?'}</div>`).join('')}</div>
         <p class="soluk ortala kucukyazi">${t('Her {0} yıldızda yeni bir çıkartma açılır.', CIKARTMA_ADIM)}</p>
       </main>`;
+    };
+
+    // ---------------------------------------------------------- hoca için: harf seslerini kaydetme
+    let KAYIT = null;   // { k, r }
+    EKRAN.harfSesleri = function (sekme = 'harf') {
+      const app = document.getElementById('app');
+      const hucre = (k, arMetin, etiket) => {
+        const var_ = HarfSes.var(k), kayit = KAYIT && KAYIT.k === k;
+        return `<div class="ses-hucre ${var_ ? 'var' : ''} ${kayit ? 'kayitta' : ''}">${ar(arMetin)}<small>${esc(etiket)}</small>
+          <div class="ses-dugmeler"><button class="ses-kaydet" data-skayit="${k}" aria-label="${t('Kaydet')}">${kayit ? '⏹' : '●'}</button>${var_ ? `<button data-hses="${k}" aria-label="${t('Dinle')}">▶</button><button data-ssil="${k}" aria-label="${t('Sil')}">🗑</button>` : ''}</div></div>`;
+      };
+      const izgara = sekme === 'harf' ? HARF.map(h => hucre('h:' + h, h, adi(h))).join('')
+        : HAREKE_HARF.map(h => [0, 1, 2].map(i => hucre('hr:' + h + ':' + i, h + HAREKE[i], hece(h, i))).join('')).join('');
+      app.innerHTML = `${ust(t('Harf seslerini kaydet'))}<main>
+        <article class="kart"><p>${t('Bir hoca ya da büyük, harflerin okunuşunu kendi sesiyle kaydeder. Çocuk modundaki “Dinle” düğmeleri ve “dinle ve bul” oyunları bu seslerle çalışır.')}</p>
+          <p class="soluk kucukyazi">${t('● ile kaydı başlat, harfi bir kez açık ve doğru mahreçle oku, ⏹ ile bitir (en fazla 3 saniye). Kayıtlar yalnızca bu telefonda saklanır.')}</p></article>
+        <div class="sekmeler"><button class="${sekme === 'harf' ? 'aktif' : ''}" data-ssekme="harf">${t('Harfler')} (${HarfSes.sayi('h:')}/${HARF.length})</button><button class="${sekme === 'hareke' ? 'aktif' : ''}" data-ssekme="hareke">${t('Harekeli heceler')} (${HarfSes.sayi('hr:')}/${HAREKE_HARF.length * 3})</button></div>
+        <div class="ses-izgara ${sekme}">${izgara}</div></main>`;
+      app.querySelectorAll('[data-ssekme]').forEach(b => b.onclick = () => api.ekranDegistir('harfSesleri', b.dataset.ssekme));
+      app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses));
+      app.querySelectorAll('[data-ssil]').forEach(b => b.onclick = async () => { await HarfSes.sil(b.dataset.ssil).catch(() => { }); api.ciz(); });
+      app.querySelectorAll('[data-skayit]').forEach(b => b.onclick = async () => {
+        const k = b.dataset.skayit;
+        if (KAYIT) { const ayni = KAYIT.k === k; KAYIT.r.state !== 'inactive' && KAYIT.r.stop(); if (ayni) return; }
+        if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+        let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+        const parca = []; const r = new MediaRecorder(akis); KAYIT = { k, r };
+        r.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+        r.onstop = async () => {
+          akis.getTracks().forEach(x => x.stop()); clearTimeout(KAYIT && KAYIT.z); KAYIT = null;
+          if (parca.length) { try { await HarfSes.kaydet(k, new Blob(parca, { type: r.mimeType || 'audio/webm' })); toast(t('Kaydedildi ✓')); } catch (e) { toast(t('Kaydedilemedi: ') + (e.message || e)); } }
+          const ek = document.querySelector('.ses-izgara'); if (ek) api.ciz();
+        };
+        r.start(); KAYIT.z = setTimeout(() => r.state !== 'inactive' && r.stop(), 3000);
+        api.ciz();
+      });
     };
 
     return { DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };

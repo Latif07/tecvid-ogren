@@ -77,12 +77,21 @@
     for (;;) { const { done, value } = await okuyucu.read(); if (done) break; parca.push(value); gelen += value.length; ilerleme && ilerleme(Math.min(1, gelen / top)); }
     return new Blob(parca).arrayBuffer();
   }
+  // Model bir kez açılır; aynı anda gelen çağrılar aynı işi bekler, ilerleme herkese bildirilir
+  let acilis = null; const izleyen = new Set();
   async function modelAc(ilerleme) {
     if (oturum) return oturum;
-    const ort = await ortHazir();
-    const buf = await modelIndir(ilerleme);
-    oturum = await ort.InferenceSession.create(new Uint8Array(buf), { executionProviders: ['wasm'] });
-    return oturum;
+    if (ilerleme) izleyen.add(ilerleme);
+    if (!acilis) {
+      acilis = (async () => {
+        const ort = await ortHazir();
+        const buf = await modelIndir(p => izleyen.forEach(f => { try { f(p); } catch (e) { } }));
+        oturum = await ort.InferenceSession.create(new Uint8Array(buf), { executionProviders: ['wasm'] });
+        izleyen.clear(); return oturum;
+      })();
+      acilis.catch(() => { acilis = null; });
+    }
+    return acilis;
   }
 
   // ses kaydını (Blob) 16 kHz mono Float32Array'e çevir
