@@ -18,7 +18,7 @@ const haberVer = () => dinleyiciler.forEach(f => { try { f(kullanici); } catch (
 if (hazir) {
   const app = initializeApp(FIREBASE_CONFIG);
   auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
-  auth.languageCode = 'tr';
+  auth.languageCode = window.DIL === 'en' ? 'en' : 'tr';
   db = getFirestore(app);
   onAuthStateChanged(auth, u => { kullanici = u; haberVer(); });
 }
@@ -34,8 +34,21 @@ const HATA = {
   'auth/too-many-requests': 'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.',
   'auth/network-request-failed': 'İnternet bağlantısı yok. Bağlanınca tekrar dene.',
 };
-const turkce = e => HATA[e && e.code] || (e && e.message) || 'Bilinmeyen hata';
-function hazirMi() { if (!hazir) throw new Error('Hesap sistemi henüz yapılandırılmadı.'); }
+const HATA_EN = {
+  'auth/invalid-email': 'The email address is not valid.',
+  'auth/missing-password': 'Enter a password.',
+  'auth/weak-password': 'The password must be at least 6 characters.',
+  'auth/email-already-in-use': 'An account already exists with this email. Use the Sign in tab.',
+  'auth/invalid-credential': 'Wrong email or password.',
+  'auth/wrong-password': 'Wrong email or password.',
+  'auth/user-not-found': 'No account found with this email.',
+  'auth/too-many-requests': 'Too many attempts. Wait a little and try again.',
+  'auth/network-request-failed': 'No internet connection. Try again when you are online.',
+};
+const EN = window.DIL === 'en';
+const yazi = (tr, en) => EN ? en : tr;
+const turkce = e => (EN ? HATA_EN : HATA)[e && e.code] || (e && e.message) || yazi('Bilinmeyen hata', 'Unknown error');
+function hazirMi() { if (!hazir) throw new Error(yazi('Hesap sistemi henüz yapılandırılmadı.', 'The account system is not configured yet.')); }
 
 window.Bulut = {
   hazir,
@@ -47,13 +60,13 @@ window.Bulut = {
   async googleIle() {
     hazirMi();
     const Cap = window.Capacitor;
-    if (!(Cap && Cap.isNativePlatform && Cap.isNativePlatform())) throw new Error('Google ile giriş telefondaki uygulamada çalışır.');
+    if (!(Cap && Cap.isNativePlatform && Cap.isNativePlatform())) throw new Error(yazi('Google ile giriş telefondaki uygulamada çalışır.', 'Google sign-in works in the phone app.'));
     const FA = Cap.registerPlugin('FirebaseAuthentication');
     let sonuc;
     try { sonuc = await FA.signInWithGoogle(); }
-    catch (e) { throw new Error(/cancel/i.test(e && e.message) ? 'Google girişi iptal edildi.' : 'Google girişi başarısız: ' + (e && e.message)); }
+    catch (e) { throw new Error(/cancel/i.test(e && e.message) ? yazi('Google girişi iptal edildi.', 'Google sign-in was cancelled.') : yazi('Google girişi başarısız: ', 'Google sign-in failed: ') + (e && e.message)); }
     const idToken = sonuc && sonuc.credential && sonuc.credential.idToken;
-    if (!idToken) throw new Error('Google girişi tamamlanamadı.');
+    if (!idToken) throw new Error(yazi('Google girişi tamamlanamadı.', 'Google sign-in could not be completed.'));
     try { return (await signInWithCredential(auth, GoogleAuthProvider.credential(idToken))).user; } catch (e) { throw new Error(turkce(e)); }
   },
   async cikis() {

@@ -47,6 +47,12 @@ Yanlış yaptığın sorular kısa süre sonra tekrar karşına çıkar. Doğru 
 - **Zayıf konular testi** — en çok yanlış yaptığın sorular
 - **Günlük tekrar** — zamanı gelen sorular
 
+### Renkli tecvid, kâri seçimi ve İngilizce
+- **Renkli tecvidli yazı:** Örnek ayetlerde med, ğunne, ihfâ, idğâm, iklâb, kalkale ve okunmayan harfler kendi rengiyle gösterilir (Ayarlar'dan açılıp kapanır; testlerde renkler cevaptan sonra görünür).
+- **Açık / koyu tema** ya da telefona göre otomatik.
+- **Kâri seçimi:** Husarî ve Minşâvî (öğretim ve mürettel), Abdülbâsıt, Afâsî, Sudeys, Mâhir el-Muaykılî, Gâmidî.
+- **English:** Bütün dersler, sorular ve menüler İngilizce de var (Ayarlar → Dil / Language).
+
 ### Geçmiş ve ilerleme
 Her testin **tarihi, puanı, süresi** ve **bir önceki denemeye göre farkı** kaydedilir. Ayrıca puan grafiği, son 5 testin önceki 5 teste göre eğilimi ve konu konu başarı oranın görünür.
 
@@ -99,7 +105,8 @@ Kod `main` dalına her gönderildiğinde GitHub Actions (`.github/workflows/apk.
 
 ## Kaynaklar
 - **Kur'an metni:** King Fahd Complex — Medine mushafı (Hafs), quranenc.com üzerinden ([quran-json](https://github.com/risan/quran-json)), CC BY-SA 4.0
-- **Ayet sesleri:** Hafız Mahmûd Halîl el-Husarî, öğretim tilaveti ([everyayah.com](https://everyayah.com))
+- **Ayet sesleri:** [everyayah.com](https://everyayah.com) arşivi (Husarî, Minşâvî, Abdülbâsıt, Afâsî, Sudeys, Muaykılî, Gâmidî)
+- **Renkli tecvid:** [cpfair/quran-tajweed](https://github.com/cpfair/quran-tajweed) karar ağaçlarıyla üretilen etiketler (CC BY 4.0)
 - **Kelime sesleri:** [Quran.com](https://quran.com)
 - **Tecvid kuralları:** sorularlaislamiyet.com tecvid özeti; Diyanet Mushafları İnceleme Kurulu tebliğleri; SeekersGuidance (vakf işaretleri)
 - **Yazı tipi:** Scheherazade New — SIL International, OFL 1.1

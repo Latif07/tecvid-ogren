@@ -623,7 +623,8 @@ window.TC = (function () {
 
   const KAYNAK = [
     "Kur'an metni: King Fahd Complex (Medine mushafı, Hafs) — quranenc.com üzerinden, quran-json paketi (CC BY-SA 4.0).",
-    "Sesler: Hafız Mahmûd Halîl el-Husarî (öğretim tilaveti) — everyayah.com; kelime sesleri — Quran.com (audio.qurancdn.com).",
+    "Sesler: everyayah.com ayet kayıtları (Husarî, Minşâvî, Abdülbâsıt, Afâsî, Sudeys, Muaykılî, Gâmidî); kelime sesleri — Quran.com (audio.qurancdn.com).",
+    "Renkli tecvid: cpfair/quran-tajweed karar ağaçlarıyla üretilen etiketler (CC BY 4.0).",
     "Tecvid kuralları: sorularlaislamiyet.com tecvid özeti; Diyanet Mushafları İnceleme Kurulu tebliğleri; SeekersGuidance vakf işaretleri.",
     "Yazı tipi: Scheherazade New — SIL International (OFL 1.1).",
     "Hesap ve eşitleme: Firebase (Google) — Apache 2.0 lisanslı SDK."
