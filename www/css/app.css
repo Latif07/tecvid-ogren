@@ -30,10 +30,10 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; background: var(--bg); color: var(--metin); }
-body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: env(safe-area-inset-bottom); }
+body { font: 1rem/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: env(safe-area-inset-bottom); }
 button { font: inherit; color: inherit; cursor: pointer; }
-.ar { font-family: "Mushaf", serif; font-size: 1.45em; line-height: 1.9; direction: rtl; unicode-bidi: isolate; }
-.ar.buyuk { font-size: 2.1em; text-align: center; letter-spacing: .35em; margin: .4em 0; }
+.ar { font-family: "Mushaf", serif; font-size: calc(1.45em * var(--ar-olcek, 1)); line-height: 1.9; direction: rtl; unicode-bidi: isolate; }
+.ar.buyuk { font-size: calc(2.1em * var(--ar-olcek, 1)); text-align: center; letter-spacing: .35em; margin: .4em 0; }
 
 .ust { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: var(--ust-bg); color: #fff; }
 .ust h1 { font-size: 1.08rem; margin: 0; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -96,7 +96,7 @@ main { max-width: 640px; margin: 0 auto; padding: 14px 16px 40px; }
 .sayfa { min-height: 240px; } .sayfa ul, .sayfa ol { padding-left: 20px; } .sayfa li { margin: 6px 0; }
 .sayac { float: right; font-size: .8rem; color: var(--soluk); }
 
-.ayet { font-family: "Mushaf", serif; font-size: 1.85rem; line-height: 2.3; text-align: center; padding: 10px 6px; background: var(--bg); border-radius: 12px; margin: 4px 0 10px; word-spacing: .08em; }
+.ayet { font-family: "Mushaf", serif; font-size: calc(1.85rem * var(--ar-olcek, 1)); line-height: 2.3; text-align: center; padding: 10px 6px; background: var(--bg); border-radius: 12px; margin: 4px 0 10px; word-spacing: .08em; }
 .ayet .isaret { background: var(--isaret); border-radius: 8px; padding: 0 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .ayet .sil { color: var(--soluk); }
 .etiket { font-weight: 700; color: var(--ana); font-size: .9rem; }
@@ -111,7 +111,7 @@ main { max-width: 640px; margin: 0 auto; padding: 14px 16px 40px; }
 .soru h2 { font-size: 1.08rem; margin: 6px 0 12px; }
 .secenekler { display: flex; flex-direction: column; gap: 8px; }
 .secenek { text-align: left; background: var(--bg); border: 1.5px solid var(--cizgi); border-radius: 12px; padding: 12px 14px; min-height: 50px; font-size: 1rem; }
-.secenek .ar { font-size: 1.5em; line-height: 1.6; }
+.secenek .ar { font-size: calc(1.5em * var(--ar-olcek, 1)); line-height: 1.6; }
 .secenek.dogru { background: var(--iyi-bg); border-color: var(--iyi); font-weight: 650; }
 .secenek.yanlis { background: var(--kotu-bg); border-color: var(--kotu); }
 .secenek[disabled] { cursor: default; }
@@ -205,7 +205,7 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .sesbtn.kaydediyor { animation: nabiz 1s infinite; }
 
 /* --- uygulama sûreleri --- */
-.ayet-kart .ayet { font-size: 2rem; line-height: 2.4; text-align: right; }
+.ayet-kart .ayet { font-size: calc(2rem * var(--ar-olcek, 1)); line-height: 2.4; text-align: right; }
 .ayet-kart.caliyor-ayet { border-color: var(--altin); box-shadow: 0 0 0 2px var(--altin); }
 .kelime { cursor: pointer; border-radius: 6px; }
 .kelime:active, .kelime.caliyor { background: var(--isaret); }

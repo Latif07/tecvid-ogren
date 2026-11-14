@@ -44,7 +44,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t('Kaydedilemedi: ') + e.message); }
     clearTimeout(yuklemeZamanlayici); yuklemeZamanlayici = setTimeout(buluta, 1500);
   };
-  function temaUygula() { document.documentElement.dataset.tema = S.ayar.tema || 'sistem'; try { localStorage.setItem('tecvid-ogren.tema', S.ayar.tema || 'sistem'); } catch (e) { } }
+  function temaUygula() { const h = document.documentElement; h.dataset.tema = S.ayar.tema || 'sistem'; h.style.fontSize = Math.round((S.ayar.yazi || 1) * 100) + '%'; h.style.setProperty('--ar-olcek', S.ayar.arYazi || 1); try { localStorage.setItem('tecvid-ogren.tema', S.ayar.tema || 'sistem'); } catch (e) { } }
   temaUygula();
 
   // ------------------------------------------------------------ bulut eşitleme
@@ -147,7 +147,7 @@
   function cal(url, btn, yedekUrl) {
     if (ses) { ses.pause(); document.querySelectorAll('.caliyor').forEach(b => b.classList.remove('caliyor')); }
     if (ses && ses._url === url && !ses._bitti) { ses = null; return; }
-    ses = new Audio(url); ses._url = url; ses.playbackRate = S.ayar.hiz || 1;
+    ses = new Audio(sesKaynak(url)); ses._url = url; ses.playbackRate = S.ayar.hiz || 1;
     btn && btn.classList.add('caliyor');
     const hata = () => {
       btn && btn.classList.remove('caliyor');
@@ -163,6 +163,69 @@
     const b = e.target.closest('[data-ses]'); if (!b) return;
     e.preventDefault(); cal(b.dataset.ses, b, b.dataset.yedek);
   });
+
+  // ------------------------------------------------------------ internetsiz ses (telefona indirme)
+  // Dosyalar uygulamanın kendi klasörüne (DATA/ses/...) iner; indirilen dosyalar varsa internet yerine onlar çalınır.
+  const SES_KEY = 'tecvid-ogren.ses';
+  let yerelSet = new Set(); try { yerelSet = new Set(JSON.parse(localStorage.getItem(SES_KEY) || '[]')); } catch (e) { }
+  let yerelTaban = null;
+  const yerelKaydet = () => { try { localStorage.setItem(SES_KEY, JSON.stringify([...yerelSet])); } catch (e) { } };
+  const FS = () => { const C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() ? C.registerPlugin('Filesystem') : null; };
+  const yerelYol = url => {
+    let m = /everyayah\.com\/data\/([^/]+)\/(\d+\.mp3)$/.exec(url || ''); if (m) return `ea/${m[1]}/${m[2]}`;
+    m = /qurancdn\.com\/wbw\/([\d_]+\.mp3)$/.exec(url || ''); if (m) return `wbw/${m[1]}`;
+    return null;
+  };
+  const sesKaynak = url => {
+    if (!yerelTaban || !url) return url;
+    const y = yerelYol(url); return y && yerelSet.has(y) ? window.Capacitor.convertFileSrc(yerelTaban + '/' + y) : url;
+  };
+  (async () => { const fs = FS(); if (!fs) return; try { yerelTaban = (await fs.getUri({ directory: 'DATA', path: 'ses' })).uri; } catch (e) { } })();
+  // Bir kârinin derslerde ve sûrelerde geçen bütün ayet sesleri + kelime sesleri
+  function indirListesi(klasor, sureN) {
+    const l = new Set();
+    if (sureN) { const x = SURE(sureN); x.ayet.forEach((a, i) => { l.add(ayetUrl(`${sureN}:${i + 1}`, klasor)); a.split(' ').forEach((_, wi) => l.add(kelimeUrl(`${sureN}:${i + 1}`, wi + 1))); }); return [...l]; }
+    Object.keys(AYAH).forEach(r => l.add(ayetUrl(r, klasor)));
+    U.forEach(u => { (u.ornek || []).forEach(ex => (ex.w || []).forEach(w => l.add(kelimeUrl(ex.r, w)))); (u.dinle || []).forEach(d => l.add(kelimeUrl(d.r, d.w))); });
+    (window.SURELER || []).forEach(x => x.ayet.forEach((a, i) => a.split(' ').forEach((_, wi) => l.add(kelimeUrl(`${x.n}:${i + 1}`, wi + 1)))));
+    return [...l];
+  }
+  const indirilenSay = liste => liste.filter(u => yerelSet.has(yerelYol(u))).length;
+  let indirme = null;   // { liste, bitti, hata, iptal, etiket }
+  async function indirBaslat(liste, etiket) {
+    const fs = FS(); if (!fs || indirme) return;
+    const kalan = liste.filter(u => !yerelSet.has(yerelYol(u)));
+    indirme = { toplam: liste.length, bitti: liste.length - kalan.length, hata: 0, iptal: false, etiket };
+    const is = indirme; let sira = 0, ardHata = 0;
+    const isci = async () => {
+      while (!is.iptal && sira < kalan.length) {
+        const url = kalan[sira++], yol = yerelYol(url);
+        try { await fs.downloadFile({ url, path: 'ses/' + yol, directory: 'DATA', recursive: true }); yerelSet.add(yol); is.bitti++; ardHata = 0; if (is.bitti % 10 === 0) yerelKaydet(); }
+        catch (e) { is.hata++; if (++ardHata >= 12) { is.iptal = true; is.agHatasi = true; } }
+        indirmeGoster();
+      }
+    };
+    indirmeGoster();
+    await Promise.all([isci(), isci(), isci(), isci()]);
+    yerelKaydet(); indirme = null;
+    toast(is.agHatasi ? t('İndirme durdu: internet bağlantısı yok.') : is.iptal ? t('İndirme durduruldu.') : is.hata ? t('İndirme bitti ({0} dosya bulunamadı).', is.hata) : t('İndirme bitti ✓ Bu sesler artık internetsiz çalar.'));
+    if (ekranYigini.length && ['indir', 'sure'].includes(ekranYigini[ekranYigini.length - 1][0]) && !oturum) ciz();
+  }
+  function indirmeGoster() {
+    const el = document.getElementById('indirDurum'); if (!el || !indirme) return;
+    const p = Math.round(indirme.bitti / indirme.toplam * 100);
+    el.innerHTML = `<p>${esc(indirme.etiket || '')} ${t('{0}/{1} dosya', indirme.bitti, indirme.toplam)} (${yuzdeStr(p)})</p><div class="bar"><div class="iyi" style="width:${p}%"></div></div>`;
+  }
+  async function kariSesleriniSil(klasor) {
+    const fs = FS(); if (!fs) return;
+    try { await fs.rmdir({ path: 'ses/ea/' + klasor, directory: 'DATA', recursive: true }); } catch (e) { }
+    [...yerelSet].forEach(y => { if (y.startsWith('ea/' + klasor + '/')) yerelSet.delete(y); }); yerelKaydet();
+  }
+  async function butunSesleriSil() {
+    const fs = FS(); if (!fs) return;
+    try { await fs.rmdir({ path: 'ses', directory: 'DATA', recursive: true }); } catch (e) { }
+    yerelSet.clear(); yerelKaydet();
+  }
 
   // ------------------------------------------------------------ kendi sesini kaydet ve karşılaştır
   const KAYIT = {};            // anahtar -> blob url (yalnızca bu oturumda, telefonda tutulur)
@@ -206,7 +269,7 @@
     let i = 0; btn && btn.classList.add('caliyor');
     const sonraki = () => {
       if (i >= urls.length) { btn && btn.classList.remove('caliyor'); ses = null; return; }
-      ses = new Audio(urls[i++]); ses.playbackRate = S.ayar.hiz || 1;
+      ses = new Audio(sesKaynak(urls[i++])); ses.playbackRate = S.ayar.hiz || 1;
       ses.onended = () => setTimeout(sonraki, 600);
       ses.onerror = () => { btn && btn.classList.remove('caliyor'); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
       ses.play().catch(() => btn && btn.classList.remove('caliyor'));
@@ -950,6 +1013,31 @@
     }).catch(e => { if (document.body.contains(yer)) yer.innerHTML = `<article class="kart"><p class="hata">${esc(e.message)}</p><button class="btn" id="tekrarDene">${t('Tekrar dene')}</button></article>`; const b = $('#tekrarDene'); if (b) b.onclick = () => ciz(); });
   };
 
+  EKRAN.indir = function () {
+    const fs = FS();
+    if (!fs) { app.innerHTML = `${ust(t('İnternetsiz ses'))}<main><article class="kart"><p>${t('Sesleri indirme telefondaki uygulamada çalışır.')}</p></article></main>`; return; }
+    const k = kari(), liste = indirListesi(k.klasor), var_ = indirilenSay(liste);
+    const kelimeSay = [...yerelSet].filter(y => y.startsWith('wbw/')).length;
+    const digerleri = KARILER.map(x => ({ x, n: [...yerelSet].filter(y => y.startsWith('ea/' + x.klasor + '/')).length })).filter(o => o.n && o.x.id !== k.id);
+    app.innerHTML = `${ust(t('İnternetsiz ses'))}<main>
+      <article class="kart"><h2>🎙️ ${esc(k.ad)}</h2><p class="soluk">${esc(k.tur)}</p>
+        <p>${t('Derslerdeki örnek ayetler, uygulama sûreleri ve kelime sesleri: {0} dosya.', liste.length)}</p>
+        <div id="indirDurum"><p>${t('{0}/{1} dosya', var_, liste.length)}</p><div class="bar"><div class="iyi" style="width:${Math.round(var_ / liste.length * 100)}%"></div></div></div>
+        <div class="satir sola" style="margin-top:12px">${indirme ? `<button class="btn ikincil" id="indirDur">${t('⏹ Durdur')}</button>`
+          : var_ < liste.length ? `<button class="btn" id="indirBas">${var_ ? t('📥 Kalanları indir') : t('📥 İndir')}</button>` : `<span class="rozet ok">${t('✓ Hepsi indirildi')}</span>`}
+          <button class="btn ikincil" data-git="kariSec">${t('Kâri değiştir')}</button></div>
+        <p class="soluk kucukyazi">${t('Ayet sesleri büyük dosyalardır; Wi-Fi ile indirmen önerilir. İndirilen sesler internet olmadan da çalar.')}</p></article>
+      ${digerleri.length ? `<h2 class="baslik">${t('İndirilmiş diğer kâriler')}</h2>${digerleri.map(o => `<article class="kart kucuk satir" style="justify-content:space-between"><span>${esc(o.x.ad)} <small class="soluk">· ${esc(o.x.tur)} · ${t('{0} dosya', o.n)}</small></span><button class="btn ikincil" data-sil="${o.x.klasor}">${t('Sil')}</button></article>`).join('')}` : ''}
+      <article class="kart"><h2>${t('🗑️ Yer aç')}</h2><p>${t('İndirilen bütün sesleri sil ({0} kelime sesi dahil).', kelimeSay)}</p>
+        <button class="btn tehlike" id="hepsiniSil" ${yerelSet.size ? '' : 'disabled'}>${t('Bütün indirilen sesleri sil')}</button></article>
+    </main>`;
+    const b = $('#indirBas'); if (b) b.onclick = () => { indirBaslat(liste, ''); ciz(); };
+    const d = $('#indirDur'); if (d) d.onclick = () => { if (indirme) indirme.iptal = true; };
+    app.querySelectorAll('[data-sil]').forEach(x => x.onclick = async () => { await kariSesleriniSil(x.dataset.sil); toast(t('Silindi')); ciz(); });
+    $('#hepsiniSil').onclick = async () => { if (!confirm(t('İndirilen bütün sesler silinsin mi?'))) return; if (indirme) indirme.iptal = true; await butunSesleriSil(); toast(t('Silindi')); ciz(); };
+    indirmeGoster();
+  };
+
   EKRAN.sureler = function () {
     app.innerHTML = `${ust(t('Uygulama sûreleri'))}<main>
       <p class="soluk">${t('Önce dinle, sonra oku. Kelimeye dokunursan o kelimeyi dinlersin.')}</p>
@@ -990,7 +1078,7 @@
         document.querySelectorAll('.ayet-kart.caliyor-ayet').forEach(e => e.classList.remove('caliyor-ayet'));
         if (j >= liste.length) { sureCalma = null; $('#hepsi') && ($('#hepsi').textContent = t('▶ Tamamını dinle')); return; }
         const i = liste[j++]; const kart = document.getElementById('ayet-' + i); kart && kart.classList.add('caliyor-ayet'); kart && kart.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        ses = new Audio(ayetUrl(`${n}:${i}`)); ses.playbackRate = S.ayar.hiz || 1;
+        ses = new Audio(sesKaynak(ayetUrl(`${n}:${i}`))); ses.playbackRate = S.ayar.hiz || 1;
         ses.onended = () => setTimeout(sonraki, 500);
         ses.onerror = () => { durdur(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
         ses.play().catch(() => durdur());
@@ -1037,6 +1125,10 @@
       <article class="kart"><h2>${t('🎨 Görünüm')}</h2>
         <p><b>${t('Tema')}</b></p>
         <div class="satir sola">${[['sistem', t('Telefona göre')], ['acik', t('☀️ Açık')], ['koyu', t('🌙 Koyu')]].map(([v, ad]) => `<button class="btn ${tema === v ? '' : 'ikincil'}" data-tema="${v}">${ad}</button>`).join('')}</div>
+        <p style="margin-top:16px"><b>${t('Yazı boyutu')}</b></p>
+        <div class="satir sola">${[[0.9, 'A−'], [1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="btn ${(S.ayar.yazi || 1) === v ? '' : 'ikincil'}" data-yazi="${v}">${ad}</button>`).join('')}</div>
+        <p style="margin-top:12px"><b>${t('Arapça yazı boyutu')}</b></p>
+        <div class="satir sola">${[[0.85, '−'], [1, ''], [1.2, '+'], [1.4, '++']].map(([v, ek]) => `<button class="btn ${(S.ayar.arYazi || 1) === v ? '' : 'ikincil'}" data-aryazi="${v}"><span class="ar" style="font-size:1.2em;line-height:1">ع</span>${ek}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Renkli tecvid yazısı')}</b></p>
         <p class="soluk">${t('Örnek ayetlerde her tecvid kuralı kendi rengiyle gösterilir. Testlerde renkler cevabı ele vermesin diye cevaptan sonra görünür.')}</p>
         <div class="satir sola"><button class="btn ${S.ayar.renkli ? '' : 'ikincil'}" data-renkli="1">${t('Açık')}</button><button class="btn ${S.ayar.renkli ? 'ikincil' : ''}" data-renkli="0">${t('Kapalı')}</button></div>
@@ -1048,7 +1140,7 @@
           <label>${t('Saat:')} <input type="time" id="hatirSaat" value="${esc(hat.saat || '20:00')}" style="font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)"></label></div>
         ${LN() ? '' : `<p class="soluk kucukyazi">${t('Bildirimler telefondaki uygulamada çalışır.')}</p>`}</article>
       <article class="kart"><h2>${t('🎙️ Kâri')}</h2><p>${esc(kari().ad)} · <span class="soluk">${esc(kari().tur)}</span></p>
-        <button class="btn" data-git="kariSec">${t('Kâri seç')}</button></article>
+        <div class="satir sola"><button class="btn" data-git="kariSec">${t('Kâri seç')}</button><button class="btn ikincil" data-git="indir">${t('📥 İnternetsiz ses')}</button></div></article>
       <article class="kart"><h2>${t('🔊 Ses hızı')}</h2>
         <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div></article>
       <article class="kart"><h2>${t('👤 Hesap')}</h2><p>${hk ? t('Giriş yapıldı: ') + '<b>' + esc(hk.email || '') + '</b>' : t('Giriş yapmadın. Verilerin sadece bu telefonda.')}</p>
@@ -1067,6 +1159,8 @@
     </main>`;
     app.querySelectorAll('[data-dil]').forEach(b => b.onclick = () => { if (b.dataset.dil === DIL) return; try { localStorage.setItem('tecvid-ogren.dil', b.dataset.dil); } catch (e) { } location.reload(); });
     app.querySelectorAll('[data-tema]').forEach(b => b.onclick = () => { S.ayar.tema = b.dataset.tema; temaUygula(); kaydet(); ciz(); });
+    app.querySelectorAll('[data-yazi]').forEach(b => b.onclick = () => { S.ayar.yazi = +b.dataset.yazi; temaUygula(); kaydet(); ciz(); });
+    app.querySelectorAll('[data-aryazi]').forEach(b => b.onclick = () => { S.ayar.arYazi = +b.dataset.aryazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-renkli]').forEach(b => b.onclick = () => { S.ayar.renkli = b.dataset.renkli === '1'; kaydet(); ciz(); });
     const hatirAyarla = async (acik, saat) => {
       S.ayar.hatirlat = { acik, saat }; kaydet();
