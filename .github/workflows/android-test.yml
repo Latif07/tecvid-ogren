@@ -25,20 +25,22 @@ jobs:
       - name: Emülatörde dene
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 34
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          ram-size: 4096M
+          heap-size: 1024M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
+            mkdir -p tools/android-test/cikti
+            nohup adb logcat -v time > tools/android-test/cikti/logcat-tum.txt 2>&1 &
             adb install -r tecvid-ogren.apk
             adb shell pm grant com.latif07.tecvidogren android.permission.RECORD_AUDIO || true
             adb shell am start -n com.latif07.tecvidogren/.MainActivity
             sleep 20
-            mkdir -p tools/android-test/cikti
             timeout 600 python3 tools/android-test/test.py || true
-            timeout 30 adb logcat -d > tools/android-test/cikti/logcat-tum.txt || true
             grep -iE 'Capacitor|chromium|AndroidRuntime|ANR|tecvidogren|FATAL' tools/android-test/cikti/logcat-tum.txt | tail -300 > tools/android-test/cikti/logcat.txt || true
             tail -120 tools/android-test/cikti/logcat.txt || true
             find tools/android-test/cikti -size 0 -delete || true

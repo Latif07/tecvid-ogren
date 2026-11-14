@@ -325,3 +325,5 @@ details.kural-ara summary { color: var(--soluk); font-size: .85rem; cursor: poin
 .hadis-kart .ar { display: block; font-size: calc(1.35rem * var(--ar-olcek, 1)); color: var(--ana); line-height: 1.7; }
 .hadis-kart p { margin: 0; font-size: .9rem; color: var(--soluk); }
 .hadis-kart small { display: block; font-size: .72rem; margin-top: 2px; }
+.ust img.logo { width: 34px; height: 34px; border-radius: 9px; flex: none; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+img.acilis-logo { width: 132px; height: 132px; border-radius: 30px; box-shadow: 0 8px 28px rgba(0,0,0,.35); }

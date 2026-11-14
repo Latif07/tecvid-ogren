@@ -500,7 +500,7 @@
     const kok = ekranYigini.length === 1 && SEKMELER.some(x => x[0] === ad) && !oturum;
     document.body.classList.toggle('sekmeli', kok);
     if (!kok) return;
-    const g = app.querySelector('.ust .geri'); if (g) g.outerHTML = '<span class="logo">۞</span>';
+    const g = app.querySelector('.ust .geri'); if (g) g.outerHTML = '<img class="logo" src="icons/icon-192.png" alt="">';
     app.insertAdjacentHTML('beforeend', `<nav class="alt-menu">${SEKMELER.map(([k, ik, ad_]) => `<button class="${k === ad ? 'aktif' : ''}" data-sekme-git="${k}"><span>${ik}</span>${t(ad_)}</button>`).join('')}</nav>`);
     app.querySelectorAll('[data-sekme-git]').forEach(b => b.onclick = () => { if (b.dataset.sekmeGit === ad) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; } ekranYigini = [[b.dataset.sekmeGit, []]]; ciz(); window.scrollTo(0, 0); });
   }
@@ -511,7 +511,7 @@
     if (CapApp) CapApp.addListener('backButton', () => { if (ekranYigini.length > 1) geri(); else if (ekranYigini[0][0] !== 'ana') anaSayfa(); else CapApp.exitApp(); });
   } catch (e) { /* tarayıcıda yok */ }
 
-  const ust = (baslik, geriVar = true, sag = '') => `<header class="ust">${geriVar ? `<button class="geri" data-git="geri" aria-label="${t('Geri')}">‹</button>` : '<span class="logo">۞</span>'}<h1>${baslik}</h1>${sag}</header>`;
+  const ust = (baslik, geriVar = true, sag = '') => `<header class="ust">${geriVar ? `<button class="geri" data-git="geri" aria-label="${t('Geri')}">‹</button>` : '<img class="logo" src="icons/icon-192.png" alt="">'}<h1>${baslik}</h1>${sag}</header>`;
   app.addEventListener('click', e => {
     const g = e.target.closest('[data-git]'); if (!g) return;
     const hedef = g.dataset.git;
@@ -1785,6 +1785,9 @@
         <div class="satir sola"><button class="btn ikincil" id="geriyukle">${t('Geri yükle')}</button></div></article>
       <article class="kart"><h2>${t('📚 Kaynaklar')}</h2><ul class="kaynak">${KAYNAK.map(k => `<li>${esc(k)}</li>`).join('')}</ul>
         <p class="soluk">${t('Tecvid kulakla öğrenilen bir ilimdir. Bu uygulama bir hocadan ders almanın yerini tutmaz, onu destekler.')}</p></article>
+      <article class="kart"><h2>${t('🐞 Hata kaydı')}</h2><p class="soluk">${t('Uygulamada bir sorun olursa burada görünür. Kopyalayıp bize gönderebilirsin.')}</p>
+        <textarea id="hataKaydi" rows="4" readonly>${esc((() => { try { return JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]').join('\n') || t('Kayıtlı hata yok.'); } catch (e) { return ''; } })())}</textarea>
+        <p class="soluk kucukyazi">${esc(navigator.userAgent)}</p></article>
       <article class="kart"><h2>${t('⚠️ Sıfırla')}</h2><p>${t('Bütün ilerleme ve geçmiş silinir.')}</p><button class="btn tehlike" id="sifirla">${t('Her şeyi sıfırla')}</button></article>
     </main>`;
     app.querySelectorAll('[data-dil]').forEach(b => b.onclick = () => { if (b.dataset.dil === DIL) return; try { localStorage.setItem('tecvid-ogren.dil', b.dataset.dil); } catch (e) { } location.reload(); });
@@ -1865,7 +1868,7 @@
   function acilisGoster() {
     if (navigator.webdriver) return;   // otomatik testlerde atla
     const d = document.createElement('div'); d.className = 'acilis';
-    d.innerHTML = `<div class="acilis-ic"><div class="acilis-logo">۞</div><h1>${t('Hüsn-i Kıraat')}</h1>
+    d.innerHTML = `<div class="acilis-ic"><img class="acilis-logo" src="icons/icon-512.png" alt=""><h1>${t('Hüsn-i Kıraat')}</h1>
       <p class="acilis-ar" dir="rtl" lang="ar">${HADIS_AR}</p><p class="acilis-tr">${hadisMetni()}</p><p class="acilis-kaynak">${hadisKaynak()}</p>
       <p class="acilis-dokun">${t('Devam etmek için dokun')}</p></div>`;
     document.body.appendChild(d);

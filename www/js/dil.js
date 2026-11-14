@@ -5,10 +5,20 @@
   try { dil = localStorage.getItem('tecvid-ogren.dil') || 'tr'; } catch (e) { }
   if (dil !== 'en') dil = 'tr';
   window.DIL = dil;
+  // Hata kaydı: telefondaki sorunları görebilmek için son 30 hata saklanır (Ayarlar → Hata kaydı)
+  function hataKaydet(m) {
+    try { var l = JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]'); l.push(new Date().toISOString().slice(0, 19) + ' ' + String(m).slice(0, 400)); localStorage.setItem('tecvid-ogren.hatalar', JSON.stringify(l.slice(-30))); } catch (e) { }
+  }
+  window.addEventListener('error', function (e) { hataKaydet((e.message || 'hata') + ' @' + (e.filename || '').split('/').pop() + ':' + (e.lineno || '')); });
+  window.addEventListener('unhandledrejection', function (e) { hataKaydet('promise: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason)); });
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "🐞 Hata kaydı": "🐞 Error log",
+ "Uygulamada bir sorun olursa burada görünür. Kopyalayıp bize gönderebilirsin.": "If something goes wrong in the app it appears here. You can copy it and send it to us.",
+ "Kayıtlı hata yok.": "No errors recorded.",
+
  "“Sizin en hayırlınız Kur'an'ı öğrenen ve öğretendir.”": "“The best of you are those who learn the Qur'an and teach it.”",
  "Buhârî, Fezâilü'l-Kur'ân 21": "al-Bukhārī, Faḍāʾil al-Qurʾān 21 (no. 5027)",
  "Devam etmek için dokun": "Tap to continue",
