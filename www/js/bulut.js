@@ -7,7 +7,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
   GoogleAuthProvider, signInWithCredential, signOut
 } from './firebase/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from './firebase/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, serverTimestamp } from './firebase/firebase-firestore.js';
 import { FIREBASE_CONFIG } from './firebase-config.js';
 
 const hazir = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('BURAYA');
@@ -84,4 +84,48 @@ window.Bulut = {
     await setDoc(doc(db, 'users', kullanici.uid), { veri: JSON.stringify(veri), guncelleme: serverTimestamp(), eposta: kullanici.email || '' });
   }
 };
+
+// ---------------------------------------------------------------- sınıflar (hoca–öğrenci)
+// classes/{kod}: { hocaUid, ad, odev?, olusturma }   classes/{kod}/ogrenciler/{uid}: { ad, ozet, guncelleme }
+const KOD_HARF = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const yeniKod = () => Array.from({ length: 6 }, () => KOD_HARF[Math.floor(Math.random() * KOD_HARF.length)]).join('');
+function girisGerekli() { hazirMi(); if (!kullanici) throw new Error(yazi('Önce giriş yapmalısın.', 'You need to sign in first.')); }
+const agHatasi = e => { const m = String(e && (e.code || e.message) || ''); if (/permission/i.test(m)) return new Error(yazi('Bu işlem için izin yok. Sınıf kodunu kontrol et.', 'Permission denied. Check the class code.')); if (/unavailable|network|offline/i.test(m)) return new Error(yazi('İnternet bağlantısı yok.', 'No internet connection.')); return e instanceof Error ? e : new Error(m); };
+Object.assign(window.Bulut, {
+  async sinifOlustur(ad) {
+    girisGerekli();
+    for (let i = 0; i < 5; i++) {
+      const kod = yeniKod(); const ref = doc(db, 'classes', kod);
+      try { if ((await getDoc(ref)).exists()) continue; } catch (e) { if (!/permission/i.test(String(e.code))) throw agHatasi(e); }
+      try { await setDoc(ref, { hocaUid: kullanici.uid, ad: String(ad).slice(0, 60), olusturma: serverTimestamp() }); return kod; } catch (e) { throw agHatasi(e); }
+    }
+    throw new Error(yazi('Sınıf kodu üretilemedi, tekrar dene.', 'Could not create a class code, try again.'));
+  },
+  async sinifGetir(kod) {
+    girisGerekli();
+    try { const s = await getDoc(doc(db, 'classes', kod)); return s.exists() ? Object.assign({ kod }, s.data()) : null; } catch (e) { throw agHatasi(e); }
+  },
+  async siniflarim() {
+    girisGerekli();
+    try { const q = await getDocs(query(collection(db, 'classes'), where('hocaUid', '==', kullanici.uid))); return q.docs.map(d => Object.assign({ kod: d.id }, d.data())); } catch (e) { throw agHatasi(e); }
+  },
+  async sinifaKatil(kod, ad, ozet) {
+    girisGerekli();
+    const s = await this.sinifGetir(kod); if (!s) throw new Error(yazi('Bu kodla bir sınıf bulunamadı.', 'No class found with this code.'));
+    try { await setDoc(doc(db, 'classes', kod, 'ogrenciler', kullanici.uid), { ad: String(ad).slice(0, 60), ozet: ozet || {}, guncelleme: serverTimestamp() }); } catch (e) { throw agHatasi(e); }
+    return s;
+  },
+  async ozetGonder(kod, ad, ozet) {
+    if (!kullanici || !kod) return;
+    try { await setDoc(doc(db, 'classes', kod, 'ogrenciler', kullanici.uid), { ad: String(ad).slice(0, 60), ozet, guncelleme: serverTimestamp() }); } catch (e) { /* sonra tekrar denenir */ }
+  },
+  async siniftanAyril(kod) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod, 'ogrenciler', kullanici.uid)); } catch (e) { throw agHatasi(e); } },
+  async ogrenciler(kod) {
+    girisGerekli();
+    try { const q = await getDocs(collection(db, 'classes', kod, 'ogrenciler')); return q.docs.map(d => Object.assign({ uid: d.id }, d.data(), { guncelleme: d.data().guncelleme ? d.data().guncelleme.toMillis() : null })); } catch (e) { throw agHatasi(e); }
+  },
+  async odevVer(kod, odev) { girisGerekli(); try { await updateDoc(doc(db, 'classes', kod), { odev: odev || null }); } catch (e) { throw agHatasi(e); } },
+  async ogrenciCikar(kod, uid) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod, 'ogrenciler', uid)); } catch (e) { throw agHatasi(e); } },
+  async sinifSil(kod) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod)); } catch (e) { throw agHatasi(e); } }
+});
 window.dispatchEvent(new Event('bulut-hazir'));

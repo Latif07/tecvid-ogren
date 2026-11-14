@@ -211,3 +211,12 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .kelime:active, .kelime.caliyor { background: var(--isaret); }
 .ayet-no { font-size: .8em; color: var(--altin); }
 .besmele { font-size: 1.9rem; }
+/* sınıf */
+.sinif-kod { font: 800 2.2rem/1.2 ui-monospace, monospace; letter-spacing: .25em; color: var(--ana); margin: 8px 0 14px; user-select: all; }
+.ogrenci summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.ogrenci summary::-webkit-details-marker { display: none; }
+.ogrenci summary .bad { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.ogrenci summary small { color: var(--soluk); font-size: .78rem; }
+.ogrenci[open] summary { border-bottom: 1px solid var(--cizgi); padding-bottom: 8px; }
+.tehlike-yazi { color: var(--kotu); }
+.form select { font: inherit; border-radius: 12px; }

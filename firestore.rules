@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Her kullanıcı yalnızca kendi ilerlemesini okur/yazar
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    // Sınıflar: kodu bilen giriş yapmış kullanıcı sınıfı görebilir (katılmak ve ödevi görmek için)
+    match /classes/{kod} {
+      allow get: if request.auth != null;
+      allow list: if request.auth != null && resource.data.hocaUid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.hocaUid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.hocaUid == request.auth.uid
+                    && request.resource.data.hocaUid == resource.data.hocaUid;
+      allow delete: if request.auth != null && resource.data.hocaUid == request.auth.uid;
+      // Öğrenci kendi kaydını yazar; hoca sınıfındaki öğrencileri görür ve çıkarabilir
+      match /ogrenciler/{uid} {
+        allow read: if request.auth != null && (request.auth.uid == uid
+                    || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid);
+        allow create, update: if request.auth != null && request.auth.uid == uid
+                    && exists(/databases/$(database)/documents/classes/$(kod));
+        allow delete: if request.auth != null && (request.auth.uid == uid
+                    || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid);
+      }
+    }
+  }
+}

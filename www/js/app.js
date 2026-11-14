@@ -67,6 +67,7 @@
     r.seri = (sa.son || '') > (sb.son || '') ? sa : (sb.son || '') > (sa.son || '') ? sb : { son: sa.son || '', gun: Math.max(sa.gun || 0, sb.gun || 0) };
     r.degisti = Math.max(a.degisti || 0, b.degisti || 0);
     r.hesapUyariKapali = a.hesapUyariKapali || b.hesapUyariKapali;
+    r.sinif = 'sinif' in a ? a.sinif : b.sinif || null;
     r.sure = {}; for (const n of new Set([...Object.keys(a.sure || {}), ...Object.keys(b.sure || {})])) { const x = (a.sure || {})[n] || {}, y = (b.sure || {})[n] || {}; r.sure[n] = { en: Math.max(x.en || 0, y.en || 0) || null, dinlendi: Math.max(x.dinlendi || 0, y.dinlendi || 0) || null }; }
     return r;
   }
@@ -76,7 +77,7 @@
     try {
       const uzak = await B().indir();
       if (uzak && (uzak.degisti || 0) > (S.degisti || 0) - 1) { S = birlestir(S, Object.assign(bos(), uzak)); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
-      await B().yukle(S); sonEsitleme = Date.now();
+      await B().yukle(S); sonEsitleme = Date.now(); ozetiGonder();
     } catch (e) { /* internet yoksa sonra tekrar denenir */ }
     finally { esitleniyor = false; }
   }
@@ -87,7 +88,7 @@
       const uzak = await B().indir();
       if (uzak) S = birlestir(S, Object.assign(bos(), uzak));
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
-      await B().yukle(S); sonEsitleme = Date.now(); temaUygula();
+      await B().yukle(S); sonEsitleme = Date.now(); temaUygula(); ozetiGonder();
       if (!sessiz) toast(t('Verilerin hesabınla eşitlendi ✓'));
     } catch (e) { if (!sessiz) toast(t('Eşitlenemedi: ') + (e.message || t('internet bağlantısı yok'))); }
     finally { esitleniyor = false; }
@@ -425,6 +426,7 @@
           <p class="soluk">${t('🔥 {0} günlük seri', S.seri.gun || 0)}</p>
           ${siradaki ? `<button class="btn" data-git="${siradaki.ara ? 'sinavGiris|' + siradaki.id : 'ders|' + siradaki.id}">${t('Devam et')}</button>` : ''}</div>
         </section>
+        <div id="odevYer"></div>
         <section class="kart tekrar ${vade ? 'vurgulu' : ''}">
           <div><h2>${t('🔁 Günlük tekrar')}</h2><p>${vade ? t('<b>{0}</b> soru tekrar zamanı geldi. Unutmamak için şimdi çöz.', vade) : t('Şu an tekrar bekleyen soru yok. Harika!')}</p></div>
           ${vade ? `<button class="btn" data-git="tekrarBasla">${t('Başla')}</button>` : ''}
@@ -445,6 +447,7 @@
         <p class="soluk kucukyazi">${t('🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, {0} alınca bölüm açılır.', yuzdeStr(GECME))}</p>
         <div class="bolumler">${liste}</div>
       </main>`;
+    odevKartiDoldur();
     const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
   };
 
@@ -740,12 +743,13 @@
           <p class="soluk">${sonEsitleme ? t('Son eşitleme: ') + tarihStr(sonEsitleme) : t('Eşitleme bekleniyor…')}</p>
           <p>${t('İlerlemen, test geçmişin ve açtığın bölümler bu hesapta saklanır. Başka bir telefonda aynı hesapla girersen kaldığın yerden devam edersin.')}</p>
           <button class="btn genis" id="esitle">${t('🔄 Şimdi eşitle')}</button>
+          <button class="btn genis ikincil" data-git="sinif">${t('👨‍🏫 Sınıf (hoca–öğrenci)')}</button>
           <button class="btn genis ikincil" id="cikis">${t('Çıkış yap')}</button></article></main>`;
       $('#esitle').onclick = () => esitle(false);
       $('#cikis').onclick = async () => {
         if (!confirm(t('Çıkış yapılsın mı? İlerlemen hesabında kalır; bu telefondan silinir.'))) return;
         try { await b.yukle(S); } catch (e) { if (!confirm(t('Son değişiklikler hesaba yüklenemedi (internet yok). Yine de çıkış yapılsın mı? Yüklenmemiş ilerleme kaybolur.'))) return; }
-        await b.cikis(); const ayar = S.ayar; S = bos(); S.ayar = ayar; S.hesapUyariKapali = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+        await b.cikis(); sinifBilgi = null; const ayar = S.ayar; S = bos(); S.ayar = ayar; S.hesapUyariKapali = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
         toast(t('Çıkış yapıldı')); anaSayfa();
       };
       return;
@@ -780,6 +784,170 @@
       const ep = $('#eposta').value; if (!ep) return hata(t('Önce e-posta adresini yaz.'));
       try { await b.sifreSifirla(ep); toast(t('Şifre sıfırlama bağlantısı e-postana gönderildi')); } catch (x) { hata(x.message); }
     };
+  };
+
+  // ------------------------------------------------------------ sınıf (hoca–öğrenci)
+  // Öğrenci: S.sinif = { kod, ad, sinifAd }. Özet, eşitlemede sınıfa gönderilir; hoca sadece bu özeti görür.
+  let sinifBilgi = null, sinifBilgiZaman = 0;
+  const odevSonStr = s => s ? new Date(s + 'T12:00:00').toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long' }) : '';
+  function ozetHazirla() {
+    const b = {}; U.forEach(u => { const il = S.ilerleme[u.id]; if (il && (il.deneme || il.gecti)) b[u.id] = [il.en || 0, il.gecti ? 1 : 0]; });
+    const son = S.gecmis.slice(-8).reverse().map(h => ({ k: h.kimlik || null, b: h.baslik, y: h.yuzde, t: h.tarih }));
+    return { gecilen: U.filter(u => gecti(u.id)).length, toplam: U.length, b, son, seri: S.seri.gun || 0, seriSon: S.seri.son || '', test: S.gecmis.length, tekrar: vadesiGelenler().length, zaman: Date.now() };
+  }
+  async function ozetiGonder() {
+    if (!girisli() || !S.sinif || !B().ozetGonder) return;
+    await B().ozetGonder(S.sinif.kod, S.sinif.ad, ozetHazirla());
+  }
+  async function sinifBilgiGetir(zorla) {
+    if (!girisli() || !S.sinif) { sinifBilgi = null; return null; }
+    if (!zorla && sinifBilgi && sinifBilgi.kod === S.sinif.kod && Date.now() - sinifBilgiZaman < 10 * 60000) return sinifBilgi;
+    try {
+      const s = await B().sinifGetir(S.sinif.kod);
+      if (!s) { toast(t('Sınıfın hocası sınıfı kapattı.')); S.sinif = null; sinifBilgi = null; kaydet(); return null; }
+      sinifBilgi = s; sinifBilgiZaman = Date.now(); return s;
+    } catch (e) { return sinifBilgi; }
+  }
+  // Ana sayfadaki ödev kartı (önce boş yer, sonra doldurulur)
+  function odevKartiDoldur() {
+    const yer = $('#odevYer'); if (!yer || !S.sinif) return;
+    sinifBilgiGetir().then(s => {
+      if (!document.body.contains(yer)) return;
+      if (!s || !s.odev || !s.odev.birim || !unitById(s.odev.birim)) { yer.innerHTML = ''; return; }
+      const o = s.odev, u = unitById(o.birim), bitti = gecti(o.birim);
+      const gecikti = o.son && !bitti && o.son < bugun();
+      yer.innerHTML = `<section class="kart tekrar ${bitti ? '' : 'vurgulu'}" style="margin-bottom:14px"><div><h2>${t('📌 Ödev')} · <span class="soluk" style="font-weight:500">${esc(s.ad || '')}</span></h2>
+        <p><b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ` · ${gecikti ? '<span class="kirmizi">' : ''}${t('son gün: {0}', odevSonStr(o.son))}${gecikti ? '</span>' : ''}` : ''}</p>
+        ${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}
+        <p>${bitti ? `<span class="yesil">${t('✓ Tamamladın ({0})', yuzdeStr(S.ilerleme[o.birim].en))}</span>` : t('Bölüm testinden {0} al, ödev tamamlansın.', yuzdeStr(GECME))}</p></div>
+        ${bitti ? '' : `<button class="btn" data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}">${t('Başla')}</button>`}</section>`;
+    });
+  }
+
+  function girisIste(baslik) {
+    app.innerHTML = `${ust(baslik)}<main><article class="kart"><h2>${t('Önce giriş yap')}</h2>
+      <p>${t('Sınıflar internet üzerinden çalışır. Hoca da öğrenci de bir hesapla giriş yapmalı.')}</p>
+      <button class="btn" data-git="hesap">${t('Giriş yap / Hesap aç')}</button></article></main>`;
+  }
+
+  EKRAN.sinif = function () {
+    if (!B() || !B().hazir || !girisli()) return girisIste(t('Sınıf'));
+    const k = B().kullanici();
+    const varsayilanAd = (S.sinif && S.sinif.ad) || k.displayName || (k.email || '').split('@')[0];
+    const ogr = S.sinif;
+    app.innerHTML = `${ust(t('Sınıf'))}<main>
+      <p class="soluk">${t('Hoca sınıf açar ve kodunu öğrencilerine verir. Öğrenci kodu girip katılır; hoca öğrencilerinin ilerlemesini görür ve ödev verir.')}</p>
+      <h2 class="baslik">${t('🎓 Öğrenciyim')}</h2>
+      ${ogr ? `<article class="kart"><h2>${esc(ogr.sinifAd || '')} <span class="rozet ok">${esc(ogr.kod)}</span></h2>
+          <p>${t('Sınıfta görünen adın: ')}<b>${esc(ogr.ad)}</b></p>
+          <div id="ogrOdev"><p class="soluk">${t('Yükleniyor…')}</p></div>
+          <p class="soluk kucukyazi">${t('Hocan; geçtiğin bölümleri, puanlarını, son testlerini ve serini görür. Başka hiçbir şey paylaşılmaz.')}</p>
+          <div class="satir sola"><button class="btn" id="ozetGonder">${t('🔄 İlerlememi şimdi gönder')}</button><button class="btn ikincil" id="ayril">${t('Sınıftan ayrıl')}</button></div></article>`
+        : `<article class="kart form"><label>${t('Sınıf kodu')}<input id="kod" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="${t('ör. K7M2QX')}" style="text-transform:uppercase;letter-spacing:.2em"></label>
+          <label>${t('Adın (hocan bu adı görür)')}<input id="ad" maxlength="40" value="${esc(varsayilanAd)}"></label>
+          <p class="hata" id="hata1"></p><button class="btn genis" id="katil">${t('Sınıfa katıl')}</button></article>`}
+      <h2 class="baslik">${t('👨‍🏫 Hocayım')}</h2>
+      <article class="kart form"><label>${t('Yeni sınıfın adı')}<input id="sinifAd" maxlength="60" placeholder="${t('ör. Cuma kursu')}"></label>
+        <p class="hata" id="hata2"></p><button class="btn genis" id="olustur">${t('Sınıf oluştur')}</button></article>
+      <div id="siniflarim" class="bolumler"><p class="soluk">${t('Sınıfların yükleniyor…')}</p></div>
+    </main>`;
+    const mesgul = (btn, v) => { btn.disabled = v; btn.dataset.yazi = btn.dataset.yazi || btn.textContent; btn.textContent = v ? t('Bekle…') : btn.dataset.yazi; };
+    if (ogr) {
+      sinifBilgiGetir(true).then(s => {
+        const yer = $('#ogrOdev'); if (!yer) return;
+        if (!s) { yer.innerHTML = `<p class="soluk">${t('Sınıf bilgisi alınamadı (internet yok olabilir).')}</p>`; return; }
+        const o = s.odev, u = o && unitById(o.birim);
+        yer.innerHTML = u ? `<p>${t('📌 Ödev: ')}<b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ' · ' + t('son gün: {0}', odevSonStr(o.son)) : ''} ${gecti(u.id) ? '<span class="yesil">✓</span>' : ''}</p>${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}` : `<p class="soluk">${t('Şu an verilmiş bir ödev yok.')}</p>`;
+      });
+      $('#ozetGonder').onclick = async e => { mesgul(e.currentTarget, true); try { await B().ozetGonder(ogr.kod, ogr.ad, ozetHazirla()); toast(t('İlerlemen hocana gönderildi ✓')); } finally { mesgul($('#ozetGonder'), false); } };
+      $('#ayril').onclick = async () => {
+        if (!confirm(t('Sınıftan ayrılmak istiyor musun? Hocan artık ilerlemeni göremez.'))) return;
+        try { await B().siniftanAyril(ogr.kod); } catch (e) { if (!/izin|Permission/i.test(e.message)) return toast(e.message); }
+        S.sinif = null; sinifBilgi = null; kaydet(); toast(t('Sınıftan ayrıldın')); ciz();
+      };
+    } else {
+      $('#katil').onclick = async e => {
+        const kod = $('#kod').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ad = $('#ad').value.trim();
+        const h = m => { $('#hata1').textContent = m || ''; }; h();
+        if (kod.length !== 6) return h(t('Sınıf kodu 6 karakterdir.'));
+        if (!ad) return h(t('Adını yaz.'));
+        const btn = e.currentTarget; mesgul(btn, true);
+        try { const s = await B().sinifaKatil(kod, ad, ozetHazirla()); S.sinif = { kod, ad, sinifAd: s.ad || '' }; sinifBilgi = s; sinifBilgiZaman = Date.now(); kaydet(); toast(t('Sınıfa katıldın ✓')); ciz(); }
+        catch (x) { h(x.message); mesgul(btn, false); }
+      };
+    }
+    $('#olustur').onclick = async e => {
+      const ad = $('#sinifAd').value.trim(); const h = m => { $('#hata2').textContent = m || ''; }; h();
+      if (!ad) return h(t('Sınıfa bir ad ver.'));
+      const btn = e.currentTarget; mesgul(btn, true);
+      try { const kod = await B().sinifOlustur(ad); toast(t('Sınıf oluşturuldu ✓')); git('sinifDetay', kod); }
+      catch (x) { h(x.message); mesgul(btn, false); }
+    };
+    B().siniflarim().then(l => {
+      const yer = $('#siniflarim'); if (!yer) return;
+      l.sort((a, b) => ((b.olusturma && b.olusturma.toMillis ? b.olusturma.toMillis() : 0) - (a.olusturma && a.olusturma.toMillis ? a.olusturma.toMillis() : 0)));
+      yer.innerHTML = l.length ? l.map(s => `<button class="bolum" data-git="sinifDetay|${esc(s.kod)}"><span class="ikon">👥</span><span class="bad"><small>${esc(s.kod)}</small>${esc(s.ad || '')}</span><span class="rozet">›</span></button>`).join('')
+        : `<p class="soluk">${t('Henüz bir sınıf açmadın.')}</p>`;
+    }).catch(e => { const yer = $('#siniflarim'); if (yer) yer.innerHTML = `<p class="hata">${esc(e.message)}</p>`; });
+  };
+
+  EKRAN.sinifDetay = function (kod) {
+    if (!B() || !B().hazir || !girisli()) return girisIste(t('Sınıf'));
+    app.innerHTML = `${ust(t('Sınıf'))}<main id="sd"><p class="soluk">${t('Yükleniyor…')}</p></main>`;
+    const yer = $('#sd');
+    Promise.all([B().sinifGetir(kod), B().ogrenciler(kod)]).then(([s, ogrenciler]) => {
+      if (!document.body.contains(yer)) return;
+      if (!s) { yer.innerHTML = `<p class="hata">${t('Bu kodla bir sınıf bulunamadı.')}</p>`; return; }
+      const o = s.odev || {};
+      ogrenciler.sort((a, b) => ((b.ozet || {}).gecilen || 0) - ((a.ozet || {}).gecilen || 0) || String(a.ad).localeCompare(String(b.ad)));
+      const satir = x => {
+        const z = x.ozet || {}, top = z.toplam || U.length;
+        const odevDurum = o.birim ? (z.b && z.b[o.birim] && z.b[o.birim][1] ? `<span class="rozet ok">${t('✓ ödev')}</span>` : `<span class="rozet kilit">${t('ödev bekliyor')}</span>`) : '';
+        const p = Math.round((z.gecilen || 0) / top * 100);
+        const bolumler = U.filter(u => z.b && z.b[u.id]).map(u => `<li>${u.ikon} ${esc(u.ad)}: <b class="${z.b[u.id][1] ? 'yesil' : 'kirmizi'}">${yuzdeStr(z.b[u.id][0])}</b></li>`).join('');
+        const son = (z.son || []).map(h => `<li>${esc(h.k ? baslikBul({ kimlik: h.k, baslik: h.b }) : h.b)}: <b>${yuzdeStr(h.y)}</b> <small class="soluk">${tarihStr(h.t)}</small></li>`).join('');
+        return `<details class="kart kucuk ogrenci"><summary><span class="bad"><b>${esc(x.ad || '?')}</b><small>${t('{0}/{1} bölüm', z.gecilen || 0, top)} · 🔥 ${z.seri || 0} · ${t('son: {0}', x.guncelleme ? tarihStr(x.guncelleme) : '—')}</small>
+          <div class="bar"><div class="${p >= 80 ? 'iyi' : p >= 40 ? 'orta' : 'kotu'}" style="width:${p}%"></div></div></span>${odevDurum}</summary>
+          ${bolumler ? `<p style="margin-top:10px"><b>${t('Bölümler')}</b></p><ul class="kaynak">${bolumler}</ul>` : `<p class="soluk">${t('Henüz test çözmedi.')}</p>`}
+          ${son ? `<p><b>${t('Son testler')}</b></p><ul class="kaynak">${son}</ul>` : ''}
+          <p class="soluk kucukyazi">${t('Toplam test: {0} · Bekleyen tekrar: {1}', z.test || 0, z.tekrar || 0)}</p>
+          <button class="btn ikincil tehlike-yazi" data-cikar="${esc(x.uid)}">${t('Sınıftan çıkar')}</button></details>`;
+      };
+      yer.innerHTML = `<article class="kart ortala"><h2>${esc(s.ad || '')}</h2>
+          <p class="soluk">${t('Öğrencilerin bu kodu girerek katılır:')}</p>
+          <p class="sinif-kod">${esc(kod)}</p>
+          <div class="satir"><button class="btn" id="paylas">${t('📤 Kodu paylaş')}</button><button class="btn ikincil" id="yenile">${t('🔄 Yenile')}</button></div></article>
+        <article class="kart form"><h2>${t('📌 Ödev ver')}</h2>
+          <label>${t('Bölüm')}<select id="odevBirim" style="display:block;width:100%;margin-top:6px;padding:10px"><option value="">${t('— ödev yok —')}</option>
+            ${U.map(u => `<option value="${u.id}" ${o.birim === u.id ? 'selected' : ''}>${u.ikon} ${u.ara ? '' : dersler.indexOf(u) + '. '}${esc(u.ad)}</option>`).join('')}</select></label>
+          <label>${t('Son gün (isteğe bağlı)')}<input id="odevSon" type="date" value="${esc(o.son || '')}"></label>
+          <label>${t('Not (isteğe bağlı)')}<input id="odevNot" maxlength="200" value="${esc(o.not || '')}" placeholder="${t('ör. Örnekleri 3 kez dinleyin')}"></label>
+          <button class="btn genis" id="odevKaydet">${t('Ödevi kaydet')}</button></article>
+        <h2 class="baslik">${t('Öğrenciler ({0})', ogrenciler.length)}</h2>
+        ${ogrenciler.length ? ogrenciler.map(satir).join('') : `<p class="soluk">${t('Henüz katılan öğrenci yok. Kodu öğrencilerine ver.')}</p>`}
+        <p class="soluk kucukyazi">${t('Öğrencinin ilerlemesi, onun telefonu internete bağlanıp eşitlendiğinde güncellenir.')}</p>
+        <article class="kart"><h2>${t('⚠️ Sınıfı sil')}</h2><p>${t('Sınıf kapanır, kod çalışmaz. Öğrencilerin kendi ilerlemesi silinmez.')}</p><button class="btn tehlike" id="sinifSil">${t('Sınıfı sil')}</button></article>`;
+      $('#paylas').onclick = async () => {
+        const yazi = t('Tecvid Öğren uygulamasında "{0}" sınıfına katıl: Ayarlar → Sınıf → Öğrenciyim → kod: {1}', s.ad || '', kod);
+        try { if (navigator.share) { await navigator.share({ text: yazi }); return; } } catch (e) { return; }
+        try { await navigator.clipboard.writeText(yazi); toast(t('Kopyalandı')); } catch (e) { toast(kod); }
+      };
+      $('#yenile').onclick = () => ciz();
+      $('#odevKaydet').onclick = async e => {
+        const birim = $('#odevBirim').value; const btn = e.currentTarget; btn.disabled = true;
+        const odev = birim ? { birim, son: $('#odevSon').value || null, not: $('#odevNot').value.trim() || null, verildi: Date.now() } : null;
+        try { await B().odevVer(kod, odev); toast(odev ? t('Ödev verildi ✓') : t('Ödev kaldırıldı')); } catch (x) { toast(x.message); }
+        btn.disabled = false;
+      };
+      yer.querySelectorAll('[data-cikar]').forEach(b => b.onclick = async () => {
+        if (!confirm(t('Bu öğrenci sınıftan çıkarılsın mı?'))) return;
+        try { await B().ogrenciCikar(kod, b.dataset.cikar); toast(t('Öğrenci çıkarıldı')); ciz(); } catch (x) { toast(x.message); }
+      });
+      $('#sinifSil').onclick = async () => {
+        if (!confirm(t('"{0}" sınıfı silinsin mi? Bu geri alınamaz.', s.ad || kod))) return;
+        try { await B().sinifSil(kod); toast(t('Sınıf silindi')); ekranYigini.pop(); ciz(); } catch (x) { toast(x.message); }
+      };
+    }).catch(e => { if (document.body.contains(yer)) yer.innerHTML = `<article class="kart"><p class="hata">${esc(e.message)}</p><button class="btn" id="tekrarDene">${t('Tekrar dene')}</button></article>`; const b = $('#tekrarDene'); if (b) b.onclick = () => ciz(); });
   };
 
   EKRAN.sureler = function () {
@@ -879,6 +1047,8 @@
         <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div></article>
       <article class="kart"><h2>${t('👤 Hesap')}</h2><p>${hk ? t('Giriş yapıldı: ') + '<b>' + esc(hk.email || '') + '</b>' : t('Giriş yapmadın. Verilerin sadece bu telefonda.')}</p>
         <button class="btn" data-git="hesap">${hk ? t('Hesabım') : t('Giriş yap / Hesap aç')}</button></article>
+      <article class="kart"><h2>${t('👨‍🏫 Sınıf (hoca–öğrenci)')}</h2><p>${S.sinif ? t('Sınıfın: ') + '<b>' + esc(S.sinif.sinifAd || S.sinif.kod) + '</b>' : t('Hocan bir sınıf kodu verdiyse katıl; hocaysan sınıf aç, öğrencilerini takip et, ödev ver.')}</p>
+        <button class="btn" data-git="sinif">${t('Sınıfa git')}</button></article>
       <article class="kart"><h2>${t('💾 Yedek')}</h2><p>${t('İlerlemen ve geçmişin telefonda saklanır. Uygulamayı silmeden önce ya da yeni bir telefona geçerken yedeğini kopyalayıp bir yere (not, e-posta) kaydet.')}</p>
         <textarea id="yedek" rows="4" readonly>${esc(yedek)}</textarea>
         <div class="satir sola"><button class="btn" id="kopyala">${t('Yedeği kopyala')}</button></div>
