@@ -13,7 +13,14 @@ def ekran(ad):
     log.append('📸 ' + ad)
 def yaz(*a): s = ' '.join(str(x) for x in a); print(s, flush=True); log.append(s)
 
-pid = adb('shell', 'pidof', 'com.latif07.tecvidogren'); yaz('pid', pid)
+pid = ''
+for deneme in range(30):
+    pid = adb('shell', 'pidof', 'com.latif07.tecvidogren')
+    if pid: break
+    if deneme % 5 == 0: yaz('başlat', adb('shell', 'am', 'start', '-W', '-n', 'com.latif07.tecvidogren/.MainActivity'))
+    time.sleep(3)
+yaz('pid', pid)
+time.sleep(10)
 soket = [l.split()[-1].lstrip('@') for l in adb('shell', 'cat', '/proc/net/unix').splitlines() if 'devtools_remote' in l]
 yaz('devtools soketleri', soket)
 hedef = next((x for x in soket if x.endswith(pid)), soket[0] if soket else f'webview_devtools_remote_{pid}')
