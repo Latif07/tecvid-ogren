@@ -1134,6 +1134,8 @@
     const tekrar = S.ayar.tekrar || 1;
     const sayim = {}; x.ayet.forEach((_, i) => (RENK[`${n}:${i + 1}`] || []).forEach(e => { sayim[e[2]] = (sayim[e[2]] || 0) + 1; }));
     const gorunen = filtre ? x.ayet.map((_, i) => i).filter(i => (RENK[`${n}:${i + 1}`] || []).some(e => e[2] === filtre)) : x.ayet.map((_, i) => i);
+    const OKU = (window.OKUNUS || {})[DIL === 'en' ? 'en' : 'tr'] || {};
+    const okVar = !!OKU[`${n}:1`], okGoster = okVar && S.ayar.okunus;
     kelimeHTML.filtre = filtre || null;
     const ayetler = gorunen.map(i => {
       const a = x.ayet[i];
@@ -1141,18 +1143,20 @@
       const kel = a.split(' ').map((w, wi) => { const h = `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${kelimeHTML(r, w, o)}</span>`; o += w.length + 1; return h; }).join(' ');
       return `<article class="kart ayet-kart" id="ayet-${i + 1}">
         <div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${(i + 1).toLocaleString('ar-EG')}﴾</span></div>
+        ${okGoster && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}
         <div class="sesler"><button class="sesbtn" data-ayet-cal="${i + 1}">${t('▶ Dinle')}</button></div>
         ${kayitHTML('sure' + r, ayetUrl(r))}<span hidden data-yedek="${ayetUrl(r, KARILER[0].klasor)}" data-ses="${ayetUrl(r)}"></span>
       </article>`;
     }).join('');
     kelimeHTML.filtre = null;
-    const besmele = !filtre && n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(window.BESMELE || '')}</div>` : '';
+    const besmele = !filtre && n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(window.BESMELE || '')}</div>${okGoster && OKU.b ? `<p class="okunus ortala">${esc(OKU.b)}</p>` : ''}` : '';
     app.innerHTML = `${ust(esc(sureAdi(x)) + ' · <span class="ar" style="font-size:1.1rem">' + esc(x.ar) + '</span>')}<main>
       <section class="kart">
         <div class="satir sola"><button class="btn" id="hepsi">${t('▶ Tamamını dinle')}</button><button class="btn ikincil" data-git="sureTest|${n}">${t('🔍 Kural bul testi')}</button></div>
         <p class="soluk kucukyazi" style="margin-top:10px">${t('Her ayeti kaç kez çalsın?')}</p>
         <div class="satir sola">${[1, 3, 5].map(k => `<button class="btn ${tekrar === k ? '' : 'ikincil'}" data-tekrar="${k}">${k}×</button>`).join('')}</div>
-        <div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${t('Renklerin anlamı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button></div>
+        <div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${t('Renklerin anlamı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button>${okVar ? `<button class="lejant-ac ${okGoster ? 'aktif' : ''}" id="okunusAc">🔤 ${okGoster ? t('Okunuşu gizle') : t('Okunuşu göster')}</button>` : ''}</div>
+        ${okGoster ? `<p class="soluk kucukyazi">${t('Okunuş yaklaşık bir yazımdır; Arapça harflerin hepsini Latin harfle tam yazmak mümkün değil. Doğru okuyuşu kâriyi dinleyerek öğren.')}</p>` : ''}
         <div id="lejant" hidden>${lejantHTML()}</div>
         <p class="soluk kucukyazi" style="margin-top:10px">${t('Kural ara: sadece bu kuralı renklendir')}</p>
         <div class="filtre">${LEJANT.filter(([k]) => sayim[k]).map(([k, ad]) => `<button class="${filtre === k ? 'aktif' : ''}" data-filtre="${k}"><i class="tc-${k}"></i>${esc(ad)} <small>${sayim[k]}</small></button>`).join('')}</div>
@@ -1183,6 +1187,7 @@
     app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { S.ayar.tekrar = +b.dataset.tekrar; kaydet(); durdur(); ciz(); });
     const la = $('#lejantAc'); la.onclick = () => { const l = $('#lejant'); l.hidden = !l.hidden; };
     app.querySelectorAll('[data-filtre]').forEach(b => b.onclick = () => { durdur(); const f = b.dataset.filtre; ekranYigini[ekranYigini.length - 1] = ['sure', [n, f === filtre ? '' : f]]; ciz(); });
+    const oa = $('#okunusAc'); if (oa) oa.onclick = () => { S.ayar.okunus = !S.ayar.okunus; kaydet(); durdur(); ciz(); };
     const si = $('#sureIndir'); if (si) si.onclick = () => { indirBaslat(indirListesi(kari().klasor, n), sureAdi(x) + ':'); si.remove(); };
     indirmeGoster();
   };

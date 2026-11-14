@@ -7,6 +7,10 @@
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "Okunuşu gizle": "Hide transliteration",
+ "Okunuşu göster": "Show transliteration",
+ "Okunuş yaklaşık bir yazımdır; Arapça harflerin hepsini Latin harfle tam yazmak mümkün değil. Doğru okuyuşu kâriyi dinleyerek öğren.": "Transliteration is only an approximation; not every Arabic sound can be written exactly in Latin letters. Learn the correct recitation by listening to the reciter.",
+
  "📲 iPhone'a uygulama gibi ekle": "📲 Add to your iPhone like an app",
  "Safari'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).": "In Safari tap <b>Share</b> (the square with an up arrow; if you can't see it, tap <b>⋯</b> first).",
  "<b>Ana Ekrana Ekle</b>'yi seç, sonra <b>Ekle</b>'ye dokun.": "Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.",

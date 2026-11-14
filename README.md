@@ -57,6 +57,7 @@ Yanlış yaptığın sorular kısa süre sonra tekrar karşına çıkar. Doğru 
 - **114 sûre renkli tecvidle:** Sûre ara, dinle (1/3/5 tekrar), kelimeye dokunup kelimeyi dinle, kendini kaydedip kâriyle karşılaştır, her sûrede "kural bul" testi.
 - **Kural ara:** Bir sûrede sadece seçtiğin kuralı renklendir ya da bir kuralın bütün Kur'an'da nerelerde geçtiğini gör.
 - **İnternetsiz ses:** Seçtiğin kârinin ders ve sûre seslerini telefona indir (Ayarlar → İnternetsiz ses, ya da sûre sayfasından).
+- **Okunuş:** Fâtiha ve son 10 sûrede Latin harfle okunuş açılıp kapanır (Türkçe ve İngilizce; yaklaşık yazımdır, asıl olan dinlemek).
 - **Yazı boyutu:** Genel yazı ve Arapça yazı ayrı ayrı büyütülebilir.
 - **Hoca–öğrenci sınıfı:** Hoca sınıf kodu verir, öğrencilerinin ilerlemesini görür, ödev verir.
 - **Günlük hatırlatma:** Seçtiğin saatte bildirim; o gün çalıştıysan gelmez.

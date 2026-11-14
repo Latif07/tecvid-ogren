@@ -234,3 +234,5 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .sekil-tablo { width: 100%; border-collapse: collapse; direction: rtl; margin: 8px 0; }
 .sekil-tablo th { font-size: .76rem; color: var(--soluk); font-weight: 600; padding: 4px; }
 .sekil-tablo td { text-align: center; border-top: 1px solid var(--cizgi); padding: 0 4px; }
+.okunus { margin: 2px 4px 8px; font-size: .95rem; color: var(--soluk); font-style: italic; line-height: 1.5; }
+.lejant-ac.aktif { border-color: var(--ana); color: var(--ana); font-weight: 650; }
