@@ -1,6 +1,8 @@
 /* Learn Tajweed — English content. Same structure and order as content.js (Turkish).
  * Only applied when window.DIL === 'en'. Measures follow the Turkish course: "1 alif" = the length of a natural madd. */
 (function () {
+  const MSVG = ((window.TC && window.TC.MAHREC_SVG) || '').replace('Mahreç şeması', 'Articulation points diagram');
+  const L = (b) => `<ol class="mahrec-liste">${b.map(x => `<li><b>${x[0]}</b><span>${x[1]}</span></li>`).join('')}</ol>`;
   const RULES = {
     tabii: ['Natural madd (ṭabīʿī)', 'A madd letter with no cause after it: lengthen 1 alif.', '1 alif'],
     muttasil: ['Madd muttaṣil', 'A hamzah comes after the madd letter in the SAME word.', '2–5 alifs (common: 4)'],
@@ -63,6 +65,73 @@
         ['Is hamzat al-waṣl (ٱ) read in the middle of reading?', 'No, it is not read', ['Yes, always', 'Only lengthened', 'Only through the nose']],
         ['What does the wavy madd sign (ٓ) mean?', 'Lengthen more than usual', ['Stop', 'Read through the nose', 'Don\'t read it']],
         ['True or false? In \'قُلۡ\' the lām is silent.', 'True', ['False']]
+      ]
+    },
+    m1: {
+      ad: 'Articulation points (makhārij)',
+      sayfalar: [
+        ['What is a makhraj?', `<p>A <b>makhraj</b> is the place a letter comes from. Every letter has its own "address". If you produce a letter from the wrong place it turns into another letter and the meaning can change:</p><p><span class="ar">قَلۡب</span> (heart) ↔ <span class="ar">كَلۡب</span> (dog)</p><p>According to Ibn al-Jazarī, the letters come from <b>17 points in 5 areas</b>: the mouth-and-throat cavity (jawf), the throat (ḥalq), the tongue (lisān), the lips (shafatān) and the nose (khayshūm).</p><p class="not"><b>How to find a makhraj:</b> make the letter silent and put a hamzah with a vowel before it: <span class="ar">أَبۡ · أَقۡ · أَصۡ</span>. Where the sound stops is the letter's makhraj.</p>`],
+        ['Diagram', `${MSVG}<p class="soluk kucukyazi">This is a schematic drawing; the numbers are the points on the next pages.</p>${L([['1', 'Jawf — madd letters'], ['2–4', 'Throat (ḥalq)'], ['5–14', 'Tongue (lisān)'], ['15–16', 'Lips (shafatān)'], ['17', 'Nose (khayshūm) — ghunnah']])}`],
+        ['Jawf and the throat', `${L([['1', '<b>Jawf</b> (the mouth and throat cavity): the madd letters <span class="ar">ا و ي</span>. The sound flows until the air runs out.'], ['2', '<b>Deepest part of the throat</b>: <span class="ar">ء ه</span>'], ['3', '<b>Middle of the throat</b>: <span class="ar">ع ح</span>'], ['4', '<b>Part of the throat nearest the mouth</b>: <span class="ar">غ خ</span>']])}<p class="not">These six throat letters are the <b>iẓhār</b> letters for nūn sākinah and tanwīn. Their makhraj is far from the nūn, so the nūn is read clearly.</p>`],
+        ['Back and middle of the tongue', `${L([['5', '<b>Back of the tongue + soft palate</b>: <span class="ar">ق</span> (heavy)'], ['6', '<b>A little further forward</b>: <span class="ar">ك</span> (light)'], ['7', '<b>Middle of the tongue + hard palate</b>: <span class="ar">ج ش ي</span> (yāʾ that is not a madd letter)']])}<p class="not"><span class="ar">ق</span> and <span class="ar">ك</span> are neighbours but different: <span class="ar">ق</span> is deeper and heavy, <span class="ar">ك</span> is further forward and light.</p>`],
+        ['Edge and tip of the tongue', `${L([['8', '<b>Side of the tongue + the molars</b> (right or left): <span class="ar">ض</span>'], ['9', '<b>Front part of the tongue\'s side + upper gums</b>: <span class="ar">ل</span>'], ['10', '<b>Tip of the tongue + upper front gums</b>: <span class="ar">ن</span>'], ['11', '<b>Tip of the tongue, slightly behind the nūn</b>: <span class="ar">ر</span>'], ['12', '<b>Tip of the tongue + roots of the upper front teeth</b>: <span class="ar">ط د ت</span>'], ['13', '<b>Tip of the tongue + between the front teeth</b> (whistling): <span class="ar">ص ز س</span>'], ['14', '<b>Tip of the tongue + edges of the upper front teeth</b>: <span class="ar">ظ ذ ث</span>']])}<p class="not">Even a tiny shift of the tongue tip changes the letter. Practise points 10–14 <b>by listening</b>.</p>`],
+        ['Lips and nose', `${L([['15', '<b>Inside of the lower lip + edges of the upper front teeth</b>: <span class="ar">ف</span>'], ['16', '<b>Both lips</b>: <span class="ar">ب م و</span>. The lips close for <span class="ar">ب</span> and <span class="ar">م</span>, and round for <span class="ar">و</span>.'], ['17', '<b>The nose</b> (khayshūm): the <b>ghunnah</b> sound, the nasal sound of nūn and mīm']])}<p class="not">Hold your nose lightly and say <span class="ar">إِنَّ</span>: if the sound stops, your ghunnah is coming from the nose correctly.</p>`]
+      ],
+      sorular: [
+        ['What is a makhraj?', 'The place a letter comes from', ['Lengthening a letter', 'Reading a letter heavy', 'A stop sign']],
+        ['According to Ibn al-Jazarī, how many makhārij are there?', '17', ['5', '28', '10']],
+        ['Into how many main areas are the makhārij grouped?', '5', ['3', '17', '7']],
+        ['Where do ع and ح come from?', 'The middle of the throat', ['The deepest part of the throat', 'The lips', 'The tip of the tongue']],
+        ['Where do ء and ه come from?', 'The deepest part of the throat', ['The middle of the throat', 'The nose', 'The back of the tongue']],
+        ['Where does ق come from?', 'The back of the tongue and the soft palate', ['The tip of the tongue', 'The lips', 'The middle of the throat']],
+        ['Where does ض come from?', 'The side of the tongue and the molars', ['The tongue tip and edges of the upper front teeth', 'Both lips', 'The nose']],
+        ['Where do the letters ظ ذ ث come from?', 'The tongue tip and the edges of the upper front teeth', ['The side of the tongue and the molars', 'The middle of the throat', 'The back of the tongue']],
+        ['Where does ف come from?', 'The inside of the lower lip and the edges of the upper front teeth', ['Both lips', 'The middle of the tongue', 'The nose']],
+        ['Where does the ghunnah sound come from?', 'The nose (khayshūm)', ['The throat', 'The lips', 'The tip of the tongue']],
+        ['What is the makhraj of the madd letters?', 'The jawf (mouth and throat cavity)', ['The tip of the tongue', 'Both lips', 'The deepest part of the throat']],
+        ['How do you find the makhraj of a letter?', 'Make it silent and put a voweled hamzah before it (أَبۡ)', ['Lengthen it', 'Read it with shaddah', 'Read it through the nose']]
+      ]
+    },
+    m2: {
+      ad: 'Qualities of the letters (ṣifāt)',
+      sayfalar: [
+        ['What is a ṣifah?', `<p>If the makhraj is a letter's <b>address</b>, its ṣifah (quality) is its <b>character</b>: does the breath flow, is the sound held back, is it heavy or light?</p><p>Qualities separate letters that come from the same place. For example <span class="ar">ت</span> and <span class="ar">ط</span> share a makhraj, but <span class="ar">ط</span> is heavy and full while <span class="ar">ت</span> is light and breathy.</p><p>Qualities are of two kinds: those with <b>opposites</b> (in pairs) and those <b>without opposites</b>.</p>`],
+        ['Qualities with opposites (1)', `<ul><li><b>Hams</b> (the breath flows) — 10 letters: <span class="ar">فَحَثَّهُ شَخۡصٌ سَكَتَ</span><br>Its opposite <b>jahr</b>: the breath is held and the sound is strong (the other 19 letters).</li><li><b>Shiddah</b> (the sound is held back) — 8 letters: <span class="ar">أَجِدۡ قَطٍ بَكَتۡ</span><br>Its opposite <b>rakhāwah</b>: the sound flows.</li><li><b>Tawassuṭ</b> (in between) — 5 letters: <span class="ar">لِنۡ عُمَرۡ</span></li></ul>`],
+        ['Qualities with opposites (2)', `<ul><li><b>Istiʿlāʾ</b> (the back of the tongue rises, the letter is heavy) — 7 letters: <span class="ar">خُصَّ ضَغۡطٍ قِظۡ</span><br>Its opposite <b>istifāl</b>: the tongue stays low.</li><li><b>Iṭbāq</b> (the tongue closes against the palate) — 4 letters: <span class="ar">ص ض ط ظ</span><br>Its opposite <b>infitāḥ</b>: there is a gap between tongue and palate.</li><li><b>Idhlāq</b> (easily produced from the tongue tip and lips) — 6 letters: <span class="ar">فِرَّ مِنۡ لُبٍّ</span><br>Its opposite <b>iṣmāt</b>.</li></ul>`],
+        ['Qualities without opposites', `<ul><li><b>Ṣafīr</b> (whistling): <span class="ar">ز س ص</span></li><li><b>Qalqalah</b> (bounce): <span class="ar">ق ط ب ج د</span></li><li><b>Līn</b> (softness): silent <span class="ar">و ي</span> after a fatḥah</li><li><b>Inḥirāf</b> (deviation): <span class="ar">ل ر</span></li><li><b>Takrīr</b> (tendency to repeat): <span class="ar">ر</span> — know it but don't exaggerate; the rāʾ is not rolled</li><li><b>Tafashshī</b> (spreading of the sound in the mouth): <span class="ar">ش</span></li><li><b>Istiṭālah</b> (lengthening of the sound): <span class="ar">ض</span></li></ul>`],
+        ['Heavy and light letters', `<ul><li><b>Always heavy</b>: the istiʿlāʾ letters <span class="ar">خ ص ض غ ط ق ظ</span></li><li><b>Depends on the situation</b>: <span class="ar">ر</span> (you'll learn it in the rāʾ unit) and the <span class="ar">ل</span> in the name of Allah</li><li><b>Alif</b>: follows the letter before it — heavy in <span class="ar">قَالَ</span>, light in <span class="ar">كَانَ</span></li><li><b>All others</b>: always light</li></ul><p class="not">A very common mistake is making light letters heavy or heavy letters light. Heaviness comes from raising the back of the tongue, not from rounding the lips.</p>`]
+      ],
+      sorular: [
+        ['Which phrase holds the letters of hams (flowing breath)?', 'فَحَثَّهُ شَخۡصٌ سَكَتَ', ['أَجِدۡ قَطٍ بَكَتۡ', 'خُصَّ ضَغۡطٍ قِظۡ', 'لِنۡ عُمَرۡ']],
+        ['Which phrase holds the letters of shiddah (held-back sound)?', 'أَجِدۡ قَطٍ بَكَتۡ', ['فَحَثَّهُ شَخۡصٌ سَكَتَ', 'فِرَّ مِنۡ لُبٍّ', 'لِنۡ عُمَرۡ']],
+        ['Which are the istiʿlāʾ (heavy) letters?', 'خُصَّ ضَغۡطٍ قِظۡ', ['فِرَّ مِنۡ لُبٍّ', 'أَجِدۡ قَطٍ بَكَتۡ', 'ي ن م و']],
+        ['Which are the iṭbāq letters?', 'ص ض ط ظ', ['ز س ص', 'ق ط ب ج د', 'ل ر']],
+        ['Which are the ṣafīr (whistling) letters?', 'ز س ص', ['ص ض ط ظ', 'ل ر', 'ق ك']],
+        ['Which letter has the quality of takrīr?', 'ر', ['ل', 'ش', 'ض']],
+        ['Which letter has the quality of istiṭālah?', 'ض', ['ش', 'ر', 'ظ']],
+        ['Which letter has tafashshī (spreading of the sound)?', 'ش', ['س', 'ض', 'ر']],
+        ['What does hams mean?', 'The breath flows when the letter is read', ['The sound is held back', 'The tongue closes against the palate', 'The sound comes from the nose']],
+        ['What is the difference between ت and ط?', 'Same makhraj; ط is heavy (istiʿlāʾ, iṭbāq), ت is light', ['Different makhraj, same qualities', 'ت is heavy, ط is light', 'There is no difference']],
+        ['Is alif read heavy or light?', 'It follows the letter before it', ['Always heavy', 'Always light', 'Through the nose']],
+        ['True or false? The rāʾ should be rolled when it is read.', 'False', ['True']]
+      ]
+    },
+    m3: {
+      ad: 'Letters that are easily confused',
+      sayfalar: [
+        ['Why do they get mixed up?', `<p>Many of these sounds don't exist in Turkish or English, so these groups can sound the same:</p><ul><li><span class="ar">ض ظ ذ ز</span> → all like "z"</li><li><span class="ar">ث س ص</span> → all like "s"</li><li><span class="ar">ح ه خ</span> → all like "h"</li><li><span class="ar">ع ء</span>, <span class="ar">ق ك</span>, <span class="ar">ط ت</span></li></ul><p>But in the Qur'an, changing the letter changes the meaning:</p><p><span class="ar">عَلِيم</span> (All-Knowing) ↔ <span class="ar">أَلِيم</span> (painful)</p><p class="not">Be sure to study this unit <b>with audio</b>. Practice and tests include "listen and find" questions.</p>`],
+        ['ض ظ ذ ز', `<ul><li><span class="ar">ض</span>: the side of the tongue presses on the molars; <b>heavy</b>, the sound extends (istiṭālah)</li><li><span class="ar">ظ</span>: tongue tip at the edges of the upper front teeth, tongue slightly out; <b>heavy</b></li><li><span class="ar">ذ</span>: same place as <span class="ar">ظ</span>; <b>light</b></li><li><span class="ar">ز</span>: tongue tip behind the front teeth, whistling; <b>light</b></li></ul><p class="not">Tip: for <span class="ar">ظ</span> and <span class="ar">ذ</span> you should feel the tip of your tongue between your teeth.</p>`],
+        ['ث س ص', `<ul><li><span class="ar">ث</span>: tongue tip at the edges of the upper front teeth, like English "th" in "think"; <b>light</b>, breathy</li><li><span class="ar">س</span>: tongue tip behind the front teeth, whistling; <b>light</b></li><li><span class="ar">ص</span>: same place as <span class="ar">س</span> but the tongue closes against the palate; <b>heavy</b></li></ul>`],
+        ['ح ه خ — ع ء', `<ul><li><span class="ar">ه</span>: from the deepest part of the throat, a light, relaxed breath</li><li><span class="ar">ح</span>: from the middle of the throat, a breath squeezed through a tightened throat</li><li><span class="ar">خ</span>: from the part of the throat nearest the mouth, a rasping sound</li><li><span class="ar">ء</span>: a sudden stop of the sound deep in the throat</li><li><span class="ar">ع</span>: from the middle of the throat, a tightened, voiced letter</li></ul>`],
+        ['ق ك — ط ت', `<ul><li><span class="ar">ق</span>: from the back of the tongue, <b>heavy</b>, no breath flows</li><li><span class="ar">ك</span>: a little further forward, <b>light</b>, breathy</li><li><span class="ar">ط</span>: tongue tip at the roots of the upper teeth, tongue closes against the palate; <b>heavy</b></li><li><span class="ar">ت</span>: same place, <b>light</b> and breathy</li></ul>`]
+      ],
+      sorular: [
+        ['Why does the difference between عَلِيم and أَلِيم matter?', 'Reading ء instead of ع changes the meaning (All-Knowing / painful)', ['There is no difference, both are read the same', 'Only the lengthening is different', 'Only the heaviness is different']],
+        ['Which one is read heavy?', 'ص', ['س', 'ث', 'ز']],
+        ['What is the difference between ظ and ذ?', 'Same place; ظ is heavy, ذ is light', ['Their makhārij are far apart', 'ذ is heavy, ظ is light', 'There is no difference']],
+        ['What is the difference between ح and ه?', 'ح comes squeezed from the middle of the throat, ه with a light breath from the deepest part', ['Both come from the lips', 'ه is heavier', 'There is no difference']],
+        ['How is ث produced?', 'The tongue tip touches the edges of the upper front teeth ("th")', ['From the back of the tongue', 'From both lips', 'From the middle of the throat']],
+        ['What is the difference between ق and ك?', 'ق is deeper and heavy, ك is further forward and light', ['ك is heavier', 'Both come from the lips', 'There is no difference']]
       ]
     },
     u1: {

@@ -206,6 +206,17 @@
   function soruUret(anahtar) {
     const p = anahtar.split(':');
     const u = unitById(p[1]); if (!u) return null;
+    if (p[0] === 'd') {
+      const d = (u.dinle || [])[+p[2]]; if (!d) return null;
+      const url = kelimeUrl(d.r, d.w);
+      const kelime = `<div class="ayet" dir="rtl" lang="ar">${esc(d.k)}</div>`;
+      return {
+        anahtar, unit: u.id, tip: 'dinle', sesUrl: url, soru: t('🎧 Dinle: bu kelimede hangi harf var?'), dogru: d.h, secenek: karistir(d.g),
+        ust: `<div class="dinle-kutu"><button class="sesbtn buyuk" data-ses="${url}">${t('▶ Kelimeyi dinle')}</button><button class="lejant-ac" data-goster="1">${t('Ses çalmıyorsa kelimeyi göster')}</button><div class="gizli-kelime" hidden>${kelime}</div></div>`,
+        ustRenkli: `<div class="dinle-kutu"><button class="sesbtn" data-ses="${url}">${t('▶ Kelimeyi dinle')}</button></div>${kelime}`,
+        aciklama: t('Kelime: {0} ({1}, {2}. kelime)', `<span class="ar">${esc(d.k)}</span>`, d.r, d.w)
+      };
+    }
     if (p[0] === 'c') {
       const c = u.sorular[+p[2]]; if (!c) return null;
       return { anahtar, unit: u.id, tip: 'kavram', soru: metin(c.q), dogru: c.a, secenek: karistir([c.a, ...c.w]), aciklama: '' };
@@ -235,6 +246,7 @@
   function anahtarlar(u) {
     const k = [];
     (u.sorular || []).forEach((_, i) => k.push(`c:${u.id}:${i}`));
+    (u.dinle || []).forEach((_, i) => k.push(`d:${u.id}:${i}`));
     const ogrenilenSayi = ogrenilenKurallar(u).length;
     (u.ornek || []).forEach((ex, i) => {
       if (ogrenilenSayi >= 3) k.push(`e:${u.id}:${i}:kural`);
@@ -473,6 +485,8 @@
             <button class="btn genis" id="ileri">${o.i + 1 < o.sorular.length ? t('Sonraki soru ›') : (o.sonsuz ? t('Yeni soru seti ›') : t('Sonucu gör ›'))}</button>` : ''}
         </article>
       </main>`;
+    const gb = $('[data-goster]'); if (gb) gb.onclick = () => { $('.gizli-kelime').hidden = false; gb.remove(); };
+    if (q.tip === 'dinle' && !cevap && !q._calindi) { q._calindi = true; const sb = $('.dinle-kutu .sesbtn'); setTimeout(() => cal(q.sesUrl, sb), 250); }
     app.querySelectorAll('.secenek').forEach(b => b.onclick = () => {
       const s = q.secenek[+b.dataset.i]; const d = s === q.dogru;
       o.cevaplar[o.i] = { secilen: s, dogru: d };

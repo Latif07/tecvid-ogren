@@ -180,3 +180,21 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .secenek-liste button.aktif { border-color: var(--ana); background: var(--iyi-bg); font-weight: 650; }
 .secenek-liste small { color: var(--soluk); font-weight: 400; display: block; }
 .dil-sec { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* --- mahreç --- */
+.mahrec { width: 100%; height: auto; color: var(--metin); margin: 4px 0; }
+.mahrec .b-hay { fill: color-mix(in srgb, var(--t-h) 30%, transparent); }
+.mahrec .b-cevf { fill: color-mix(in srgb, var(--t-m2) 40%, transparent); }
+.mahrec .b-dil { fill: color-mix(in srgb, var(--t-mt) 35%, transparent); stroke: var(--t-mt); stroke-width: 1.5; }
+.mahrec .b-halk { fill: color-mix(in srgb, var(--t-dg) 40%, transparent); }
+.mahrec .b-dudak { fill: color-mix(in srgb, var(--t-k) 45%, transparent); }
+.mahrec .dis { fill: var(--kart); stroke: var(--soluk); }
+.mahrec .nokta circle { fill: var(--ana); }
+.mahrec .nokta circle.kucuk { r: 13px; }
+.mahrec .nokta text { fill: #fff; font: 700 9px system-ui, sans-serif; text-anchor: middle; }
+.mahrec-liste { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 8px; }
+.mahrec-liste li { display: flex; gap: 10px; align-items: baseline; }
+.mahrec-liste li > span { flex: 1; min-width: 0; }
+.mahrec-liste li > b:first-child { flex: none; min-width: 2.6em; text-align: center; background: var(--ana); color: #fff; border-radius: 99px; padding: 1px 8px; font-size: .82rem; }
+.dinle-kutu { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0 6px; }
+.sesbtn.buyuk { font-size: 1.05rem; padding: 14px 26px; }

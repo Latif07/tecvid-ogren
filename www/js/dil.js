@@ -7,6 +7,10 @@
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "🎧 Dinle: bu kelimede hangi harf var?": "🎧 Listen: which letter is in this word?",
+ "Ses çalmıyorsa kelimeyi göster": "Show the word if the audio doesn't play",
+ "Kelime: {0} ({1}, {2}. kelime)": "Word: {0} ({1}, word {2})",
+
  "Öğretim (yavaş, tekrar için)": "Teaching (slow, for repetition)",
  "Mürettel": "Murattal",
  "Med-i tabîî / ârız / lîn": "Natural / ʿāriḍ / līn madd",

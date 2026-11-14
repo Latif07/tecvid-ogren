@@ -95,6 +95,98 @@ window.TC = (function () {
     ]
   });
 
+  // Mahreç şeması (şematik; ölçekli bir anatomi çizimi değildir)
+  const MAHREC_SVG = `<svg viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg" class="mahrec" role="img" aria-label="Mahreç şeması"> <path d="M120 20 C80 22 55 45 50 80 L38 102 L52 110 L50 128 L58 134 L54 146 L60 154 L58 168 L64 176 L62 196 C66 214 84 222 110 222 L150 226 L170 300" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" opacity=".55"/> <path d="M330 300 C335 240 340 150 300 80 C275 35 200 15 120 20" fill="none" stroke="currentColor" stroke-width="2.2" opacity=".55"/> <path d="M62 112 C110 96 190 96 236 118 L236 128 C190 112 110 112 66 124 Z" class="b-hay"/> <path d="M66 130 C110 118 180 116 214 124 C226 128 234 136 236 146" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/> <rect x="61" y="131" width="7" height="12" rx="2" class="dis"/><rect x="61" y="160" width="7" height="11" rx="2" class="dis"/> <path d="M74 146 C110 132 190 130 222 146 C200 150 120 152 74 152 Z" class="b-cevf"/> <path d="M70 156 C90 150 130 148 170 150 C205 152 226 160 232 182 C236 200 232 222 226 236 L150 236 C110 220 80 190 70 156 Z" class="b-dil"/> <path d="M236 146 C244 180 246 230 250 300 L268 300 C262 230 262 180 252 140 Z" class="b-halk"/> <ellipse cx="52" cy="150" rx="9" ry="16" class="b-dudak"/> <g class="nokta"> <circle cx="258" cy="282" r="9"/><text x="258" y="286">2</text> <circle cx="255" cy="248" r="9"/><text x="255" y="252">3</text> <circle cx="250" cy="214" r="9"/><text x="250" y="218">4</text> <circle cx="214" cy="158" r="9"/><text x="214" y="162">5</text> <circle cx="192" cy="153" r="9"/><text x="192" y="157">6</text> <circle cx="148" cy="148" r="9"/><text x="148" y="152">7</text> <circle cx="118" cy="168" r="9"/><text x="118" y="172">8</text> <circle cx="94" cy="166" r="9"/><text x="94" y="170">9</text> <circle cx="80" cy="146" r="9" class="kucuk"/><text x="80" y="150">10–14</text> <circle cx="52" cy="176" r="9"/><text x="52" y="180">15</text> <circle cx="36" cy="150" r="9"/><text x="36" y="154">16</text> <circle cx="150" cy="104" r="9"/><text x="150" y="108">17</text> <circle cx="112" cy="141" r="9"/><text x="112" y="145">1</text> </g> </svg>`;
+  const lejantMahrec = (b) => `<ol class="mahrec-liste">${b.map(x => `<li><b>${x[0]}</b><span>${x[1]}</span></li>`).join('')}</ol>`;
+
+  unit({
+    id: 'm1', ad: "Mahrecler: harflerin çıkış yerleri", ikon: '👄', kurallar: [],
+    sayfalar: [
+      { t: "Mahreç nedir?", h: `<p><b>Mahreç</b>, harfin çıktığı yerdir. Her harfin kendi "adresi" vardır. Harfi yanlış yerden çıkarırsan başka bir harfe dönüşür ve mana bozulabilir:</p><p><span class="ar">قَلۡب</span> (kalp) ↔ <span class="ar">كَلۡب</span> (köpek)</p><p>İbnü'l-Cezerî'nin görüşüne göre harfler <b>5 bölgede 17 mahreçten</b> çıkar: ağız-boğaz boşluğu (cevf), boğaz (halk), dil (lisan), dudaklar (şefeteyn) ve geniz (hayşum).</p><p class="not"><b>Mahreci bulma yolu:</b> Harfi sakin yap ve önüne harekeli bir hemze getir: <span class="ar">أَبۡ · أَقۡ · أَصۡ</span>. Sesin kesildiği yer o harfin mahrecidir.</p>` },
+      { t: "Şema", h: `${MAHREC_SVG}<p class="soluk kucukyazi">Şematik çizimdir; numaralar sonraki sayfalardaki mahreçlerdir.</p>${lejantMahrec([['1', 'Cevf — med harfleri'], ['2–4', 'Boğaz (halk)'], ['5–14', 'Dil (lisan)'], ['15–16', 'Dudaklar (şefeteyn)'], ['17', 'Geniz (hayşum) — ğunne']])}` },
+      { t: "Cevf ve boğaz (halk)", h: `${lejantMahrec([['1', '<b>Cevf</b> (ağız ve boğaz boşluğu): med harfleri <span class="ar">ا و ي</span>. Ses hava bitene kadar akar.'], ['2', '<b>Boğazın en derini</b> (aksa\'l-halk): <span class="ar">ء ه</span>'], ['3', '<b>Boğazın ortası</b> (vasatu\'l-halk): <span class="ar">ع ح</span>'], ['4', '<b>Boğazın ağza yakın kısmı</b> (edne\'l-halk): <span class="ar">غ خ</span>']])}<p class="not">Bu altı boğaz harfi, nûn sâkin ve tenvinde <b>izhâr</b> harfleridir. Mahreçleri nûndan uzak olduğu için nûn açık okunur.</p>` },
+      { t: "Dilin kökü ve ortası", h: `${lejantMahrec([['5', '<b>Dilin kökü + yumuşak damak</b>: <span class="ar">ق</span> (kalın)'], ['6', '<b>Biraz daha önü</b>: <span class="ar">ك</span> (ince)'], ['7', '<b>Dilin ortası + üst damak</b>: <span class="ar">ج ش ي</span> (med harfi olmayan ي)']])}<p class="not"><span class="ar">ق</span> ile <span class="ar">ك</span> komşudur ama farklıdır: <span class="ar">ق</span> daha derinden ve kalın, <span class="ar">ك</span> daha önden ve ince çıkar.</p>` },
+      { t: "Dilin kenarı ve ucu", h: `${lejantMahrec([['8', '<b>Dilin kenarı + azı dişleri</b> (sağ veya sol): <span class="ar">ض</span>'], ['9', '<b>Dil kenarının ön kısmı + üst diş etleri</b>: <span class="ar">ل</span>'], ['10', '<b>Dil ucu + üst ön diş etleri</b>: <span class="ar">ن</span>'], ['11', '<b>Dil ucu, nûnun biraz gerisi</b>: <span class="ar">ر</span>'], ['12', '<b>Dil ucu + üst ön dişlerin kökü</b>: <span class="ar">ط د ت</span>'], ['13', '<b>Dil ucu + ön dişler arası</b> (ıslıklı): <span class="ar">ص ز س</span>'], ['14', '<b>Dil ucu + üst ön dişlerin uçları</b>: <span class="ar">ظ ذ ث</span>']])}<p class="not">Dil ucunun en küçük kayması bile harfi değiştirir. Bu yüzden 10–14 numaralı mahreçleri <b>dinleyerek</b> çalış.</p>` },
+      { t: "Dudaklar ve geniz", h: `${lejantMahrec([['15', '<b>Alt dudağın içi + üst ön dişlerin ucu</b>: <span class="ar">ف</span>'], ['16', '<b>İki dudak</b>: <span class="ar">ب م و</span>. Bu harflerden <span class="ar">ب</span> ve <span class="ar">م</span> okunurken dudaklar kapanır, <span class="ar">و</span> okunurken yuvarlanır.'], ['17', '<b>Geniz</b> (hayşum): <b>ğunne</b> sesi, yani nûn ve mîmin genizden gelen sesi']])}<p class="not">Burnunu hafifçe tutup <span class="ar">إِنَّ</span> de: ses kesiliyorsa ğunneyi genizden doğru çıkarıyorsun.</p>` }
+    ],
+    sorular: [
+      { q: "Mahreç nedir?", a: "Harfin çıktığı yer", w: ["Harfin uzatılması", "Harfin kalın okunması", "Durma işareti"] },
+      { q: "İbnü'l-Cezerî'ye göre kaç mahreç vardır?", a: "17", w: ["5", "28", "10"] },
+      { q: "Mahreçler kaç ana bölgede toplanır?", a: "5", w: ["3", "17", "7"] },
+      { q: "ع ve ح nereden çıkar?", a: "Boğazın ortasından", w: ["Boğazın en derininden", "Dudaklardan", "Dilin ucundan"] },
+      { q: "ء ve ه nereden çıkar?", a: "Boğazın en derininden", w: ["Boğazın ortasından", "Genizden", "Dilin kökünden"] },
+      { q: "ق nereden çıkar?", a: "Dilin kökü ile yumuşak damaktan", w: ["Dilin ucundan", "Dudaklardan", "Boğazın ortasından"] },
+      { q: "ض nereden çıkar?", a: "Dilin kenarı ile azı dişlerinden", w: ["Dil ucu ile üst ön dişlerin ucundan", "İki dudaktan", "Genizden"] },
+      { q: "ظ ذ ث harfleri nereden çıkar?", a: "Dil ucu ile üst ön dişlerin uçlarından", w: ["Dilin kenarı ile azı dişlerinden", "Boğazın ortasından", "Dilin kökünden"] },
+      { q: "ف nereden çıkar?", a: "Alt dudağın içi ile üst ön dişlerin ucundan", w: ["İki dudaktan", "Dilin ortasından", "Genizden"] },
+      { q: "Ğunne sesi nereden çıkar?", a: "Genizden (hayşum)", w: ["Boğazdan", "Dudaklardan", "Dilin ucundan"] },
+      { q: "Med harflerinin mahreci neresidir?", a: "Cevf (ağız ve boğaz boşluğu)", w: ["Dilin ucu", "İki dudak", "Boğazın en derini"] },
+      { q: "Bir harfin mahrecini bulmak için ne yapılır?", a: "Harf sakin yapılır, önüne harekeli hemze getirilir (أَبۡ)", w: ["Harf uzatılır", "Harf şeddeli okunur", "Harf genizden okunur"] }
+    ]
+  });
+
+  unit({
+    id: 'm2', ad: "Harflerin sıfatları", ikon: '🎭', kurallar: [],
+    sayfalar: [
+      { t: "Sıfat nedir?", h: `<p>Mahreç harfin <b>adresi</b> ise sıfat onun <b>karakteridir</b>: nefes akıyor mu, ses hapsoluyor mu, kalın mı ince mi?</p><p>Aynı yerden çıkan harfleri sıfatlar ayırır. Örneğin <span class="ar">ت</span> ile <span class="ar">ط</span> aynı mahreçten çıkar, ama <span class="ar">ط</span> kalın ve dolgun, <span class="ar">ت</span> ince ve nefeslidir.</p><p>Sıfatlar ikiye ayrılır: <b>zıtlı</b> (çiftler halinde) ve <b>zıtsız</b> (tek başına).</p>` },
+      { t: "Zıtlı sıfatlar (1)", h: `<ul><li><b>Hems</b> (nefesin akması) — 10 harf: <span class="ar">فَحَثَّهُ شَخۡصٌ سَكَتَ</span><br>Zıddı <b>cehr</b>: nefes tutulur, ses güçlüdür (diğer 19 harf).</li><li><b>Şiddet</b> (sesin hapsolması) — 8 harf: <span class="ar">أَجِدۡ قَطٍ بَكَتۡ</span><br>Zıddı <b>rehâvet</b>: ses akar.</li><li><b>Beyniyye / tavassut</b> (ikisi arası) — 5 harf: <span class="ar">لِنۡ عُمَرۡ</span></li></ul>` },
+      { t: "Zıtlı sıfatlar (2)", h: `<ul><li><b>İsti'lâ</b> (dilin kökü yükselir, harf kalın çıkar) — 7 harf: <span class="ar">خُصَّ ضَغۡطٍ قِظۡ</span><br>Zıddı <b>istifâl</b>: dil aşağıda kalır.</li><li><b>İtbâk</b> (dil damağa kapanır) — 4 harf: <span class="ar">ص ض ط ظ</span><br>Zıddı <b>infitâh</b>: dil ile damak arası açıktır.</li><li><b>İzlâk</b> (dil ucundan ve dudaktan kolay çıkan) — 6 harf: <span class="ar">فِرَّ مِنۡ لُبٍّ</span><br>Zıddı <b>ismât</b>.</li></ul>` },
+      { t: "Zıtsız sıfatlar", h: `<ul><li><b>Safîr</b> (ıslık sesi): <span class="ar">ز س ص</span></li><li><b>Kalkale</b> (sekme): <span class="ar">ق ط ب ج د</span></li><li><b>Lîn</b> (yumuşaklık): üstünden sonra sakin <span class="ar">و ي</span></li><li><b>İnhirâf</b> (sapma): <span class="ar">ل ر</span></li><li><b>Tekrîr</b> (titreme eğilimi): <span class="ar">ر</span> — bilinmeli ama abartılmamalı; râ titretilmez</li><li><b>Tefeşşî</b> (sesin ağızda yayılması): <span class="ar">ش</span></li><li><b>İstitâle</b> (sesin uzaması): <span class="ar">ض</span></li></ul>` },
+      { t: "Kalın ve ince harfler", h: `<ul><li><b>Her zaman kalın</b>: isti'lâ harfleri <span class="ar">خ ص ض غ ط ق ظ</span></li><li><b>Duruma göre</b>: <span class="ar">ر</span> (râ bölümünde öğreneceksin) ve Allah lafzındaki <span class="ar">ل</span></li><li><b>Elif</b>: kendinden önceki harfe uyar — <span class="ar">قَالَ</span>'de kalın, <span class="ar">كَانَ</span>'de ince</li><li><b>Diğerleri</b>: her zaman ince</li></ul><p class="not">Türkçe konuşanların en sık hatası, ince harfleri kalınlaştırmak ya da kalın harfleri inceltmektir. Kalınlık dilin kökünün yükselmesiyle olur, dudakları yuvarlayarak değil.</p>` }
+    ],
+    sorular: [
+      { q: "Hems (nefesin akması) harflerinin ezber cümlesi hangisidir?", a: "فَحَثَّهُ شَخۡصٌ سَكَتَ", w: ["أَجِدۡ قَطٍ بَكَتۡ", "خُصَّ ضَغۡطٍ قِظۡ", "لِنۡ عُمَرۡ"] },
+      { q: "Şiddet (sesin hapsolması) harflerinin ezber cümlesi hangisidir?", a: "أَجِدۡ قَطٍ بَكَتۡ", w: ["فَحَثَّهُ شَخۡصٌ سَكَتَ", "فِرَّ مِنۡ لُبٍّ", "لِنۡ عُمَرۡ"] },
+      { q: "İsti'lâ (kalın) harfleri hangileridir?", a: "خُصَّ ضَغۡطٍ قِظۡ", w: ["فِرَّ مِنۡ لُبٍّ", "أَجِدۡ قَطٍ بَكَتۡ", "ي ن م و"] },
+      { q: "İtbâk harfleri hangileridir?", a: "ص ض ط ظ", w: ["ز س ص", "ق ط ب ج د", "ل ر"] },
+      { q: "Safîr (ıslık) harfleri hangileridir?", a: "ز س ص", w: ["ص ض ط ظ", "ل ر", "ق ك"] },
+      { q: "Tekrîr sıfatı hangi harfindir?", a: "ر", w: ["ل", "ش", "ض"] },
+      { q: "İstitâle sıfatı hangi harfindir?", a: "ض", w: ["ش", "ر", "ظ"] },
+      { q: "Tefeşşî (sesin yayılması) hangi harfindir?", a: "ش", w: ["س", "ض", "ر"] },
+      { q: "Hems ne demektir?", a: "Harf okunurken nefesin akması", w: ["Sesin hapsolması", "Dilin damağa kapanması", "Sesin genizden gelmesi"] },
+      { q: "ت ile ط arasındaki fark nedir?", a: "Aynı mahreçten çıkar; ط kalın (isti'lâ, itbâk), ت ince", w: ["Mahreçleri farklıdır, sıfatları aynıdır", "ت kalın, ط incedir", "Hiçbir farkı yoktur"] },
+      { q: "Elif kalın mı okunur, ince mi?", a: "Kendinden önceki harfe uyar", w: ["Her zaman kalın", "Her zaman ince", "Genizden okunur"] },
+      { q: "Doğru mu? Râ harfi okunurken titretilmelidir.", a: "Yanlış", w: ["Doğru"] }
+    ]
+  });
+
+  unit({
+    id: 'm3', ad: "Karıştırılan harfler", ikon: '🎧', kurallar: [],
+    sayfalar: [
+      { t: "Neden karışıyor?", h: `<p>Türkçede bu seslerin çoğu yok. Bu yüzden şu gruplar kulağa aynı gelir:</p><ul><li><span class="ar">ض ظ ذ ز</span> → hepsi "z" gibi</li><li><span class="ar">ث س ص</span> → hepsi "s" gibi</li><li><span class="ar">ح ه خ</span> → hepsi "h" gibi</li><li><span class="ar">ع ء</span>, <span class="ar">ق ك</span>, <span class="ar">ط ت</span></li></ul><p>Ama Kur'an'da harf değişince anlam değişir:</p><p><span class="ar">عَلِيم</span> (bilen) ↔ <span class="ar">أَلِيم</span> (acı veren)</p><p class="not">Bu bölümü mutlaka <b>sesle</b> çalış. Alıştırma ve testte "Dinle ve bul" soruları var.</p>` },
+      { t: "ض ظ ذ ز", h: `<ul><li><span class="ar">ض</span>: dilin kenarı azı dişlerine dayanır; <b>kalın</b>, ses uzar (istitâle)</li><li><span class="ar">ظ</span>: dil ucu üst ön dişlerin ucunda, dil hafif dışarıda; <b>kalın</b></li><li><span class="ar">ذ</span>: <span class="ar">ظ</span> ile aynı yer; <b>ince</b></li><li><span class="ar">ز</span>: dil ucu ön dişlerin arkasında, ıslıklı; <b>ince</b></li></ul><p class="not">İpucu: <span class="ar">ظ</span> ve <span class="ar">ذ</span> okurken dilin ucunu dişlerin arasında hissetmelisin.</p>` },
+      { t: "ث س ص", h: `<ul><li><span class="ar">ث</span>: dil ucu üst ön dişlerin ucunda, peltek bir "s"; <b>ince</b>, nefesli</li><li><span class="ar">س</span>: dil ucu ön dişlerin arkasında, ıslıklı; <b>ince</b></li><li><span class="ar">ص</span>: <span class="ar">س</span> ile aynı yer ama dil damağa kapanır; <b>kalın</b></li></ul>` },
+      { t: "ح ه خ — ع ء", h: `<ul><li><span class="ar">ه</span>: boğazın en derininden, hafif ve rahat bir nefes</li><li><span class="ar">ح</span>: boğazın ortasından, boğaz sıkışarak çıkan nefes (Türkçede yok)</li><li><span class="ar">خ</span>: boğazın ağza yakın kısmından, hırıltılı ses</li><li><span class="ar">ء</span>: boğazın derininde sesin ani kesilmesi</li><li><span class="ar">ع</span>: boğazın ortasından, sıkışan ve sesli bir harf</li></ul>` },
+      { t: "ق ك — ط ت", h: `<ul><li><span class="ar">ق</span>: dilin kökünden, <b>kalın</b>, nefes akmaz</li><li><span class="ar">ك</span>: biraz daha önden, <b>ince</b>, nefesli</li><li><span class="ar">ط</span>: dil ucu üst dişlerin kökünde, dil damağa kapanır; <b>kalın</b></li><li><span class="ar">ت</span>: aynı yer, <b>ince</b> ve nefesli</li></ul>` }
+    ],
+    sorular: [
+      { q: "عَلِيم ile أَلِيم arasındaki fark neden önemlidir?", a: "ع yerine ء okumak anlamı değiştirir (bilen / acı veren)", w: ["Fark yoktur, ikisi de aynı okunur", "Sadece uzatma farkı vardır", "Sadece kalınlık farkı vardır"] },
+      { q: "Hangisi kalın okunur?", a: "ص", w: ["س", "ث", "ز"] },
+      { q: "ظ ile ذ arasındaki fark nedir?", a: "Aynı yerden çıkarlar; ظ kalın, ذ ince", w: ["Mahreçleri çok uzaktır", "ذ kalın, ظ incedir", "Hiçbir farkı yoktur"] },
+      { q: "ح ile ه arasındaki fark nedir?", a: "ح boğazın ortasından sıkışarak, ه en derinden hafif nefesle çıkar", w: ["İkisi de dudaktan çıkar", "ه daha kalındır", "Hiçbir farkı yoktur"] },
+      { q: "ث nasıl çıkarılır?", a: "Dil ucu üst ön dişlerin ucuna değer (peltek s)", w: ["Dilin kökünden", "İki dudaktan", "Boğazın ortasından"] },
+      { q: "ق ile ك arasındaki fark nedir?", a: "ق daha derinden ve kalın, ك daha önden ve ince", w: ["ك daha kalındır", "İkisi de dudaktan çıkar", "Hiçbir farkı yoktur"] }
+    ],
+    dinle: [
+      { h: 'ض', r: '1:7', w: 9, k: 'ٱلضَّآلِّينَ', g: ['ض', 'ظ', 'ذ', 'ز'] },
+      { h: 'ظ', r: '2:19', w: 6, k: 'ظُلُمَٰتٞ', g: ['ض', 'ظ', 'ذ', 'ز'] },
+      { h: 'ذ', r: '2:2', w: 1, k: 'ذَٰلِكَ', g: ['ض', 'ظ', 'ذ', 'ز'] },
+      { h: 'ز', r: '99:1', w: 2, k: 'زُلۡزِلَتِ', g: ['ض', 'ظ', 'ذ', 'ز'] },
+      { h: 'ث', r: '101:4', w: 5, k: 'ٱلۡمَبۡثُوثِ', g: ['ث', 'س', 'ص'] },
+      { h: 'س', r: '114:4', w: 3, k: 'ٱلۡوَسۡوَاسِ', g: ['ث', 'س', 'ص'] },
+      { h: 'ص', r: '1:6', w: 2, k: 'ٱلصِّرَٰطَ', g: ['ث', 'س', 'ص'] },
+      { h: 'ح', r: '1:2', w: 1, k: 'ٱلۡحَمۡدُ', g: ['ح', 'ه', 'خ'] },
+      { h: 'ه', r: '112:1', w: 2, k: 'هُوَ', g: ['ح', 'ه', 'خ'] },
+      { h: 'خ', r: '113:2', w: 4, k: 'خَلَقَ', g: ['ح', 'ه', 'خ'] },
+      { h: 'ع', r: '1:5', w: 2, k: 'نَعۡبُدُ', g: ['ع', 'ء'] },
+      { h: 'ء', r: '2:4', w: 4, k: 'أُنزِلَ', g: ['ع', 'ء'] },
+      { h: 'ق', r: '113:1', w: 1, k: 'قُلۡ', g: ['ق', 'ك'] },
+      { h: 'ك', r: '102:1', w: 1, k: 'أَلۡهَىٰكُمُ', g: ['ق', 'ك'] },
+      { h: 'ط', r: '105:3', w: 3, k: 'طَيۡرًا', g: ['ط', 'ت'] },
+      { h: 'ت', r: '1:5', w: 4, k: 'نَسۡتَعِينُ', g: ['ط', 'ت'] }
+    ]
+  });
+
   unit({
     id: 'u1', ad: "Med-i tabîî (doğal uzatma)", ikon: '🎈', kurallar: ['tabii'],
     sayfalar: [
@@ -617,7 +709,7 @@ window.TC = (function () {
   });
 
   unit({ id: 'x3', ara: true, ad: "Ara sınav 3: İdğamlar, kalkale, lâm, râ, vakf", ikon: '🏁', kapsar: ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20'] });
-  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20'] });
+  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20'] });
 
   const GRUP_AD = { med: "Medler", nun: "Nûn sâkin ve tenvin", mim: "Mîm sâkin", gunne: "Ğunne", idgam: "İdğâmlar", kalkale: "Kalkale", lam: "Lâm-ı tarif", lafza: "Lafzatullah", ra: "Râ", vakf: "Vakf ve sekte", ozel: "Özel okunuşlar" };
 
@@ -630,5 +722,5 @@ window.TC = (function () {
     "Hesap ve eşitleme: Firebase (Google) — Apache 2.0 lisanslı SDK."
   ];
 
-  return { R, U, GRUP_AD, KAYNAK };
+  return { R, U, GRUP_AD, KAYNAK, MAHREC_SVG };
 })();
