@@ -708,8 +708,34 @@ window.TC = (function () {
     ]
   });
 
-  unit({ id: 'x3', ara: true, ad: "Ara sınav 3: İdğamlar, kalkale, lâm, râ, vakf", ikon: '🏁', kapsar: ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20'] });
-  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20'] });
+  unit({
+    id: 'l1', ad: "Lahn: okuma hataları", ikon: '⚠️', kurallar: [],
+    sayfalar: [
+      { t: "Lahn nedir?", h: `<p><b>Lahn</b>, Kur'an okurken yapılan hatadır. İkiye ayrılır:</p><ul><li><b>Lahn-ı celî (açık hata):</b> Harfin kendisinde ya da harekesinde yapılan hata. Arapça bilen herkes fark eder. Mana bozulmasa bile bu hatalardan <b>sakınmak farz-ı ayndır</b>.</li><li><b>Lahn-ı hafî (gizli hata):</b> Tecvid kurallarında yapılan hata. Harfin kendisi değişmez, mana bozulmaz; ancak ehli fark eder. Bu hataları yapmak <b>mekruh</b> görülmüştür.</li></ul><p class="not">Yani önce harfleri ve harekeleri doğru okumak gelir; tecvid kuralları onu güzelleştirir.</p>` },
+      { t: "Lahn-ı celî örnekleri", h: `<ul><li><b>Bir harfi başka harfle değiştirmek:</b> <span class="ar">ض</span>'yi "z", <span class="ar">ح</span>'yi "h", <span class="ar">ع</span>'yi hemze gibi okumak. <span class="ar">عَلِيم</span> (bilen) ↔ <span class="ar">أَلِيم</span> (acı veren)</li><li><b>Harekeyi değiştirmek:</b> <span class="ar">أَنۡعَمۡتَ</span> "en'amte" (nimet <u>verdin</u>) yerine "en'amtü" okumak anlamı "nimet <u>verdim</u>" yapar.</li><li><b>Şeddeyi okumamak (harf düşürmek):</b> <span class="ar">إِيَّاكَ</span> "iyyâke" yerine "iyâke" okumak harf eksiltmektir.</li><li><b>Kısa harekeyi uzatmak (harf eklemek):</b> <span class="ar">قُلۡ هُوَ</span>'yu "kul hûve" gibi uzatmak.</li><li><b>Sakin harfe hareke vermek:</b> kalkale yaparken <span class="ar">أَحَدۡ</span>'i "ehade" okumak.</li><li><b>Harekeli harfi sakin okumak.</b></li></ul>` },
+      { t: "Lahn-ı hafî örnekleri", h: `<ul><li>İhfâ, iklâb, izhâr ve idğâmı <b>yapmamak</b> ya da yanlış yerde yapmak</li><li><b>Vâcip medleri kısaltmak</b> (muttasıl, lâzım), <b>tabîî medleri fazla uzatmak</b></li><li>Ğunneyi <b>ya hiç yapmamak ya da abartmak</b></li><li>Râ'yı <b>titreterek</b> okumak</li><li>Kalın harfleri inceltmek, ince harfleri kalınlaştırmak (harf değişmediği sürece)</li><li>Okuyuş boyunca med ölçüsünü <b>tutarsız</b> uygulamak</li></ul><p class="not">Bu hatalar mana bozmasa da okuyuşun güzelliğini ve doğruluğunu azaltır. Önceki bölümlerdeki kurallar tam da bunları önlemek içindir.</p>` },
+      { t: "Durma (vakf) hataları", h: `<p>Yanlış yerde durup başlamak da manayı bozabilir. Meşhur örnek:</p><p class="ar buyuk" style="letter-spacing:0">فَوَيۡلٞ لِّلۡمُصَلِّينَ</p><p>"Vay hâline o namaz kılanların!" deyip durmak, ayetin devamını (<span class="ar">ٱلَّذِينَ هُمۡ عَن صَلَاتِهِمۡ سَاهُونَ</span>: "ki onlar namazlarından gafildirler") kesip anlamı ters çevirir. Bu yüzden ayet sonuna kadar okunmalıdır.</p><p class="not">Nefesin yetmezse uygun bir yerde dur ve gerekirse birkaç kelime geriden başla.</p>` },
+      { t: "Hatalardan nasıl korunurum?", h: `<ol><li><b>Bir hocaya oku.</b> Tecvid kulaktan ve ağızdan öğrenilir. Hatalarını en iyi dinleyen biri düzeltir.</li><li><b>Önce dinle, sonra oku.</b> Örneklerdeki kâriyi dinle, sonra aynı ayeti kendin oku.</li><li><b>Yavaş oku (tahkîk).</b> Hız, hataları gizler.</li><li><b>Mahreç ve sıfatları tekrar et.</b> Celî hataların çoğu harfi yanlış yerden çıkarmaktan gelir.</li><li><b>Kendini kaydet.</b> Kendi okuyuşunu dinlemek hatayı görmenin en kolay yoludur.</li></ol>` }
+    ],
+    sorular: [
+      { q: "Lahn nedir?", a: "Kur'an okurken yapılan hata", w: ["Bir tecvid kuralı", "Bir durak işareti", "Bir okuma hızı"] },
+      { q: "Lahn-ı celî nedir?", a: "Harfin kendisinde ya da harekesinde yapılan açık hata", w: ["Sadece ğunnede yapılan hata", "Sadece medde yapılan hata", "Hiç önemi olmayan hata"] },
+      { q: "Lahn-ı hafî nedir?", a: "Tecvid kurallarında yapılan, harfi değiştirmeyen gizli hata", w: ["Harfi başka harfe çevirmek", "Harekeyi değiştirmek", "Harf eklemek"] },
+      { q: "Lahn-ı celîden sakınmanın hükmü nedir?", a: "Farz-ı ayn", w: ["Sünnet", "Müstehap", "Serbest"] },
+      { q: "Lahn-ı hafî yapmanın hükmü nedir?", a: "Mekruh", w: ["Farz", "Sünnet", "Mübah"] },
+      { q: "إِيَّاكَ kelimesini şeddesiz \"iyâke\" okumak hangi hatadır?", a: "Lahn-ı celî", w: ["Lahn-ı hafî", "Hata değildir", "Vakf hatası"] },
+      { q: "أَنۡعَمۡتَ kelimesini \"en'amtü\" okumak neden ağır bir hatadır?", a: "Hareke değişince anlam \"verdin\"den \"verdim\"e döner", w: ["Sadece güzelliği azaltır", "Ğunne eksik kalır", "Med kısalır"] },
+      { q: "İhfâyı yapmamak hangi hatadır?", a: "Lahn-ı hafî", w: ["Lahn-ı celî", "Hata değildir", "Vakf hatası"] },
+      { q: "Med-i muttasılı 1 elif okumak hangi hatadır?", a: "Lahn-ı hafî", w: ["Lahn-ı celî", "Hata değildir", "Harf değiştirme"] },
+      { q: "ض harfini \"z\" gibi okumak hangi hatadır?", a: "Lahn-ı celî", w: ["Lahn-ı hafî", "Hata değildir", "Vakf hatası"] },
+      { q: "Kalkale yaparken أَحَدۡ'i \"ehade\" okumak neden hatadır?", a: "Sakin harfe hareke eklenmiş olur (lahn-ı celî)", w: ["Ğunne yapılmamış olur", "Med eksik kalır", "Hata değildir"] },
+      { q: "فَوَيۡلٞ لِّلۡمُصَلِّينَ deyip durmak neden yanlıştır?", a: "Ayetin devamı kesilince anlam ters döner", w: ["Med eksik kalır", "Kalkale yapılmaz", "Ğunne kaybolur"] },
+      { q: "Hatalardan korunmanın en etkili yolu hangisidir?", a: "Bir hocaya okuyup düzelttirmek", w: ["Hızlı okumak", "Sadece yazıyı okumak", "Hiç dinlememek"] }
+    ]
+  });
+
+  unit({ id: 'x3', ara: true, ad: "Ara sınav 3: İdğamlar, kalkale, lâm, râ, vakf, lahn", ikon: '🏁', kapsar: ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1'] });
+  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1'] });
 
   const GRUP_AD = { med: "Medler", nun: "Nûn sâkin ve tenvin", mim: "Mîm sâkin", gunne: "Ğunne", idgam: "İdğâmlar", kalkale: "Kalkale", lam: "Lâm-ı tarif", lafza: "Lafzatullah", ra: "Râ", vakf: "Vakf ve sekte", ozel: "Özel okunuşlar" };
 

@@ -446,7 +446,32 @@
         ['What is imālah?', 'Tilting the "a" sound towards "e"', ['Dropping the hamzah', 'Stopping without a breath', 'Turning into mīm']]
       ]
     },
-    x3: { ad: 'Checkpoint 3: Idghāms, qalqalah, lām, rāʾ, waqf' },
+    l1: {
+      ad: 'Laḥn: reading mistakes',
+      sayfalar: [
+        ['What is laḥn?', `<p><b>Laḥn</b> is a mistake made while reading the Qur'an. There are two kinds:</p><ul><li><b>Clear mistake (laḥn jalī):</b> a mistake in the letter itself or its vowel. Anyone who knows Arabic notices it. Even if the meaning isn't changed, <b>avoiding these mistakes is a personal obligation (farḍ ʿayn)</b>.</li><li><b>Hidden mistake (laḥn khafī):</b> a mistake in the tajwīd rules. The letter itself doesn't change and the meaning isn't changed, but an expert notices it. Making these mistakes is considered <b>disliked (makrūh)</b>.</li></ul><p class="not">So reading the letters and vowels correctly comes first; the tajwīd rules beautify it.</p>`],
+        ['Examples of clear mistakes', `<ul><li><b>Replacing a letter with another:</b> reading <span class="ar">ض</span> as "z", <span class="ar">ح</span> as "h", <span class="ar">ع</span> like a hamzah. <span class="ar">عَلِيم</span> (All-Knowing) ↔ <span class="ar">أَلِيم</span> (painful)</li><li><b>Changing a vowel:</b> reading <span class="ar">أَنۡعَمۡتَ</span> "anʿamta" (<u>You</u> bestowed) as "anʿamtu" changes it to "<u>I</u> bestowed".</li><li><b>Not reading the shaddah (dropping a letter):</b> reading <span class="ar">إِيَّاكَ</span> "iyyāka" as "iyāka" drops a letter.</li><li><b>Lengthening a short vowel (adding a letter):</b> stretching <span class="ar">قُلۡ هُوَ</span> into "qul hūwa".</li><li><b>Giving a vowel to a silent letter:</b> reading <span class="ar">أَحَدۡ</span> as "aḥada" while making qalqalah.</li><li><b>Reading a voweled letter as silent.</b></li></ul>`],
+        ['Examples of hidden mistakes', `<ul><li><b>Not applying</b> ikhfāʾ, iqlāb, iẓhār or idghām, or applying them in the wrong place</li><li><b>Shortening obligatory madds</b> (muttaṣil, lāzim), <b>over-lengthening natural madds</b></li><li><b>Leaving out or exaggerating</b> the ghunnah</li><li><b>Rolling</b> the rāʾ</li><li>Making heavy letters light or light letters heavy (as long as the letter doesn't change)</li><li>Being <b>inconsistent</b> with madd lengths throughout the recitation</li></ul><p class="not">These mistakes don't change the meaning but they reduce the beauty and correctness of the recitation. The rules in the earlier units are there to prevent exactly these.</p>`],
+        ['Stopping (waqf) mistakes', `<p>Stopping and starting in the wrong place can also distort the meaning. A well-known example:</p><p class="ar buyuk" style="letter-spacing:0">فَوَيۡلٞ لِّلۡمُصَلِّينَ</p><p>Stopping after "So woe to those who pray!" cuts off the rest of the passage (<span class="ar">ٱلَّذِينَ هُمۡ عَن صَلَاتِهِمۡ سَاهُونَ</span>: "who are heedless of their prayer") and turns the meaning upside down. So it should be read to the end.</p><p class="not">If you run out of breath, stop at a suitable place and start again a few words back if needed.</p>`],
+        ['How do I avoid mistakes?', `<ol><li><b>Read to a teacher.</b> Tajwīd is learned by ear and mouth. Someone who listens to you corrects your mistakes best.</li><li><b>Listen first, then read.</b> Listen to the reciter in the examples, then read the same āyah yourself.</li><li><b>Read slowly (taḥqīq).</b> Speed hides mistakes.</li><li><b>Review the makhārij and ṣifāt.</b> Most clear mistakes come from producing a letter from the wrong place.</li><li><b>Record yourself.</b> Listening to your own recitation is the easiest way to spot a mistake.</li></ol>`]
+      ],
+      sorular: [
+        ['What is laḥn?', "A mistake made while reading the Qur'an", ['A tajwīd rule', 'A stop sign', 'A reading speed']],
+        ['What is a clear mistake (laḥn jalī)?', 'A clear mistake in the letter itself or its vowel', ['A mistake only in ghunnah', 'A mistake only in madd', 'A mistake that doesn\'t matter at all']],
+        ['What is a hidden mistake (laḥn khafī)?', 'A mistake in the tajwīd rules that doesn\'t change the letter', ['Turning a letter into another', 'Changing a vowel', 'Adding a letter']],
+        ['What is the ruling on avoiding clear mistakes?', 'Farḍ ʿayn (personal obligation)', ['Sunnah', 'Recommended', 'Optional']],
+        ['What is the ruling on making hidden mistakes?', 'Makrūh (disliked)', ['Farḍ', 'Sunnah', 'Permissible']],
+        ['Reading إِيَّاكَ without shaddah as "iyāka" is which mistake?', 'Clear mistake (laḥn jalī)', ['Hidden mistake (laḥn khafī)', 'Not a mistake', 'A stopping mistake']],
+        ['Why is reading أَنۡعَمۡتَ as "anʿamtu" a serious mistake?', 'Changing the vowel turns "You bestowed" into "I bestowed"', ['It only reduces the beauty', 'The ghunnah is missing', 'The madd is shortened']],
+        ['Not making ikhfāʾ is which mistake?', 'Hidden mistake (laḥn khafī)', ['Clear mistake (laḥn jalī)', 'Not a mistake', 'A stopping mistake']],
+        ['Reading madd muttaṣil as 1 alif is which mistake?', 'Hidden mistake (laḥn khafī)', ['Clear mistake (laḥn jalī)', 'Not a mistake', 'Replacing a letter']],
+        ['Reading ض like "z" is which mistake?', 'Clear mistake (laḥn jalī)', ['Hidden mistake (laḥn khafī)', 'Not a mistake', 'A stopping mistake']],
+        ['Why is reading أَحَدۡ as "aḥada" while making qalqalah a mistake?', 'A vowel is added to a silent letter (clear mistake)', ['The ghunnah is missing', 'The madd is too short', 'It isn\'t a mistake']],
+        ['Why is it wrong to stop after فَوَيۡلٞ لِّلۡمُصَلِّينَ?', 'Cutting off the rest turns the meaning upside down', ['The madd is too short', 'No qalqalah is made', 'The ghunnah is lost']],
+        ['What is the most effective way to avoid mistakes?', 'Reading to a teacher and being corrected', ['Reading fast', 'Only reading the text', 'Never listening']]
+      ]
+    },
+    x3: { ad: 'Checkpoint 3: Idghāms, qalqalah, lām, rāʾ, waqf, laḥn' },
     x4: { ad: 'Grand final: All of tajwīd' }
   };
 
