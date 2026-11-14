@@ -492,6 +492,18 @@
   // ------------------------------------------------------------ ekranlar
   const EKRAN = {};
 
+  // iPhone/iPad'de Safari'den açılınca: ana ekrana ekleme yardımı (uygulama gibi açılsın, internetsiz çalışsın)
+  function iosKurKarti() {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const kurulu = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    let kapali = false; try { kapali = localStorage.getItem('tecvid-ogren.ios') === '1'; } catch (e) { }
+    if (!ios || kurulu || kapali || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return '';
+    return `<section class="kart hesap-uyari" style="margin-bottom:14px"><div><h2>${t('📲 iPhone\'a uygulama gibi ekle')}</h2>
+      <ol style="padding-left:20px;margin:6px 0"><li>${t('Safari\'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).')}</li><li>${t('<b>Ana Ekrana Ekle</b>\'yi seç, sonra <b>Ekle</b>\'ye dokun.')}</li><li>${t('Artık ana ekrandaki <b>Tecvid</b> simgesinden aç.')}</li></ol>
+      <p class="soluk kucukyazi">${t('Ana ekrandan açınca tam ekran çalışır ve dersler internetsiz de açılır.')}</p></div>
+      <div class="satir sola"><button class="btn ikincil" id="iosKapat">${t('Tamam')}</button></div></section>`;
+  }
+
   EKRAN.ana = function () {
     const toplam = U.length, gecilen = U.filter(u => gecti(u.id)).length;
     const vade = vadesiGelenler().length;
@@ -513,6 +525,7 @@
           <p class="soluk">${t('🔥 {0} günlük seri', S.seri.gun || 0)}</p>
           ${siradaki ? `<button class="btn" data-git="${siradaki.ara ? 'sinavGiris|' + siradaki.id : 'ders|' + siradaki.id}">${t('Devam et')}</button>` : ''}</div>
         </section>
+        ${iosKurKarti()}
         <div id="odevYer"></div>
         <section class="kart tekrar ${vade ? 'vurgulu' : ''}">
           <div><h2>${t('🔁 Günlük tekrar')}</h2><p>${vade ? t('<b>{0}</b> soru tekrar zamanı geldi. Unutmamak için şimdi çöz.', vade) : t('Şu an tekrar bekleyen soru yok. Harika!')}</p></div>
@@ -535,6 +548,7 @@
         <div class="bolumler">${liste}</div>
       </main>`;
     odevKartiDoldur();
+    const ik = $('#iosKapat'); if (ik) ik.onclick = () => { try { localStorage.setItem('tecvid-ogren.ios', '1'); } catch (e) { } ciz(); };
     const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
   };
 
@@ -1039,7 +1053,7 @@
 
   EKRAN.indir = function () {
     const fs = FS();
-    if (!fs) { app.innerHTML = `${ust(t('İnternetsiz ses'))}<main><article class="kart"><p>${t('Sesleri indirme telefondaki uygulamada çalışır.')}</p></article></main>`; return; }
+    if (!fs) { app.innerHTML = `${ust(t('İnternetsiz ses'))}<main><article class="kart"><p>${t('Sesleri indirme şimdilik yalnızca Android uygulamasında çalışır. Burada sesler internetle çalar.')}</p></article></main>`; return; }
     const k = kari(), liste = indirListesi(k.klasor), var_ = indirilenSay(liste);
     const kelimeSay = [...yerelSet].filter(y => y.startsWith('wbw/')).length;
     const digerleri = KARILER.map(x => ({ x, n: [...yerelSet].filter(y => y.startsWith('ea/' + x.klasor + '/')).length })).filter(o => o.n && o.x.id !== k.id);
@@ -1218,11 +1232,10 @@
         ${lejantHTML()}</article>
       <article class="kart"><h2>${t('⏰ Günlük hatırlatma')}</h2>
         <p class="soluk">${t('Her gün seçtiğin saatte telefonuna bir hatırlatma gelir. O gün zaten çalıştıysan gelmez.')}</p>
-        <div class="satir sola"><button class="btn ${hat.acik ? '' : 'ikincil'}" data-hatir="1">${t('Açık')}</button><button class="btn ${hat.acik ? 'ikincil' : ''}" data-hatir="0">${t('Kapalı')}</button>
-          <label>${t('Saat:')} <input type="time" id="hatirSaat" value="${esc(hat.saat || '20:00')}" style="font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)"></label></div>
-        ${LN() ? '' : `<p class="soluk kucukyazi">${t('Bildirimler telefondaki uygulamada çalışır.')}</p>`}</article>
+        ${LN() ? `<div class="satir sola"><button class="btn ${hat.acik ? '' : 'ikincil'}" data-hatir="1">${t('Açık')}</button><button class="btn ${hat.acik ? 'ikincil' : ''}" data-hatir="0">${t('Kapalı')}</button>
+          <label>${t('Saat:')} <input type="time" id="hatirSaat" value="${esc(hat.saat || '20:00')}" style="font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)"></label></div>` : `<p class="soluk kucukyazi">${t('Günlük hatırlatma şimdilik yalnızca Android uygulamasında çalışır.')}</p>`}</article>
       <article class="kart"><h2>${t('🎙️ Kâri')}</h2><p>${esc(kari().ad)} · <span class="soluk">${esc(kari().tur)}</span></p>
-        <div class="satir sola"><button class="btn" data-git="kariSec">${t('Kâri seç')}</button><button class="btn ikincil" data-git="indir">${t('📥 İnternetsiz ses')}</button></div></article>
+        <div class="satir sola"><button class="btn" data-git="kariSec">${t('Kâri seç')}</button>${FS() ? `<button class="btn ikincil" data-git="indir">${t('📥 İnternetsiz ses')}</button>` : ''}</div></article>
       <article class="kart"><h2>${t('🔊 Ses hızı')}</h2>
         <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div></article>
       <article class="kart"><h2>${t('👤 Hesap')}</h2><p>${hk ? t('Giriş yapıldı: ') + '<b>' + esc(hk.email || '') + '</b>' : t('Giriş yapmadın. Verilerin sadece bu telefonda.')}</p>
@@ -1252,7 +1265,7 @@
       ciz();
     };
     app.querySelectorAll('[data-hatir]').forEach(b => b.onclick = () => hatirAyarla(b.dataset.hatir === '1', $('#hatirSaat').value || '20:00'));
-    $('#hatirSaat').onchange = e => { if (e.target.value) hatirAyarla(!!(S.ayar.hatirlat || {}).acik, e.target.value); };
+    if ($('#hatirSaat')) $('#hatirSaat').onchange = e => { if (e.target.value) hatirAyarla(!!(S.ayar.hatirlat || {}).acik, e.target.value); };
     app.querySelectorAll('[data-hiz]').forEach(b => b.onclick = () => { S.ayar.hiz = +b.dataset.hiz; kaydet(); ciz(); });
     $('#kopyala').onclick = async () => { try { await navigator.clipboard.writeText(yedek); toast(t('Kopyalandı')); } catch (e) { const x = $('#yedek'); x.select(); document.execCommand('copy'); toast(t('Kopyalandı')); } };
     $('#geriyukle').onclick = () => {

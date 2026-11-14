@@ -108,6 +108,15 @@ Toplam **596 soru**, **111 ayetten 167 örnek**, ayrıca 114 sûrenin tamamı re
 
 ## Kurulum
 
+### iPhone / iPad (ücretsiz web sürümü)
+1. iPhone'da **Safari** ile [latif07.github.io/tecvid-ogren](https://latif07.github.io/tecvid-ogren/) adresini aç.
+2. **Paylaş** → **Ana Ekrana Ekle** → **Ekle**.
+3. Ana ekrandaki **Tecvid** simgesinden aç. Dersler, testler, Kur'an metni ve geçmiş internetsiz de çalışır.
+
+> Web sürümünde sesler internet ister; ses indirme ve günlük hatırlatma bildirimi şimdilik yalnızca Android uygulamasında var.
+
+### Android
+
 1. [Releases](https://github.com/Latif07/tecvid-ogren/releases/latest) sayfasından `tecvid-ogren.apk` dosyasını telefona indir.
 2. Dosyayı aç. Telefon "bilinmeyen uygulamalar" izni isterse ver.
 3. Yeni sürümler eskisinin üstüne kurulur, ilerlemen silinmez.

@@ -1,0 +1,16 @@
+{
+  "name": "Tecvid Öğren",
+  "short_name": "Tecvid",
+  "description": "Kur'an-ı Kerim'i tecvidli okumayı adım adım öğreten, testlerle pekiştiren uygulama",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f2e9",
+  "theme_color": "#0f5a47",
+  "lang": "tr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

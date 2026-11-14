@@ -1,0 +1,33 @@
+name: Web sürümü (iPhone)
+
+on:
+  push:
+    branches: [main]
+    paths: ['www/**', '.github/workflows/web.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  yayinla:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.dagit.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sürüm numarasını yaz (önbellek yenilensin)
+        run: sed -i "s/SURUM_YER/${{ github.run_number }}-${GITHUB_SHA::7}/" www/sw.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+      - id: dagit
+        uses: actions/deploy-pages@v4

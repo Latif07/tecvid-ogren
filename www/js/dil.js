@@ -7,6 +7,15 @@
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "📲 iPhone'a uygulama gibi ekle": "📲 Add to your iPhone like an app",
+ "Safari'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).": "In Safari tap <b>Share</b> (the square with an up arrow; if you can't see it, tap <b>⋯</b> first).",
+ "<b>Ana Ekrana Ekle</b>'yi seç, sonra <b>Ekle</b>'ye dokun.": "Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.",
+ "Artık ana ekrandaki <b>Tecvid</b> simgesinden aç.": "From now on, open it from the <b>Tecvid</b> icon on your home screen.",
+ "Ana ekrandan açınca tam ekran çalışır ve dersler internetsiz de açılır.": "Opened from the home screen it runs full screen and the lessons also work offline.",
+ "Tamam": "OK",
+ "Sesleri indirme şimdilik yalnızca Android uygulamasında çalışır. Burada sesler internetle çalar.": "Downloading audio only works in the Android app for now. Here the audio plays over the internet.",
+ "Günlük hatırlatma şimdilik yalnızca Android uygulamasında çalışır.": "The daily reminder only works in the Android app for now.",
+
  "{0}. sûre": "Surah {0}",
  "📖 Kur'an-ı Kerîm": "📖 The Qur'an",
  "114 sûre renkli tecvidle: oku, dinle, kural ara, tekrar et, kendini kaydet.": "All 114 surahs with colour-coded tajweed: read, listen, find rules, repeat and record yourself.",

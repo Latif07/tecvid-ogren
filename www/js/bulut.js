@@ -5,7 +5,7 @@ import { initializeApp } from './firebase/firebase-app.js';
 import {
   initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, onAuthStateChanged,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
-  GoogleAuthProvider, signInWithCredential, signOut
+  GoogleAuthProvider, signInWithCredential, signOut, signInWithPopup, browserPopupRedirectResolver
 } from './firebase/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, serverTimestamp } from './firebase/firebase-firestore.js';
 import { FIREBASE_CONFIG } from './firebase-config.js';
@@ -60,7 +60,16 @@ window.Bulut = {
   async googleIle() {
     hazirMi();
     const Cap = window.Capacitor;
-    if (!(Cap && Cap.isNativePlatform && Cap.isNativePlatform())) throw new Error(yazi('Google ile giriş telefondaki uygulamada çalışır.', 'Google sign-in works in the phone app.'));
+    if (!(Cap && Cap.isNativePlatform && Cap.isNativePlatform())) {
+      // Web sürümü (iPhone / tarayıcı): Google açılır penceresi
+      try { return (await signInWithPopup(auth, new GoogleAuthProvider(), browserPopupRedirectResolver)).user; }
+      catch (e) {
+        if (/popup-closed|cancelled-popup/.test(e && e.code)) throw new Error(yazi('Google girişi iptal edildi.', 'Google sign-in was cancelled.'));
+        if (/popup-blocked/.test(e && e.code)) throw new Error(yazi('Açılır pencere engellendi. Tarayıcı ayarlarından izin ver ya da e-postayla giriş yap.', 'The pop-up was blocked. Allow pop-ups or sign in with email.'));
+        if (/unauthorized-domain/.test(e && e.code)) throw new Error(yazi('Google girişi bu adreste henüz açık değil. Şimdilik e-postayla giriş yap.', 'Google sign-in is not enabled on this address yet. Use email for now.'));
+        throw new Error(turkce(e));
+      }
+    }
     const FA = Cap.registerPlugin('FirebaseAuthentication');
     let sonuc;
     try { sonuc = await FA.signInWithGoogle(); }
