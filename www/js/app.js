@@ -7,7 +7,29 @@
   const t = window.t, DIL = window.DIL;
   const GECME = 80;                       // bölüm/ara sınav geçme yüzdesi
   const ARALIK = [0, 1, 2, 4, 8, 16, 32]; // kutu → gün (aralıklı tekrar)
-  const KEY = 'tecvid-ogren.v1';
+  // ------------------------------------------------------------ profiller (aynı telefonda birden çok kişi)
+  // Kayıt: 'tecvid-ogren.profiller' = { aktif, liste: [{ id, ad, yas: 'kucuk'|'cocuk'|'buyuk', d }] }.
+  // İlk profilin (p1) verisi eski anahtarda kalır; diğerleri 'tecvid-ogren.v1.<id>' anahtarında.
+  const PKEY = 'tecvid-ogren.profiller';
+  let PR = null; try { PR = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) { }
+  if (!PR || !Array.isArray(PR.liste) || !PR.liste.length) PR = { aktif: 'p1', liste: [{ id: 'p1', ad: '', yas: null }] };
+  if (!PR.liste.some(p => p.id === PR.aktif)) PR.aktif = PR.liste[0].id;
+  const profilKaydet = () => { try { localStorage.setItem(PKEY, JSON.stringify(PR)); } catch (e) { } };
+  const AKTIF = () => PR.liste.find(p => p.id === PR.aktif) || PR.liste[0];
+  const cocukMu = () => AKTIF().yas === 'kucuk' || AKTIF().yas === 'cocuk';
+  const YAS_AD = { kucuk: t('4–6 yaş'), cocuk: t('7–12 yaş'), buyuk: t('13 yaş ve üstü') };
+  const KEY = PR.aktif === 'p1' ? 'tecvid-ogren.v1' : 'tecvid-ogren.v1.' + PR.aktif;
+  function profilDegistir(id) {
+    PR.aktif = id; profilKaydet();
+    try { sessionStorage.setItem('hk.secildi', '1'); sessionStorage.setItem('hk.acilisYok', '1'); } catch (e) { }
+    location.reload();
+  }
+  function profilBirlestir(a, b) {
+    const m = new Map(); [...(b.liste || []), ...(a.liste || [])].forEach(p => { const x = m.get(p.id); if (!x || (p.d || 0) >= (x.d || 0)) m.set(p.id, p); });
+    const liste = [...m.values()].filter(p => !p.silindi).sort((x, y) => x.id === 'p1' ? -1 : y.id === 'p1' ? 1 : (x.id < y.id ? -1 : 1));
+    const silinen = [...m.values()].filter(p => p.silindi);
+    return { aktif: a.aktif, liste: liste.length ? liste : a.liste, silinen };
+  }
   const $ = (s, el = document) => el.querySelector(s);
   const app = $('#app');
 
@@ -55,6 +77,7 @@
     for (const id of new Set([...Object.keys(a.ilerleme || {}), ...Object.keys(b.ilerleme || {})])) {
       const x = (a.ilerleme || {})[id] || {}, y = (b.ilerleme || {})[id] || {};
       r.ilerleme[id] = { en: Math.max(x.en || 0, y.en || 0), deneme: Math.max(x.deneme || 0, y.deneme || 0), gecti: !!(x.gecti || y.gecti) };
+      if ((x.atla || y.atla) && !r.ilerleme[id].deneme) r.ilerleme[id].atla = true;
     }
     for (const id of new Set([...Object.keys(a.okunan || {}), ...Object.keys(b.okunan || {})])) r.okunan[id] = Math.max((a.okunan || {})[id] || 0, (b.okunan || {})[id] || 0);
     for (const k of new Set([...Object.keys(a.srs || {}), ...Object.keys(b.srs || {})])) {
@@ -65,6 +88,7 @@
     r.gecmis = [...g.values()].sort((m, n) => m.tarih - n.tarih).slice(-3000);
     const sa = a.seri || {}, sb = b.seri || {};
     r.seri = (sa.son || '') > (sb.son || '') ? sa : (sb.son || '') > (sa.son || '') ? sb : { son: sa.son || '', gun: Math.max(sa.gun || 0, sb.gun || 0) };
+    r.seri = Object.assign({}, r.seri, { en: Math.max(sa.en || 0, sb.en || 0, r.seri.gun || 0) });
     r.degisti = Math.max(a.degisti || 0, b.degisti || 0);
     r.hesapUyariKapali = a.hesapUyariKapali || b.hesapUyariKapali;
     const sl = x => x.siniflar || (x.sinif ? [x.sinif] : null);
@@ -75,6 +99,11 @@
     }
     const ha = a.hatim, hb = b.hatim; r.hatim = !ha ? hb || null : !hb ? ha : (ha.bas > hb.bas ? ha : hb.bas > ha.bas ? hb : (ha.sayfa >= hb.sayfa ? ha : hb));
     r.sonSayfa = a.sonSayfa || b.sonSayfa;
+    if (a.cocuk || b.cocuk) {   // çocuk modu: durak başına en iyi yıldız, gün başına en çok yıldız
+      const ca = a.cocuk || {}, cb = b.cocuk || {}; r.cocuk = { d: {}, gun: {} };
+      for (const k of new Set([...Object.keys(ca.d || {}), ...Object.keys(cb.d || {})])) { const x = (ca.d || {})[k] || {}, y = (cb.d || {})[k] || {}; r.cocuk.d[k] = { y: Math.max(x.y || 0, y.y || 0), n: Math.max(x.n || 0, y.n || 0), t: Math.max(x.t || 0, y.t || 0) }; }
+      for (const k of new Set([...Object.keys(ca.gun || {}), ...Object.keys(cb.gun || {})])) r.cocuk.gun[k] = Math.max((ca.gun || {})[k] || 0, (cb.gun || {})[k] || 0);
+    }
     r.sure = {}; for (const n of new Set([...Object.keys(a.sure || {}), ...Object.keys(b.sure || {})])) { const x = (a.sure || {})[n] || {}, y = (b.sure || {})[n] || {}; r.sure[n] = { en: Math.max(x.en || 0, y.en || 0) || null, dinlendi: Math.max(x.dinlendi || 0, y.dinlendi || 0) || null }; }
     return r;
   }
@@ -82,9 +111,9 @@
     if (!girisli() || esitleniyor) return;
     esitleniyor = true;
     try {
-      const uzak = await B().indir();
+      const uzak = await B().indir(PR.aktif);
       if (uzak && (uzak.degisti || 0) > (S.degisti || 0) - 1) { S = birlestir(S, Object.assign(bos(), uzak)); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
-      await B().yukle(S); sonEsitleme = Date.now(); ozetiGonder();
+      await B().yukle(S, PR.aktif); sonEsitleme = Date.now(); ozetiGonder();
     } catch (e) { /* internet yoksa sonra tekrar denenir */ }
     finally { esitleniyor = false; }
   }
@@ -92,14 +121,26 @@
     if (!girisli() || esitleniyor) return;
     esitleniyor = true;
     try {
-      const uzak = await B().indir();
+      const uzak = await B().indir(PR.aktif);
       if (uzak) S = birlestir(S, Object.assign(bos(), uzak));
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
-      await B().yukle(S); sonEsitleme = Date.now(); temaUygula(); ozetiGonder();
+      await B().yukle(S, PR.aktif); sonEsitleme = Date.now(); temaUygula(); ozetiGonder();
+      await profilleriEsitle();
       if (!sessiz) toast(t('Verilerin hesabınla eşitlendi ✓'));
     } catch (e) { if (!sessiz) toast(t('Eşitlenemedi: ') + (e.message || t('internet bağlantısı yok'))); }
     finally { esitleniyor = false; }
     if (!oturum) ciz();
+  }
+  // Profil listesi hesapta da tutulur; yeni telefonda giriş yapınca profiller gelir
+  async function profilleriEsitle() {
+    if (!girisli() || !B().profilIndir) return;
+    try {
+      const uzak = await B().profilIndir();
+      const once = JSON.stringify(PR.liste);
+      if (uzak && uzak.liste) { const r = profilBirlestir(PR, uzak); PR.liste = r.liste; PR.silinen = r.silinen; profilKaydet(); }
+      await B().profilYukle({ liste: PR.liste.concat(PR.silinen || []) });
+      if (JSON.stringify(PR.liste) !== once && ekranYigini.length && ['profiller', 'kimCalisiyor'].includes(ekranYigini[ekranYigini.length - 1][0])) ciz();
+    } catch (e) { /* sonra tekrar */ }
   }
   function bulutBagla() {
     if (!window.Bulut || bulutBagla.tamam) return; bulutBagla.tamam = true;
@@ -120,7 +161,7 @@
   function seriGuncelle() {
     const b = bugun(); if (S.seri.son === b) return;
     const dun = new Date(simdi() - GUN).toISOString().slice(0, 10);
-    S.seri.gun = S.seri.son === dun ? S.seri.gun + 1 : 1; S.seri.son = b;
+    S.seri.gun = S.seri.son === dun ? S.seri.gun + 1 : 1; S.seri.son = b; S.seri.en = Math.max(S.seri.en || 0, S.seri.gun);
   }
 
   // ------------------------------------------------------------ yardımcılar
@@ -482,7 +523,9 @@
   let ekranYigini = [];
   function git(ad, ...arg) { ekranYigini.push([ad, arg]); ciz(); window.scrollTo(0, 0); }
   function geri() { if (oturum && !oturum.bitti && !confirm(t('Testten çıkmak istiyor musun? Bu test kaydedilmez.'))) return; oturum = null; if (ekranYigini.length > 1) ekranYigini.pop(); ciz(); window.scrollTo(0, 0); }
-  function anaSayfa() { oturum = null; ekranYigini = [['ana', []]]; ciz(); window.scrollTo(0, 0); }
+  const evKok = () => cocukMu() ? 'cocuk' : 'ana';
+  function anaSayfa() { oturum = null; ekranYigini = [[evKok(), []]]; ciz(); window.scrollTo(0, 0); }
+  function ekranDegistir(ad, ...arg) { ekranYigini[ekranYigini.length - 1] = [ad, arg]; ciz(); window.scrollTo(0, 0); }
   function ciz() {
     if (kayitci) kayitDurdur();
     if (typeof OKU_KAYIT !== 'undefined' && OKU_KAYIT.r && OKU_KAYIT.r.state !== 'inactive') { const r = OKU_KAYIT.r; r.onstop = () => { try { r.stream.getTracks().forEach(x => x.stop()); } catch (e) { } }; r.stop(); OKU_KAYIT.r = null; }
@@ -490,25 +533,34 @@
     // Ekran değişince sûrenin "tamamını dinle" çalması dursun
     const anahtar = ad + '|' + JSON.stringify(arg);
     if (sureCalma && anahtar !== ciz.son) { sureCalma.iptal = true; sureCalma = null; if (ses) { ses.pause(); ses = null; } }
+    if (anahtar !== ciz.son && window.Konfeti) window.Konfeti.durdur();
     ciz.son = anahtar;
     EKRAN[ad](...arg);
     altMenu(ad);
   }
   // ------------------------------------------------------------ alt sekme çubuğu (bölümler)
-  const SEKMELER = [['ana', '📖', 'Tecvid'], ['sureler', '🕌', 'Kur\'an'], ['ezber', '🧠', 'Ezber'], ['testler', '📝', 'Testler'], ['profil', '👤', 'Profil']];
+  const SEKMELER_B = [['ana', '📖', 'Tecvid'], ['sureler', '🕌', 'Kur\'an'], ['ezber', '🧠', 'Ezber'], ['testler', '📝', 'Testler'], ['profil', '👤', 'Profil']];
+  const SEKMELER_C = [['cocuk', '🗺️', 'Yolculuk'], ['cocukIlerleme', '⭐', 'Yıldızlarım'], ['profil', '👨‍👩‍👧', 'Büyükler']];
+  const sekmeler = () => cocukMu() ? SEKMELER_C : SEKMELER_B;
   function altMenu(ad) {
+    const SEKMELER = sekmeler();
+    document.body.classList.toggle('cocuk-modu', cocukMu());
     const kok = ekranYigini.length === 1 && SEKMELER.some(x => x[0] === ad) && !oturum;
     document.body.classList.toggle('sekmeli', kok);
     if (!kok) return;
     const g = app.querySelector('.ust .geri'); if (g) g.outerHTML = '<img class="logo" src="icons/icon-192.png" alt="">';
-    app.insertAdjacentHTML('beforeend', `<nav class="alt-menu">${SEKMELER.map(([k, ik, ad_]) => `<button class="${k === ad ? 'aktif' : ''}" data-sekme-git="${k}"><span>${ik}</span>${t(ad_)}</button>`).join('')}</nav>`);
-    app.querySelectorAll('[data-sekme-git]').forEach(b => b.onclick = () => { if (b.dataset.sekmeGit === ad) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; } ekranYigini = [[b.dataset.sekmeGit, []]]; ciz(); window.scrollTo(0, 0); });
+    app.insertAdjacentHTML('beforeend', `<nav class="alt-menu n${SEKMELER.length}">${SEKMELER.map(([k, ik, ad_]) => `<button class="${k === ad ? 'aktif' : ''}" data-sekme-git="${k}"><span>${ik}</span>${t(ad_)}</button>`).join('')}</nav>`);
+    app.querySelectorAll('[data-sekme-git]').forEach(b => b.onclick = async () => {
+      if (b.dataset.sekmeGit === ad) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      if (cocukMu() && b.dataset.sekmeGit === 'profil' && !(await window.ebeveynKilidi())) return;   // büyükler bölümü kilitli
+      ekranYigini = [[b.dataset.sekmeGit, []]]; ciz(); window.scrollTo(0, 0);
+    });
   }
   window.addEventListener('popstate', () => { geri(); history.pushState(null, ''); });
   history.pushState(null, '');
   try {
     const CapApp = window.capEklenti('App');
-    if (CapApp) CapApp.addListener('backButton', () => { if (ekranYigini.length > 1) geri(); else if (ekranYigini[0][0] !== 'ana') anaSayfa(); else CapApp.exitApp(); });
+    if (CapApp) CapApp.addListener('backButton', () => { if (ekranYigini.length > 1) geri(); else if (ekranYigini[0][0] !== evKok() && !['hosgeldin', 'kimCalisiyor'].includes(ekranYigini[0][0])) anaSayfa(); else CapApp.exitApp(); });
   } catch (e) { /* tarayıcıda yok */ }
 
   const ust = (baslik, geriVar = true, sag = '') => `<header class="ust">${geriVar ? `<button class="geri" data-git="geri" aria-label="${t('Geri')}">‹</button>` : '<img class="logo" src="icons/icon-192.png" alt="">'}<h1>${baslik}</h1>${sag}</header>`;
@@ -542,7 +594,7 @@
     let liste = '';
     U.forEach(u => {
       const acik = acikMi(u), ok = gecti(u.id), il = S.ilerleme[u.id];
-      const durum = ok ? `<span class="rozet ok">✓ ${yuzdeStr(il.en)}</span>` : acik ? `<span class="rozet simdi">${t('Şimdi')}</span>` : `<span class="rozet kilit">🔒</span>`;
+      const durum = ok && il.atla && !il.deneme ? `<span class="rozet ok">${t('Atlandı')}</span>` : ok ? `<span class="rozet ok">✓ ${yuzdeStr(il.en)}</span>` : acik ? `<span class="rozet simdi">${t('Şimdi')}</span>` : `<span class="rozet kilit">🔒</span>`;
       liste += `<button class="bolum ${acik ? '' : 'kilitli'} ${u.ara ? 'ara' : ''}" data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}">
         <span class="ikon">${u.ikon}</span><span class="bad"><small>${u.ara ? (u.final ? t('Final') : t('Ara sınav')) : t('Bölüm {0}', dersler.indexOf(u))}</small>${esc(u.ad)}</span>${durum}</button>`;
     });
@@ -554,7 +606,7 @@
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>${t('tamam')}</small></div>
           <div><p class="buyukyazi">${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</p>
-          <p class="soluk">${t('🔥 {0} günlük seri', S.seri.gun || 0)}</p>
+          <p class="soluk">${t('🔥 {0} günlük seri', S.seri.gun || 0)} · <button class="baglanti" data-git="ilerleme">${t('📊 İlerleme tablosu')}</button></p>
           ${siradaki ? `<button class="btn" data-git="${siradaki.ara ? 'sinavGiris|' + siradaki.id : 'ders|' + siradaki.id}">${t('Devam et')}</button>` : ''}</div>
         </section>
         ${iosKurKarti()}
@@ -764,6 +816,7 @@
         ${puanli && !basarili ? `<p>${t('Geçmek için {0} gerekiyor. Dersi ve örnekleri tekrar gözden geçir, alıştırma yap, sonra tekrar dene.', yuzdeStr(GECME))}</p>` : ''}
         ${sonraki ? `<p class="yesil"><b>${t('Yeni bölüm açıldı:')}</b> ${esc(sonraki.ad)}</p>` : ''}
       </article>
+      ${puanli && basarili && yeniAcildi ? mujdeHTML(U.findIndex(u => u.id === h.birim)) : ''}
       ${yanlisListe.length ? `<h2 class="baslik">${t('Yanlışların ({0})', yanlisListe.length)}</h2>` + yanlisListe.map(({ q, c }) => `<article class="kart kucuk">${q.ustRenkli || ''}<p><b>${q.soru}</b></p>
         <p>${t('Senin cevabın: ')}${c ? metin(c.secilen) : '—'}<br>${t('Doğrusu: ')}<b class="yesil">${metin(q.dogru)}</b></p>${q.aciklama ? `<p class="soluk">${q.aciklama}</p>` : ''}</article>`).join('') + `<p class="soluk ortala">${t('Bu sorular tekrar listene eklendi. Yakında yeniden sorulacak.')}</p>` : ''}
       <div class="satir">
@@ -771,7 +824,16 @@
         ${sonraki ? `<button class="btn" data-git="${sonraki.ara ? 'sinavGiris|' + sonraki.id : 'ders|' + sonraki.id}">${t('Sonraki bölüm ›')}</button>` : `<button class="btn" data-git="ana">${t('Ana sayfa')}</button>`}
       </div></main>`;
     oturum = null;
+    if (puanli && basarili && yeniAcildi && window.Konfeti) setTimeout(() => window.Konfeti.patlat($('.halka.buyuk'), 60), 150);
   };
+  // Bir bölüm/sınav ilk kez geçilince: yapılan işin değerini anlatan bir âyet ya da hadis
+  function mujdeHTML(n) {
+    const l = (window.MUJDE && window.MUJDE.buyuk) || []; if (!l.length) return '';
+    const m = l[Math.max(0, n) % l.length];
+    return `<section class="mujde"><p class="mujde-baslik">${t('Bir bölümü daha tamamladın. Bârekallah!')}</p>
+      <p class="ar" dir="rtl" lang="ar">${m.ar}</p><p class="mujde-metin">“${esc(DIL === 'en' ? m.en : m.tr)}”</p>
+      <p class="mujde-kaynak">${m.tur === 'ayet' ? '📖 ' : '🌹 '}${esc(DIL === 'en' ? m.ken : m.ktr)}</p></section>`;
+  }
 
   EKRAN.testler = function () {
     const acik = acikDersler();
@@ -1736,9 +1798,11 @@
     const satir = (git_, ik, baslik, alt) => `<button class="bolum" data-git="${git_}"><span class="ikon">${ik}</span><span class="bad"><small>${alt}</small>${baslik}</span><span class="rozet">›</span></button>`;
     app.innerHTML = `${ust(t('Profil'))}<main>
       <section class="kart profil-ust"><div class="avatar">${k ? esc((k.email || k.displayName || '?')[0].toUpperCase()) : '👤'}</div>
-        <div><h2>${k ? esc(k.displayName || k.email || '') : t('Misafir')}</h2><p class="soluk">${k ? t('Verilerin hesabında saklanıyor ☁️') : t('Verilerin sadece bu telefonda')}</p></div></section>
+        <div><h2>${esc(AKTIF().ad || (k ? (k.displayName || k.email || '') : t('Misafir')))}</h2><p class="soluk">${k ? t('Verilerin hesabında saklanıyor ☁️') : t('Verilerin sadece bu telefonda')}</p></div></section>
       <div class="istatler kart"><div><b>${gecilen}/${U.length}</b><small>${t('bölüm')}</small></div><div><b>${S.gecmis.length}</b><small>${t('test')}</small></div><div><b>${ezb}</b><small>${t('ezber sûre')}</small></div><div><b>🔥 ${S.seri.gun || 0}</b><small>${t('gün seri')}</small></div></div>
       <div class="bolumler">
+        ${satir('profiller', '👥', t('Profiller'), t('{0} profil · şu an: {1}', PR.liste.length, esc(AKTIF().ad || t('Profil 1')) + ' (' + (YAS_AD[AKTIF().yas] || '—') + ')'))}
+        ${cocukMu() ? '' : satir('ilerleme', '📊', t('İlerleme tablosu'), t('Bölümler, etkinlik, güçlü ve zayıf konular'))}
         ${satir('hesap', '☁️', k ? t('Hesabım') : t('Giriş yap / Hesap aç'), k ? esc(k.email || '') : t('İlerlemen kaybolmasın'))}
         ${satir('okumaRaporu', '🎤', t('Okuma raporu'), t('Okuyuşundaki hatalar ve gelişimin'))}
         ${satir('sinif', '👨‍🏫', t('Sınıf (hoca–öğrenci)'), ogrSiniflari().length ? ogrSiniflari().map(c => esc(c.sinifAd || c.kod)).join(', ') : t('Katıl ya da sınıf aç'))}
@@ -1815,7 +1879,7 @@
       if (!confirm(girisli() ? t('Emin misin? Bütün ilerleme ve test geçmişi silinecek (hesabındakiler de).') : t('Emin misin? Bütün ilerleme ve test geçmişi silinecek.'))) return;
       const ayar = S.ayar; S = bos(); S.ayar = ayar; S.hesapUyariKapali = true; clearTimeout(yuklemeZamanlayici);
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
-      if (girisli()) { try { await B().yukle(S); } catch (e) { toast(t('Hesaptaki veriler silinemedi: internet yok')); } }
+      if (girisli()) { try { await B().yukle(S, PR.aktif); } catch (e) { toast(t('Hesaptaki veriler silinemedi: internet yok')); } }
       anaSayfa();
     };
   };
@@ -1865,8 +1929,166 @@
   const HADIS_AR = 'خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ';
   const hadisMetni = () => t('“Sizin en hayırlınız Kur\'an\'ı öğrenen ve öğretendir.”');
   const hadisKaynak = () => t('Buhârî, Fezâilü\'l-Kur\'ân 21');
+  // ------------------------------------------------------------ hoş geldin: yaş grubu (profil başına bir kez) ve seviye
+  const YAS_KART = [['kucuk', '🌱', t('4–6 yaş'), t('Minikler: resimli, oyunlu harf yolculuğu')], ['cocuk', '🌟', t('7–12 yaş'), t('Çocuklar: harfler, harekeler ve okuma oyunları')], ['buyuk', '📘', t('13 yaş ve üstü'), t('Gençler ve yetişkinler: tecvid dersleri ve testler')]];
+  const avatar = p => `<span class="avatar p-${p.yas || 'yok'}">${p.ad ? esc(p.ad.trim()[0].toLocaleUpperCase(DIL === 'en' ? 'en' : 'tr')) : (p.yas === 'kucuk' ? '🌱' : p.yas === 'cocuk' ? '🌟' : '👤')}</span>`;
+  // Yeni yetişkin profile bir kez "nereden başlayalım?" sorulur (daha önce ilerlemesi olana sorulmaz)
+  const seviyeSorulmali = () => !cocukMu() && !S.ayar.seviye && !Object.keys(S.ilerleme).length && !S.gecmis.length;
+  EKRAN.hosgeldin = function (adim = 'yas') {
+    const p = AKTIF();
+    if (adim === 'seviye') {
+      app.innerHTML = `${ust(t('Nereden başlayalım?'), false)}<main>
+        <p>${t('Kur\'an okumayı ne kadar biliyorsun? Buna göre seni doğru bölüme yerleştirelim. Atlanan bölümlerin testlerine istediğin zaman girebilirsin.')}</p>
+        <div class="yas-kartlar">
+          <button class="yas-kart" data-sv="sifir"><span>🔠</span><b>${t('Hiç bilmiyorum')}</b><small>${t('Harflerden (Elif-Ba) başla')}</small></button>
+          <button class="yas-kart" data-sv="harf"><span>✏️</span><b>${t('Harfleri tanıyorum')}</b><small>${t('Harekeler ve işaretlerle başla')}</small></button>
+          <button class="yas-kart" data-sv="okur"><span>📖</span><b>${t('Kur\'an okuyabiliyorum')}</b><small>${t('Doğrudan tecvid konularına geç')}</small></button>
+        </div></main>`;
+      app.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => {
+        const atla = { sifir: [], harf: ['e1'], okur: ['e1', 'u0'] }[b.dataset.sv];
+        atla.forEach(id => { if (!gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true }; });
+        S.ayar.seviye = b.dataset.sv; kaydet(); anaSayfa();
+      });
+      return;
+    }
+    app.innerHTML = `${ust(t('Hoş geldin'), false)}<main class="hosgeldin">
+      <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
+      <h2>${PR.liste.length > 1 ? t('Bu profili kim kullanacak?') : t('Uygulamayı kim kullanacak?')}</h2>
+      <label class="alan"><span>${t('Adı (isteğe bağlı)')}</span><input id="pAd" maxlength="20" value="${esc(p.ad || '')}" placeholder="${t('Örn. Zeynep')}" autocomplete="off"></label>
+      <div class="yas-kartlar">${YAS_KART.map(([k, ik, ad, alt]) => `<button class="yas-kart y-${k}" data-yas="${k}"><span>${ik}</span><b>${ad}</b><small>${alt}</small></button>`).join('')}</div>
+      <p class="soluk kucukyazi">${t('Yaş grubu yalnızca uygulamayı yaşa göre ayarlamak için kullanılır ve bir daha sorulmaz. Profil → Profiller bölümünden değiştirilebilir.')}</p></main>`;
+    app.querySelectorAll('[data-yas]').forEach(b => b.onclick = () => {
+      p.yas = b.dataset.yas; p.ad = $('#pAd').value.trim().slice(0, 20); p.d = Date.now(); profilKaydet(); profilleriEsitle();
+      if (p.yas !== 'buyuk') S.ayar.seviye = 'cocuk';
+      kaydet();
+      if (seviyeSorulmali()) { ekranYigini = [['hosgeldin', ['seviye']]]; ciz(); }
+      else anaSayfa();
+    });
+  };
+
+  // ------------------------------------------------------------ açılışta profil seçimi (birden çok profil varsa)
+  EKRAN.kimCalisiyor = function () {
+    app.innerHTML = `${ust(t('Kim çalışıyor?'), false)}<main>
+      <div class="profil-sec">${PR.liste.map(p => `<button class="profil-kutu" data-p="${p.id}">${avatar(p)}<b>${esc(p.ad || t('Profil {0}', PR.liste.indexOf(p) + 1))}</b><small>${YAS_AD[p.yas] || t('Yaş seçilmedi')}</small></button>`).join('')}</div>
+      <button class="btn ikincil genis" id="yonet">${t('⚙️ Profilleri yönet')}</button></main>`;
+    app.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
+      try { sessionStorage.setItem('hk.secildi', '1'); } catch (e) { }
+      if (b.dataset.p !== PR.aktif) return profilDegistir(b.dataset.p);
+      if (!AKTIF().yas) { ekranYigini = [['hosgeldin', []]]; ciz(); } else anaSayfa();
+    });
+    $('#yonet').onclick = async () => { if (PR.liste.some(p => p.yas === 'kucuk' || p.yas === 'cocuk') && !(await window.ebeveynKilidi())) return; git('profiller'); };
+  };
+
+  // ------------------------------------------------------------ profilleri yönet
+  EKRAN.profiller = function (duzenle) {
+    const form = (p, yeni) => `<div class="profil-form kart" data-form="${yeni ? 'yeni' : p.id}">
+      <label class="alan"><span>${t('Adı')}</span><input class="fAd" maxlength="20" value="${esc(p.ad || '')}" placeholder="${t('Örn. Zeynep')}" autocomplete="off"></label>
+      <div class="cipler yas-cip">${YAS_KART.map(([k, ik, ad]) => `<button class="${p.yas === k ? 'aktif' : ''}" data-fy="${k}">${ik} ${ad}</button>`).join('')}</div>
+      <div class="satir">${!yeni && p.id !== 'p1' ? `<button class="btn ikincil tehlike" data-sil="${p.id}">${t('Sil')}</button>` : ''}<button class="btn" data-kaydet="${yeni ? 'yeni' : p.id}">${yeni ? t('Profil ekle') : t('Kaydet')}</button></div></div>`;
+    app.innerHTML = `${ust(t('Profiller'))}<main>
+      <p class="soluk">${t('Aynı telefonu kullanan herkesin ilerlemesi, yıldızları ve ayarları ayrı tutulur.')}</p>
+      ${PR.liste.map(p => `<article class="kart profil-satir">${avatar(p)}<div class="bad"><b>${esc(p.ad || t('Profil {0}', PR.liste.indexOf(p) + 1))}</b><small>${YAS_AD[p.yas] || t('Yaş seçilmedi')}</small></div>
+        ${p.id === PR.aktif ? `<span class="rozet ok">${t('Şu an')}</span>` : `<button class="btn kucuk" data-gec="${p.id}">${t('Geç')}</button>`}
+        <button class="btn ikincil kucuk" data-duz="${p.id}" aria-label="${t('Düzenle')}">✏️</button></article>
+        ${duzenle === p.id ? form(p) : ''}`).join('')}
+      ${duzenle === 'yeni' ? form({ ad: '', yas: null }, true) : `<button class="btn genis" data-duz="yeni">${t('➕ Yeni profil')}</button>`}
+      <p class="soluk kucukyazi">${t('Hesaba giriş yaptıysan profiller hesabında da saklanır. Profil değiştirince uygulama yeniden açılır.')}</p></main>`;
+    const yenile = d => { ekranYigini[ekranYigini.length - 1] = ['profiller', [d]]; ciz(); };
+    app.querySelectorAll('[data-duz]').forEach(b => b.onclick = () => yenile(duzenle === b.dataset.duz ? undefined : b.dataset.duz));
+    app.querySelectorAll('[data-gec]').forEach(b => b.onclick = () => profilDegistir(b.dataset.gec));
+    app.querySelectorAll('[data-fy]').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('aktif', x === b)); });
+    app.querySelectorAll('[data-kaydet]').forEach(b => b.onclick = () => {
+      const f = b.closest('[data-form]'), ad = f.querySelector('.fAd').value.trim().slice(0, 20), yb = f.querySelector('[data-fy].aktif');
+      if (!yb) { toast(t('Yaş grubunu seç.')); return; }
+      const oncekiCocuk = cocukMu();
+      if (b.dataset.kaydet === 'yeni') {
+        const id = 'p' + Date.now().toString(36);
+        PR.liste.push({ id, ad, yas: yb.dataset.fy, d: Date.now() }); toast(t('Profil eklendi ✓'));
+      } else { const p = PR.liste.find(x => x.id === b.dataset.kaydet); p.ad = ad; p.yas = yb.dataset.fy; p.d = Date.now(); toast(t('Kaydedildi ✓')); }
+      profilKaydet(); profilleriEsitle();
+      if (oncekiCocuk !== cocukMu()) { anaSayfa(); return; }   // aktif profilin modu değişti
+      yenile();
+    });
+    app.querySelectorAll('[data-sil]').forEach(b => b.onclick = () => {
+      const p = PR.liste.find(x => x.id === b.dataset.sil);
+      if (!confirm(t('“{0}” profili ve bütün ilerlemesi bu telefondan silinsin mi?', p.ad || p.id))) return;
+      PR.liste = PR.liste.filter(x => x !== p); PR.silinen = (PR.silinen || []).concat([{ id: p.id, silindi: true, d: Date.now() }]);
+      try { localStorage.removeItem('tecvid-ogren.v1.' + p.id); } catch (e) { }
+      if (PR.aktif === p.id) { profilDegistir('p1'); return; }
+      profilKaydet(); profilleriEsitle(); if (girisli() && B().profilSil) B().profilSil(p.id).catch(() => { });
+      yenile();
+    });
+  };
+
+  // ------------------------------------------------------------ yetişkin ilerleme tablosu
+  const GRUPLAR = [[t('Temel'), ['e1', 'u0']], [t('Mahrec ve sıfat'), ['m1', 'm2', 'm3']], [t('Medler'), ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'x1']], [t('Nûn, mîm, ğunne'), ['u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'x2']], [t('İleri konular'), ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1', 'a1', 'x3']], [t('Büyük final'), ['x4']]];
+  function rozetler() {
+    const g = S.gecmis.filter(h => h.tur !== 'alistirma'), gecilen = U.filter(u => gecti(u.id) && !(S.ilerleme[u.id] || {}).atla).length;
+    const araGecti = U.some(u => u.ara && !u.final && gecti(u.id) && !(S.ilerleme[u.id] || {}).atla);
+    const ezb = Object.values(S.ezber || {}).filter(e => e.tam).length;
+    return [
+      ['🌱', t('İlk adım'), t('İlk testini çöz'), g.length >= 1],
+      ['🔥', t('Bir hafta'), t('7 gün üst üste çalış'), (S.seri.en || S.seri.gun || 0) >= 7],
+      ['📚', t('Beş bölüm'), t('5 bölüm geç'), gecilen >= 5],
+      ['🏁', t('Ara sınav'), t('Bir ara sınavı geç'), araGecti],
+      ['💯', t('Tam puan'), t('Bir testten 100 al'), g.some(h => h.yuzde === 100)],
+      ['🧠', t('Hâfıza'), t('Bir sûreyi ezberle'), ezb >= 1],
+      ['🎯', t('Azimli'), t('50 test çöz'), g.length >= 50],
+      ['🏆', t('Tecvid tamam'), t('Büyük finali geç'), gecti('x4') && !(S.ilerleme.x4 || {}).atla]
+    ];
+  }
+  EKRAN.ilerleme = function () {
+    const toplam = U.length, gecilen = U.filter(u => gecti(u.id)).length, yuzde = Math.round(gecilen / toplam * 100);
+    const g = S.gecmis.filter(h => h.tur !== 'alistirma');
+    const ort = a => a.length ? Math.round(a.reduce((x, y) => x + y.yuzde, 0) / a.length) : null;
+    const son10 = ort(g.slice(-10));
+    const hafta = ts => Math.floor((simdi() - ts) / (7 * GUN));
+    const buHafta = g.filter(h => hafta(h.tarih) === 0), gecenHafta = g.filter(h => hafta(h.tarih) === 1);
+    const ezberAyet = Object.values(S.ezber || {}).reduce((a, e) => a + (e.tam ? (e.toplam || e.a || 0) : (e.a || 0)), 0);
+    const siradaki = U.find(u => !gecti(u.id));
+    const seviye = gecti('x4') ? t('Tamamlandı') : !siradaki ? '—' : ['e1', 'u0'].includes(siradaki.id) ? t('Başlangıç') : U.indexOf(siradaki) <= U.findIndex(u => u.id === 'x1') ? t('Temel') : U.indexOf(siradaki) <= U.findIndex(u => u.id === 'x2') ? t('Orta') : t('İleri');
+    // son 12 hafta etkinlik ızgarası
+    const sayi = {}; S.gecmis.forEach(h => { const k = new Date(h.tarih).toISOString().slice(0, 10); sayi[k] = (sayi[k] || 0) + 1; });
+    const bugunD = new Date(); bugunD.setHours(12, 0, 0, 0); const haftaGunu = (bugunD.getDay() + 6) % 7;
+    const bas = new Date(bugunD.getTime() - (77 + haftaGunu) * GUN);
+    let izgara = ''; for (let i = 0; i < 84; i++) { const d = new Date(bas.getTime() + i * GUN); const k = d.toISOString().slice(0, 10); const n = sayi[k] || 0; const ileri = d > bugunD; izgara += `<i class="s${ileri ? 'x' : n >= 6 ? 4 : n >= 3 ? 3 : n >= 2 ? 2 : n ? 1 : 0}" title="${k}: ${n}"></i>`; }
+    const aktifGun = Object.keys(sayi).filter(k => (simdi() - new Date(k).getTime()) < 84 * GUN).length;
+    // bölüm hâkimiyeti (aralıklı tekrar kutularından)
+    const hakim = {}; Object.entries(S.srs).forEach(([k, v]) => { const id = k.split(':')[1]; if (!unitById(id)) return; (hakim[id] = hakim[id] || []).push(v.kutu || 0); });
+    const hk = Object.entries(hakim).filter(([, l]) => l.length >= 3).map(([id, l]) => ({ u: unitById(id), p: Math.round(l.reduce((a, b) => a + b, 0) / l.length / 6 * 100) })).sort((a, b) => b.p - a.p);
+    const guclu = hk.slice(0, 3), zayif = hk.slice(-3).reverse().filter(x => !guclu.includes(x) && x.p < 70);
+    const rz = rozetler();
+    app.innerHTML = `${ust(t('İlerleme tablosu'))}<main class="pano">
+      <section class="pano-ust">
+        <div class="halka buyuk" style="--p:${yuzde}"><b>${yuzdeStr(yuzde)}</b><small>${gecilen}/${toplam} ${t('bölüm')}</small></div>
+        <div><small class="soluk">${t('Seviye')}</small><h2>${seviye}</h2>
+          <p class="soluk">${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</p>
+          ${siradaki ? `<button class="btn kucuk" data-git="${siradaki.ara ? 'sinavGiris|' + siradaki.id : 'ders|' + siradaki.id}">${t('Devam et')}</button>` : ''}</div>
+      </section>
+      <div class="pano-kutular">
+        <div><span>🔥</span><b>${S.seri.gun || 0}</b><small>${t('gün seri')}${S.seri.en > (S.seri.gun || 0) ? ' · ' + t('en uzun {0}', S.seri.en) : ''}</small></div>
+        <div><span>📝</span><b>${g.length}</b><small>${t('test')}</small></div>
+        <div><span>📈</span><b>${son10 == null ? '—' : yuzdeStr(son10)}</b><small>${t('son 10 ortalama')}</small></div>
+        <div><span>🗓️</span><b>${buHafta.length}</b><small>${t('bu hafta test')}${gecenHafta.length ? ` · ${buHafta.length >= gecenHafta.length ? '▲' : '▼'} ${t('geçen hafta {0}', gecenHafta.length)}` : ''}</small></div>
+        <div><span>🧠</span><b>${ezberAyet}</b><small>${t('ezber âyet')}</small></div>
+        <div><span>🔁</span><b>${vadesiGelenler().length}</b><small>${t('tekrar bekleyen')}</small></div>
+      </div>
+      <h2 class="baslik">${t('Konu grupları')}</h2>
+      <article class="kart">${GRUPLAR.map(([ad, idler]) => { const l = idler.filter(unitById), b = l.filter(gecti).length; const p = l.length ? Math.round(b / l.length * 100) : 0; return `<div class="grup-cubuk"><div class="satir-bilgi"><b>${ad}</b><small>${b}/${l.length}</small></div><div class="pano-cubuk"><div style="width:${p}%"></div></div></div>`; }).join('')}</article>
+      <h2 class="baslik">${t('Etkinlik (son 12 hafta)')}</h2>
+      <article class="kart"><div class="izgara">${izgara}</div><div class="izgara-alt"><small class="soluk">${t('{0} gün çalıştın', aktifGun)}</small><span class="izgara-lejant"><small>${t('Az')}</small><i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i><small>${t('Çok')}</small></span></div></article>
+      ${hk.length ? `<h2 class="baslik">${t('Hâkimiyet')}</h2><div class="iki-sutun">
+        <article class="kart"><h3>${t('💪 Güçlü olduğun')}</h3>${guclu.map(x => `<div class="hk"><span>${x.u.ikon} ${esc(x.u.ad)}</span><b class="yesil">${yuzdeStr(x.p)}</b></div>`).join('')}</article>
+        <article class="kart"><h3>${t('🎯 Çalışman gereken')}</h3>${zayif.length ? zayif.map(x => `<button class="hk" data-git="ders|${x.u.id}"><span>${x.u.ikon} ${esc(x.u.ad)}</span><b class="kirmizi">${yuzdeStr(x.p)}</b></button>`).join('') : `<p class="soluk">${t('Zayıf konu görünmüyor. Böyle devam!')}</p>`}</article></div>` : ''}
+      <h2 class="baslik">${t('Rozetler')} <small class="soluk">${rz.filter(r => r[3]).length}/${rz.length}</small></h2>
+      <div class="rozetler">${rz.map(([ik, ad, alt, ok]) => `<div class="${ok ? 'kazanildi' : ''}"><span>${ik}</span><b>${ad}</b><small>${alt}</small></div>`).join('')}</div>
+      <button class="btn ikincil genis" data-git="gecmis" style="margin-top:14px">${t('📈 Bütün test geçmişi')}</button>
+    </main>`;
+  };
+
   function acilisGoster() {
     if (navigator.webdriver) return;   // otomatik testlerde atla
+    try { if (sessionStorage.getItem('hk.acilisYok')) { sessionStorage.removeItem('hk.acilisYok'); return; } } catch (e) { }
     const d = document.createElement('div'); d.className = 'acilis';
     d.innerHTML = `<div class="acilis-ic"><img class="acilis-logo" src="icons/icon-512.png" alt=""><h1>${t('Hüsn-i Kıraat')}</h1>
       <p class="acilis-ar" dir="rtl" lang="ar">${HADIS_AR}</p><p class="acilis-tr">${hadisMetni()}</p><p class="acilis-kaynak">${hadisKaynak()}</p>
@@ -1875,9 +2097,18 @@
     const kapat = () => { if (!d.isConnected) return; d.classList.add('gizlen'); setTimeout(() => d.remove(), 450); };
     d.onclick = kapat; setTimeout(kapat, 2600);
   }
+  // Çocuk modu (cocuk.js) bağlanır
+  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir }) : null;
+  function basla() {
+    let secildi = false; try { secildi = sessionStorage.getItem('hk.secildi') === '1'; } catch (e) { }
+    if (PR.liste.length > 1 && !secildi) { ekranYigini = [['kimCalisiyor', []]]; ciz(); return; }
+    if (!AKTIF().yas) { ekranYigini = [['hosgeldin', []]]; ciz(); return; }
+    if (seviyeSorulmali()) { ekranYigini = [['hosgeldin', ['seviye']]]; ciz(); return; }
+    anaSayfa();
+  }
   acilisGoster();
-  anaSayfa();
+  basla();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();

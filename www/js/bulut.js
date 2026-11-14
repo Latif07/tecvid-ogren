@@ -84,16 +84,33 @@ window.Bulut = {
     try { const Cap = window.Capacitor; if (Cap && Cap.isNativePlatform && Cap.isNativePlatform()) { const FA = window.capEklenti('FirebaseAuthentication'); if (FA) await FA.signOut(); } } catch (e) { /* yoksay */ }
     await signOut(auth);
   },
-  async indir() {
+  // Profil verisi: ilk profil (p1) users/{uid} belgesinde, diğerleri users/{uid}/profiller/{id} altında
+  async indir(pid) {
     if (!kullanici) return null;
-    const s = await getDoc(doc(db, 'users', kullanici.uid));
+    const s = await getDoc(profilDoc(pid));
     return s.exists() ? JSON.parse(s.data().veri || 'null') : null;
   },
-  async yukle(veri) {
+  async yukle(veri, pid) {
     if (!kullanici) return;
-    await setDoc(doc(db, 'users', kullanici.uid), { veri: JSON.stringify(veri), guncelleme: serverTimestamp(), eposta: kullanici.email || '' });
+    const v = { veri: JSON.stringify(veri), guncelleme: serverTimestamp() };
+    if (!pid || pid === 'p1') v.eposta = kullanici.email || '';
+    await setDoc(profilDoc(pid), v, { merge: true });
+  },
+  async profilIndir() {
+    if (!kullanici) return null;
+    const s = await getDoc(doc(db, 'users', kullanici.uid));
+    return s.exists() && s.data().profiller ? { liste: JSON.parse(s.data().profiller) } : null;
+  },
+  async profilYukle(p) {
+    if (!kullanici) return;
+    await setDoc(doc(db, 'users', kullanici.uid), { profiller: JSON.stringify(p.liste) }, { merge: true });
+  },
+  async profilSil(pid) {
+    if (!kullanici || !pid || pid === 'p1') return;
+    await deleteDoc(profilDoc(pid));
   }
 };
+function profilDoc(pid) { return !pid || pid === 'p1' ? doc(db, 'users', kullanici.uid) : doc(db, 'users', kullanici.uid, 'profiller', pid); }
 
 // ---------------------------------------------------------------- sınıflar (hoca–öğrenci)
 // classes/{kod}: { hocaUid, ad, odev?, olusturma }   classes/{kod}/ogrenciler/{uid}: { ad, ozet, guncelleme }

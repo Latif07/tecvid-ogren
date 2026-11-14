@@ -829,5 +829,5 @@ window.TC = (function () {
     "Benzer ayetler: Kur'an metninden otomatik karşılaştırmayla bulundu; eksik ya da fazla olabilir."
   ];
 
-  return { R, U, GRUP_AD, KAYNAK, MAHREC_SVG, harfTablo, sekilTablo };
+  return { R, U, GRUP_AD, KAYNAK, MAHREC_SVG, harfTablo, sekilTablo, HARFLER };
 })();

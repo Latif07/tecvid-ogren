@@ -4,6 +4,10 @@ service cloud.firestore {
     // Her kullanıcı yalnızca kendi ilerlemesini okur/yazar
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Aynı hesaptaki diğer profiller (aile üyeleri, çocuklar)
+      match /profiller/{pid} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
     }
     // Sınıflar: kodu bilen giriş yapmış kullanıcı sınıfı görebilir (katılmak ve ödevi görmek için)
     match /classes/{kod} {
