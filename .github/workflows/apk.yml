@@ -16,6 +16,8 @@ permissions:
 
 jobs:
   build:
+    # Push'ta APK yalnızca commit mesajında [apk] varsa derlenir (önce web'de test edilir); elle başlatma her zaman derler
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
