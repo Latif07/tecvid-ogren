@@ -198,3 +198,8 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .mahrec-liste li > b:first-child { flex: none; min-width: 2.6em; text-align: center; background: var(--ana); color: #fff; border-radius: 99px; padding: 1px 8px; font-size: .82rem; }
 .dinle-kutu { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0 6px; }
 .sesbtn.buyuk { font-size: 1.05rem; padding: 14px 26px; }
+
+/* --- kendi sesini kaydet --- */
+.kayit-kutu { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--cizgi); }
+.sesbtn.kirmizi-btn { background: var(--kotu); border-color: var(--kotu); color: #fff; }
+.sesbtn.kaydediyor { animation: nabiz 1s infinite; }

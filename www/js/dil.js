@@ -7,6 +7,14 @@
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "⏹ Kaydı durdur": "⏹ Stop recording",
+ "🎙️ Yeniden kaydet": "🎙️ Record again",
+ "🎙️ Kendini kaydet": "🎙️ Record yourself",
+ "▶ Sesim": "▶ My voice",
+ "🔁 Karşılaştır": "🔁 Compare",
+ "Bu cihazda ses kaydı desteklenmiyor.": "Audio recording is not supported on this device.",
+ "Mikrofon izni verilmedi. Telefon ayarlarından Tecvid Öğren için mikrofona izin ver.": "Microphone permission wasn't given. Allow microphone access for this app in your phone settings.",
+
  "🎧 Dinle: bu kelimede hangi harf var?": "🎧 Listen: which letter is in this word?",
  "Ses çalmıyorsa kelimeyi göster": "Show the word if the audio doesn't play",
  "Kelime: {0} ({1}, {2}. kelime)": "Word: {0} ({1}, word {2})",

@@ -161,6 +161,61 @@
     e.preventDefault(); cal(b.dataset.ses, b, b.dataset.yedek);
   });
 
+  // ------------------------------------------------------------ kendi sesini kaydet ve karşılaştır
+  const KAYIT = {};            // anahtar -> blob url (yalnızca bu oturumda, telefonda tutulur)
+  let kayitci = null, kayitAnahtar = null, kayitZaman = null;
+  function kayitHTML(anahtar, kariUrl) {
+    const var_ = KAYIT[anahtar];
+    if (kayitAnahtar === anahtar) return `<div class="kayit-kutu" data-kayit-kutu="${anahtar}"><button class="sesbtn kirmizi-btn kaydediyor" data-kayit-dur="${anahtar}">${t('⏹ Kaydı durdur')}</button></div>`;
+    return `<div class="kayit-kutu" data-kayit-kutu="${anahtar}">
+      <button class="sesbtn ikincil" data-kayit-bas="${anahtar}">${var_ ? t('🎙️ Yeniden kaydet') : t('🎙️ Kendini kaydet')}</button>
+      ${var_ ? `<button class="sesbtn ikincil" data-ses="${var_}">${t('▶ Sesim')}</button>
+      <button class="sesbtn" data-karsilastir="${anahtar}" data-kari-url="${kariUrl}">${t('🔁 Karşılaştır')}</button>` : ''}
+    </div>`;
+  }
+  function kayitKutuYenile(anahtar) {
+    const k = document.querySelector(`[data-kayit-kutu="${anahtar}"]`); if (!k) return;
+    k.outerHTML = kayitHTML(anahtar, KAYIT['_kari_' + anahtar] || '');
+  }
+  async function kayitBaslat(anahtar, kariUrl) {
+    if (kayitci) kayitDurdur();
+    if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+    let akis;
+    try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Tecvid Öğren için mikrofona izin ver.')); }
+    if (ses) { ses.pause(); ses = null; }
+    const parcalar = [];
+    kayitci = new MediaRecorder(akis); kayitAnahtar = anahtar; KAYIT['_kari_' + anahtar] = kariUrl;
+    kayitci.ondataavailable = e => { if (e.data && e.data.size) parcalar.push(e.data); };
+    kayitci.onstop = () => {
+      akis.getTracks().forEach(tr => tr.stop());
+      if (parcalar.length) { if (KAYIT[anahtar]) URL.revokeObjectURL(KAYIT[anahtar]); KAYIT[anahtar] = URL.createObjectURL(new Blob(parcalar, { type: kayitci.mimeType || 'audio/webm' })); }
+      kayitci = null; kayitAnahtar = null; clearTimeout(kayitZaman);
+      kayitKutuYenile(anahtar);
+    };
+    kayitci.start();
+    kayitZaman = setTimeout(kayitDurdur, 60000);   // en fazla 1 dakika
+    kayitKutuYenile(anahtar);
+  }
+  function kayitDurdur() { if (kayitci && kayitci.state !== 'inactive') kayitci.stop(); }
+  function arkaArka(urls, btn) {
+    if (ses) { ses.pause(); ses = null; }
+    let i = 0; btn && btn.classList.add('caliyor');
+    const sonraki = () => {
+      if (i >= urls.length) { btn && btn.classList.remove('caliyor'); ses = null; return; }
+      ses = new Audio(urls[i++]); ses.playbackRate = S.ayar.hiz || 1;
+      ses.onended = () => setTimeout(sonraki, 600);
+      ses.onerror = () => { btn && btn.classList.remove('caliyor'); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
+      ses.play().catch(() => btn && btn.classList.remove('caliyor'));
+    };
+    sonraki();
+  }
+  document.addEventListener('click', e => {
+    const bas = e.target.closest('[data-kayit-bas]'); if (bas) { e.preventDefault(); return kayitBaslat(bas.dataset.kayitBas, bas.closest('.kart').querySelector('[data-yedek]') ? bas.closest('.kart').querySelector('[data-yedek]').dataset.ses : ''); }
+    const dur = e.target.closest('[data-kayit-dur]'); if (dur) { e.preventDefault(); return kayitDurdur(); }
+    const kar = e.target.closest('[data-karsilastir]'); if (kar) { e.preventDefault(); const a = kar.dataset.karsilastir; return arkaArka([kar.dataset.kariUrl, KAYIT[a]].filter(Boolean), kar); }
+  });
+
   // ------------------------------------------------------------ ayet gösterimi (renkli tecvid)
   function kelimeHTML(r, kelime, bas) {
     const etiket = S.ayar.renkli && !kelimeHTML.renksiz ? RENK[r] : null;
@@ -295,7 +350,7 @@
   function git(ad, ...arg) { ekranYigini.push([ad, arg]); ciz(); window.scrollTo(0, 0); }
   function geri() { if (oturum && !oturum.bitti && !confirm(t('Testten çıkmak istiyor musun? Bu test kaydedilmez.'))) return; oturum = null; if (ekranYigini.length > 1) ekranYigini.pop(); ciz(); window.scrollTo(0, 0); }
   function anaSayfa() { oturum = null; ekranYigini = [['ana', []]]; ciz(); window.scrollTo(0, 0); }
-  function ciz() { const [ad, arg] = ekranYigini[ekranYigini.length - 1]; EKRAN[ad](...arg); }
+  function ciz() { if (kayitci) kayitDurdur(); const [ad, arg] = ekranYigini[ekranYigini.length - 1]; EKRAN[ad](...arg); }
   window.addEventListener('popstate', () => { geri(); history.pushState(null, ''); });
   history.pushState(null, '');
   try {
@@ -382,7 +437,7 @@
         u.ornek.map(ex => `<article class="kart ornek">
         <div class="etiket">${esc(R[ex.k].ad)} <span class="soluk">· ${ex.r}</span></div>
         ${ayetHTML(ex, false)}
-        <p class="okunus">🗣️ <b>${esc(ex.oku)}</b></p><p class="soluk">${esc(ex.n)}</p>${sesButonlari(ex)}</article>`).join('') +
+        <p class="okunus">🗣️ <b>${esc(ex.oku)}</b></p><p class="soluk">${esc(ex.n)}</p>${sesButonlari(ex)}${kayitHTML(ex.r + '#' + ex.w.join('-'), ayetUrl(ex.r))}</article>`).join('') +
         `<p class="soluk ortala">${t('Sesler için internet gerekir. Tilavet: {0}.', esc(kari().ad))}</p>
          <button class="btn genis" data-sekme="alistirma">${t('Alıştırmaya geç ›')}</button>`;
     } else if (sekme === 'alistirma') {
