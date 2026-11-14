@@ -22,6 +22,18 @@ service cloud.firestore {
         allow delete: if request.auth != null && (request.auth.uid == uid
                     || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid);
       }
+      // Ezber dinletme: öğrenci kendi kaydını gönderir (en fazla ~900 KB), hoca dinler ve değerlendirir
+      match /dinletme/{id} {
+        allow create: if request.auth != null && request.resource.data.ogrUid == request.auth.uid
+                      && exists(/databases/$(database)/documents/classes/$(kod)/ogrenciler/$(request.auth.uid))
+                      && request.resource.data.ses is string && request.resource.data.ses.size() < 900000;
+        allow read: if request.auth != null && (resource.data.ogrUid == request.auth.uid
+                    || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid);
+        allow update: if request.auth != null && get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['puan', 'not']);
+        allow delete: if request.auth != null && (resource.data.ogrUid == request.auth.uid
+                      || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid);
+      }
     }
   }
 }

@@ -823,7 +823,10 @@ window.TC = (function () {
     "Renkli tecvid: cpfair/quran-tajweed karar ağaçlarıyla üretilen etiketler (CC BY 4.0).",
     "Tecvid kuralları: sorularlaislamiyet.com tecvid özeti; Diyanet Mushafları İnceleme Kurulu tebliğleri; SeekersGuidance vakf işaretleri.",
     "Yazı tipi: Scheherazade New — SIL International (OFL 1.1).",
-    "Hesap ve eşitleme: Firebase (Google) — Apache 2.0 lisanslı SDK."
+    "Hesap ve eşitleme: Firebase (Google) — Apache 2.0 lisanslı SDK.",
+    "Meal: Diyanet İşleri Başkanlığı (Türkçe) ve Saheeh International (İngilizce) — tanzil.net/trans üzerinden; ticari olmayan kullanım, değiştirilmeden.",
+    "Sayfa, cüz ve hizb bilgisi: quran-meta (MIT, quran-center) — Medine mushafı 604 sayfa.",
+    "Benzer ayetler: Kur'an metninden otomatik karşılaştırmayla bulundu; eksik ya da fazla olabilir."
   ];
 
   return { R, U, GRUP_AD, KAYNAK, MAHREC_SVG, harfTablo, sekilTablo };

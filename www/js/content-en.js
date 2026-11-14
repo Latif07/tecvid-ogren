@@ -542,7 +542,10 @@
     'Coloured tajwīd: labels generated with the cpfair/quran-tajweed decision trees (CC BY 4.0).',
     'Tajwīd rules: sorularlaislamiyet.com tajwīd summary; papers of the Diyanet Muṣḥaf Review Board; SeekersGuidance on stop signs.',
     'Font: Scheherazade New — SIL International (OFL 1.1).',
-    'Accounts and sync: Firebase (Google) — Apache 2.0 licensed SDK.'
+    'Accounts and sync: Firebase (Google) — Apache 2.0 licensed SDK.',
+    'Translation: Saheeh International (English) and Diyanet İşleri Başkanlığı (Turkish) — via tanzil.net/trans; non-commercial use, unchanged.',
+    'Page, juz and hizb data: quran-meta (MIT, quran-center) — Madani muṣḥaf, 604 pages.',
+    "Similar āyāt: found automatically by comparing the Qur'an text; the list may be incomplete or include extra matches."
   ];
 
   // ---- Türkçe içeriğin üstüne uygula (yapı ve sıra aynı olmalı)

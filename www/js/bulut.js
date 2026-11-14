@@ -7,7 +7,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
   GoogleAuthProvider, signInWithCredential, signOut, signInWithPopup, browserPopupRedirectResolver
 } from './firebase/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, serverTimestamp } from './firebase/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from './firebase/firebase-firestore.js';
 import { FIREBASE_CONFIG } from './firebase-config.js';
 
 const hazir = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('BURAYA');
@@ -135,6 +135,21 @@ Object.assign(window.Bulut, {
   },
   async odevVer(kod, odev) { girisGerekli(); try { await updateDoc(doc(db, 'classes', kod), { odev: odev || null }); } catch (e) { throw agHatasi(e); } },
   async ogrenciCikar(kod, uid) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod, 'ogrenciler', uid)); } catch (e) { throw agHatasi(e); } },
+  // Ezber dinletme: classes/{kod}/dinletme/{id} = { ogrUid, ad, n, a1, a2, ses (base64), mime, tarih, puan?, not? }
+  async dinletGonder(kod, v) {
+    girisGerekli();
+    try { await addDoc(collection(db, 'classes', kod, 'dinletme'), Object.assign({}, v, { ogrUid: kullanici.uid, tarih: Date.now() })); } catch (e) { throw agHatasi(e); }
+  },
+  async dinletmelerim(kod) {
+    girisGerekli();
+    try { const q = await getDocs(query(collection(db, 'classes', kod, 'dinletme'), where('ogrUid', '==', kullanici.uid))); return q.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => b.tarih - a.tarih); } catch (e) { throw agHatasi(e); }
+  },
+  async dinletmeler(kod) {
+    girisGerekli();
+    try { const q = await getDocs(collection(db, 'classes', kod, 'dinletme')); return q.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => b.tarih - a.tarih); } catch (e) { throw agHatasi(e); }
+  },
+  async dinletmeDegerlendir(kod, id, puan, not) { girisGerekli(); try { await updateDoc(doc(db, 'classes', kod, 'dinletme', id), { puan, not: String(not || '').slice(0, 300) }); } catch (e) { throw agHatasi(e); } },
+  async dinletmeSil(kod, id) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod, 'dinletme', id)); } catch (e) { throw agHatasi(e); } },
   async sinifSil(kod) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod)); } catch (e) { throw agHatasi(e); } }
 });
 window.dispatchEvent(new Event('bulut-hazir'));

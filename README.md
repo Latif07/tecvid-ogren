@@ -53,6 +53,15 @@ Yanlış yaptığın sorular kısa süre sonra tekrar karşına çıkar. Doğru 
 - **Kâri seçimi:** Husarî ve Minşâvî (öğretim ve mürettel), Abdülbâsıt, Afâsî, Sudeys, Mâhir el-Muaykılî, Gâmidî.
 - **English:** Bütün dersler, sorular ve menüler İngilizce de var (Ayarlar → Dil / Language).
 
+### Ezber (hıfz)
+- **Ezber modu:** Kelimeleri yarısı / ilk kelime hariç / tamamı olarak gizle; gizli kelimeye dokununca açılır. "Dinle, tekrar et, gizle" ile ayeti önce dinle, sonra ezberden oku. "✓ Ezberledim" ile ilerlemeni işaretle.
+- **Bugünkü plan:** Hafızlık usulüyle yeni ders + yakın tekrar + uzak tekrar (aralıklı tekrar).
+- **Ezber yoklaması:** Sonraki ayet, önceki ayet, ayetin devamı, hangi sûre ve benzer ayet soruları.
+- **Sayfa sayfa okuma:** Medine mushafı 604 sayfa, cüz bilgisi; **sayfa başı / sonu yoklaması**; **hatim takvimi** (günlük sayfa hedefi).
+- **Benzer (müteşâbih) ayetler:** Farklı kelimeler işaretli karşılaştırma.
+- **Meal:** Diyanet (Türkçe) / Saheeh International (İngilizce), aç-kapa.
+- **Hocaya ezber dinletme:** Sınıftaki öğrenci ezberini kaydedip gönderir; hoca dinler, "Güzel / Tekrar çalış" ve not verir.
+
 ### Bütün Kur'an, internetsiz ses ve diğerleri
 - **114 sûre renkli tecvidle:** Sûre ara, dinle (1/3/5 tekrar), kelimeye dokunup kelimeyi dinle, kendini kaydedip kâriyle karşılaştır, her sûrede "kural bul" testi.
 - **Kural ara:** Bir sûrede sadece seçtiğin kuralı renklendir ya da bir kuralın bütün Kur'an'da nerelerde geçtiğini gör.
