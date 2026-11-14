@@ -70,7 +70,8 @@ window.Bulut = {
         throw new Error(turkce(e));
       }
     }
-    const FA = Cap.registerPlugin('FirebaseAuthentication');
+    const FA = window.capEklenti('FirebaseAuthentication');
+    if (!FA) throw new Error(yazi('Google girişi şu an kullanılamıyor.', 'Google sign-in is not available right now.'));
     let sonuc;
     try { sonuc = await FA.signInWithGoogle(); }
     catch (e) { throw new Error(/cancel/i.test(e && e.message) ? yazi('Google girişi iptal edildi.', 'Google sign-in was cancelled.') : yazi('Google girişi başarısız: ', 'Google sign-in failed: ') + (e && e.message)); }
@@ -80,7 +81,7 @@ window.Bulut = {
   },
   async cikis() {
     if (!auth) return;
-    try { const Cap = window.Capacitor; if (Cap && Cap.isNativePlatform && Cap.isNativePlatform()) await Cap.registerPlugin('FirebaseAuthentication').signOut(); } catch (e) { /* yoksay */ }
+    try { const Cap = window.Capacitor; if (Cap && Cap.isNativePlatform && Cap.isNativePlatform()) { const FA = window.capEklenti('FirebaseAuthentication'); if (FA) await FA.signOut(); } } catch (e) { /* yoksay */ }
     await signOut(auth);
   },
   async indir() {

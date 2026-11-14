@@ -177,7 +177,7 @@
   let yerelSet = new Set(); try { yerelSet = new Set(JSON.parse(localStorage.getItem(SES_KEY) || '[]')); } catch (e) { }
   let yerelTaban = null;
   const yerelKaydet = () => { try { localStorage.setItem(SES_KEY, JSON.stringify([...yerelSet])); } catch (e) { } };
-  const FS = () => { const C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() ? C.registerPlugin('Filesystem') : null; };
+  const FS = () => window.capEklenti('Filesystem');
   const yerelYol = url => {
     let m = /everyayah\.com\/data\/([^/]+)\/(\d+\.mp3)$/.exec(url || ''); if (m) return `ea/${m[1]}/${m[2]}`;
     m = /qurancdn\.com\/wbw\/([\d_]+\.mp3)$/.exec(url || ''); if (m) return `wbw/${m[1]}`;
@@ -507,7 +507,7 @@
   window.addEventListener('popstate', () => { geri(); history.pushState(null, ''); });
   history.pushState(null, '');
   try {
-    const Cap = window.Capacitor; const CapApp = Cap && Cap.isNativePlatform && Cap.isNativePlatform() ? Cap.registerPlugin('App') : null;
+    const CapApp = window.capEklenti('App');
     if (CapApp) CapApp.addListener('backButton', () => { if (ekranYigini.length > 1) geri(); else if (ekranYigini[0][0] !== 'ana') anaSayfa(); else CapApp.exitApp(); });
   } catch (e) { /* tarayıcıda yok */ }
 
@@ -1821,7 +1821,7 @@
   };
   // ------------------------------------------------------------ günlük hatırlatma (telefon bildirimi)
   // Önümüzdeki 14 gün için her gün seçilen saatte bir bildirim kurulur; bugün çalıştıysan bugünkü atlanır.
-  const LN = () => { const C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() ? C.registerPlugin('LocalNotifications') : null; };
+  const LN = () => window.capEklenti('LocalNotifications');
   const HATIR_ID = Array.from({ length: 14 }, (_, i) => 7100 + i);
   function hatirlatmaMetni(i) {
     const siradaki = U.find(u => !gecti(u.id));

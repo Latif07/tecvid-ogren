@@ -5,6 +5,14 @@
   try { dil = localStorage.getItem('tecvid-ogren.dil') || 'tr'; } catch (e) { }
   if (dil !== 'en') dil = 'tr';
   window.DIL = dil;
+  // Telefondaki uygulamada (Capacitor) eklentiye eriş; tarayıcıda null döner. Aynı eklenti bir kez kaydedilir.
+  var EKLENTI = {};
+  window.capEklenti = function (ad) {
+    var C = window.Capacitor; if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+    if (EKLENTI[ad]) return EKLENTI[ad];
+    try { EKLENTI[ad] = typeof C.registerPlugin === 'function' ? C.registerPlugin(ad) : (C.Plugins && C.Plugins[ad]) || null; } catch (e) { EKLENTI[ad] = null; }
+    return EKLENTI[ad];
+  };
   // Hata kaydı: telefondaki sorunları görebilmek için son 30 hata saklanır (Ayarlar → Hata kaydı)
   function hataKaydet(m) {
     try { var l = JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]'); l.push(new Date().toISOString().slice(0, 19) + ' ' + String(m).slice(0, 400)); localStorage.setItem('tecvid-ogren.hatalar', JSON.stringify(l.slice(-30))); } catch (e) { }
