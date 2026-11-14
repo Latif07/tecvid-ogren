@@ -2,6 +2,11 @@ name: Kâri listesi kontrol
 
 on:
   workflow_dispatch:
+    inputs:
+      ekstra:
+        description: 'Ayrıca denenecek klasörler (boşlukla)'
+        required: false
+        default: ''
 
 jobs:
   kontrol:
@@ -27,3 +32,7 @@ jobs:
               code = subprocess.run(['curl', '-s', '-o', '/dev/null', '-w', '%{http_code}', '-I', '--max-time', '20', url], capture_output=True, text=True).stdout
               print(f"KARI\t{code}\t{sub}\t{v.get('name')}\t{v.get('bitrate')}")
           PY
+      - name: Ek klasörleri dene
+        if: ${{ inputs.ekstra != '' }}
+        run: |
+          for k in ${{ inputs.ekstra }}; do for f in 001001 112001 002255; do echo "EK	$(curl -s -o /dev/null -w '%{http_code}' -I --max-time 20 https://everyayah.com/data/$k/$f.mp3)	$k/$f"; done; done
