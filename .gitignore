@@ -3,3 +3,4 @@ android/
 *.apk
 tools/.tum_ayetler.json
 www/_test/
+tools/android-test/cikti/

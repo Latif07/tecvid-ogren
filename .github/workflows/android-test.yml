@@ -1,0 +1,51 @@
+name: Android emülatör testi
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["APK derle"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Son APK'yı indir
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release download --repo ${{ github.repository }} --pattern tecvid-ogren.apk --dir . --clobber
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install playwright==1.58.0
+      - name: Emülatörde dene
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb install -r tecvid-ogren.apk
+            adb shell pm grant com.latif07.tecvidogren android.permission.RECORD_AUDIO || true
+            adb shell am start -n com.latif07.tecvidogren/.MainActivity
+            sleep 20
+            python3 tools/android-test/test.py || true
+            adb logcat -d -s Capacitor:* Capacitor/Console:* chromium:* AndroidRuntime:* > tools/android-test/cikti/logcat.txt || true
+      - name: Sonuçları yükle
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-test
+          name: Android emülatör testi (son)
+          prerelease: true
+          body: Emülatörde otomatik test ekran görüntüleri.
+          files: tools/android-test/cikti/*
