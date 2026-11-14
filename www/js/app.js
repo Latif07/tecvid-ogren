@@ -1,4 +1,4 @@
-/* Tecvid Öğren — uygulama motoru (çevrimdışı çalışır, veriler telefonda ve hesapta saklanır) */
+/* Hüsn-i Kıraat — uygulama motoru (çevrimdışı çalışır, veriler telefonda ve hesapta saklanır) */
 (function () {
   'use strict';
   const { R, U, KAYNAK } = window.TC;
@@ -44,7 +44,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t('Kaydedilemedi: ') + e.message); }
     clearTimeout(yuklemeZamanlayici); yuklemeZamanlayici = setTimeout(buluta, 1500);
   };
-  function temaUygula() { const h = document.documentElement; h.dataset.tema = S.ayar.tema || 'sistem'; h.style.fontSize = Math.round((S.ayar.yazi || 1) * 100) + '%'; h.style.setProperty('--ar-olcek', S.ayar.arYazi || 1); try { localStorage.setItem('tecvid-ogren.tema', S.ayar.tema || 'sistem'); } catch (e) { } }
+  function temaUygula() { const h = document.documentElement; h.dataset.tema = S.ayar.tema || 'sistem'; h.dataset.renk = S.ayar.renk || 'yesil'; try { localStorage.setItem('tecvid-ogren.renk', S.ayar.renk || 'yesil'); } catch (e) { } requestAnimationFrame(() => { const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = getComputedStyle(h).getPropertyValue('--ust-bg').trim() || '#0f5a47'; }); h.style.fontSize = Math.round((S.ayar.yazi || 1) * 100) + '%'; h.style.setProperty('--ar-olcek', S.ayar.arYazi || 1); try { localStorage.setItem('tecvid-ogren.tema', S.ayar.tema || 'sistem'); } catch (e) { } }
   temaUygula();
 
   // ------------------------------------------------------------ bulut eşitleme
@@ -67,7 +67,8 @@
     r.seri = (sa.son || '') > (sb.son || '') ? sa : (sb.son || '') > (sa.son || '') ? sb : { son: sa.son || '', gun: Math.max(sa.gun || 0, sb.gun || 0) };
     r.degisti = Math.max(a.degisti || 0, b.degisti || 0);
     r.hesapUyariKapali = a.hesapUyariKapali || b.hesapUyariKapali;
-    r.sinif = 'sinif' in a ? a.sinif : b.sinif || null;
+    const sl = x => x.siniflar || (x.sinif ? [x.sinif] : null);
+    r.siniflar = sl(a) || sl(b) || [];
     r.ezber = {}; for (const n of new Set([...Object.keys(a.ezber || {}), ...Object.keys(b.ezber || {})])) {
       const x = (a.ezber || {})[n], y = (b.ezber || {})[n]; if (!x || !y) { r.ezber[n] = x || y; continue; }
       const yeni_ = (x.son || 0) >= (y.son || 0) ? x : y; r.ezber[n] = Object.assign({}, yeni_, { a: Math.max(x.a || 0, y.a || 0), tam: !!(x.tam || y.tam), eklendi: Math.min(x.eklendi || 0, y.eklendi || 0) || x.eklendi || y.eklendi, bitti: x.bitti || y.bitti });
@@ -254,7 +255,7 @@
     if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
     let akis;
     try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Tecvid Öğren için mikrofona izin ver.')); }
+    catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
     if (ses) { ses.pause(); ses = null; }
     const parcalar = [];
     kayitci = new MediaRecorder(akis); kayitAnahtar = anahtar; KAYIT['_kari_' + anahtar] = kariUrl;
@@ -484,6 +485,7 @@
   function anaSayfa() { oturum = null; ekranYigini = [['ana', []]]; ciz(); window.scrollTo(0, 0); }
   function ciz() {
     if (kayitci) kayitDurdur();
+    if (typeof OKU_KAYIT !== 'undefined' && OKU_KAYIT.r && OKU_KAYIT.r.state !== 'inactive') { const r = OKU_KAYIT.r; r.onstop = () => { try { r.stream.getTracks().forEach(x => x.stop()); } catch (e) { } }; r.stop(); OKU_KAYIT.r = null; }
     const [ad, arg] = ekranYigini[ekranYigini.length - 1];
     // Ekran değişince sûrenin "tamamını dinle" çalması dursun
     const anahtar = ad + '|' + JSON.stringify(arg);
@@ -528,7 +530,7 @@
     let kapali = false; try { kapali = localStorage.getItem('tecvid-ogren.ios') === '1'; } catch (e) { }
     if (!ios || kurulu || kapali || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return '';
     return `<section class="kart hesap-uyari" style="margin-bottom:14px"><div><h2>${t('📲 iPhone\'a uygulama gibi ekle')}</h2>
-      <ol style="padding-left:20px;margin:6px 0"><li>${t('Safari\'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).')}</li><li>${t('<b>Ana Ekrana Ekle</b>\'yi seç, sonra <b>Ekle</b>\'ye dokun.')}</li><li>${t('Artık ana ekrandaki <b>Tecvid</b> simgesinden aç.')}</li></ol>
+      <ol style="padding-left:20px;margin:6px 0"><li>${t('Safari\'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).')}</li><li>${t('<b>Ana Ekrana Ekle</b>\'yi seç, sonra <b>Ekle</b>\'ye dokun.')}</li><li>${t('Artık ana ekrandaki <b>Hüsn-i Kıraat</b> simgesinden aç.')}</li></ol>
       <p class="soluk kucukyazi">${t('Ana ekrandan açınca tam ekran çalışır ve dersler internetsiz de açılır.')}</p></div>
       <div class="satir sola"><button class="btn ikincil" id="iosKapat">${t('Tamam')}</button></div></section>`;
   }
@@ -546,8 +548,9 @@
     });
     const k = B() && B().kullanici();
     const hesapUyari = B() && B().hazir && !k && !S.hesapUyariKapali;
-    app.innerHTML = `${ust(t('Tecvid Öğren'), false, `<button class="hesapbtn" data-git="hesap" aria-label="${t('Hesap')}">${k ? '👤' : t('Giriş')}</button>`)}
+    app.innerHTML = `${ust(t('Hüsn-i Kıraat'), false, `<button class="hesapbtn" data-git="hesap" aria-label="${t('Hesap')}">${k ? '👤' : t('Giriş')}</button>`)}
       <main>
+        <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>${t('tamam')}</small></div>
           <div><p class="buyukyazi">${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</p>
@@ -879,7 +882,7 @@
       $('#cikis').onclick = async () => {
         if (!confirm(t('Çıkış yapılsın mı? İlerlemen hesabında kalır; bu telefondan silinir.'))) return;
         try { await b.yukle(S); } catch (e) { if (!confirm(t('Son değişiklikler hesaba yüklenemedi (internet yok). Yine de çıkış yapılsın mı? Yüklenmemiş ilerleme kaybolur.'))) return; }
-        await b.cikis(); sinifBilgi = null; const ayar = S.ayar; S = bos(); S.ayar = ayar; S.hesapUyariKapali = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+        await b.cikis(); Object.keys(SB).forEach(k => delete SB[k]); const ayar = S.ayar; S = bos(); S.ayar = ayar; S.hesapUyariKapali = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
         toast(t('Çıkış yapıldı')); anaSayfa();
       };
       return;
@@ -917,42 +920,61 @@
   };
 
   // ------------------------------------------------------------ sınıf (hoca–öğrenci)
-  // Öğrenci: S.sinif = { kod, ad, sinifAd }. Özet, eşitlemede sınıfa gönderilir; hoca sadece bu özeti görür.
-  let sinifBilgi = null, sinifBilgiZaman = 0;
+  // Öğrenci birden çok sınıfa katılabilir: S.siniflar = [{ kod, ad, sinifAd }]. Özet, eşitlemede her sınıfa gönderilir.
+  const ogrSiniflari = () => { if (!S.siniflar) { S.siniflar = S.sinif ? [S.sinif] : []; delete S.sinif; } return S.siniflar; };
+  const SB = {};   // sınıf bilgisi önbelleği: kod → { s, z }
   const odevSonStr = s => s ? new Date(s + 'T12:00:00').toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long' }) : '';
   function ozetHazirla() {
     const b = {}; U.forEach(u => { const il = S.ilerleme[u.id]; if (il && (il.deneme || il.gecti)) b[u.id] = [il.en || 0, il.gecti ? 1 : 0]; });
     const son = S.gecmis.slice(-8).reverse().map(h => ({ k: h.kimlik || null, b: h.baslik, y: h.yuzde, t: h.tarih }));
     const ez = {}; Object.entries(S.ezber || {}).forEach(([n, e]) => { ez[n] = [e.a, e.tam ? 1 : 0]; });
-    return { ez, gecilen: U.filter(u => gecti(u.id)).length, toplam: U.length, b, son, seri: S.seri.gun || 0, seriSon: S.seri.son || '', test: S.gecmis.length, tekrar: vadesiGelenler().length, zaman: Date.now() };
+    const puanli = S.gecmis.filter(h => h.tur !== 'alistirma').slice(-20);
+    const ok = S.okuma || [];
+    return { ez, gecilen: U.filter(u => gecti(u.id)).length, toplam: U.length, b, son, seri: S.seri.gun || 0, seriSon: S.seri.son || '', test: S.gecmis.length, tekrar: vadesiGelenler().length,
+      ort: puanli.length ? Math.round(puanli.reduce((s, h) => s + h.yuzde, 0) / puanli.length) : null, ezAyet: Object.values(S.ezber || {}).reduce((s, e) => s + (e.a || 0), 0),
+      ok: [ok.length, ok.filter(x => !x.j && !x.k).length], zaman: Date.now() };
   }
   async function ozetiGonder() {
-    if (!girisli() || !S.sinif || !B().ozetGonder) return;
-    await B().ozetGonder(S.sinif.kod, S.sinif.ad, ozetHazirla());
+    if (!girisli() || !B().ozetGonder) return;
+    for (const c of ogrSiniflari()) await B().ozetGonder(c.kod, c.ad, ozetHazirla());
   }
-  async function sinifBilgiGetir(zorla) {
-    if (!girisli() || !S.sinif) { sinifBilgi = null; return null; }
-    if (!zorla && sinifBilgi && sinifBilgi.kod === S.sinif.kod && Date.now() - sinifBilgiZaman < 10 * 60000) return sinifBilgi;
+  async function sinifBilgiGetir(kod, zorla) {
+    if (!girisli()) return null;
+    const c = SB[kod]; if (!zorla && c && Date.now() - c.z < 10 * 60000) return c.s;
     try {
-      const s = await B().sinifGetir(S.sinif.kod);
-      if (!s) { toast(t('Sınıfın hocası sınıfı kapattı.')); S.sinif = null; sinifBilgi = null; kaydet(); return null; }
-      sinifBilgi = s; sinifBilgiZaman = Date.now(); return s;
-    } catch (e) { return sinifBilgi; }
+      const s = await B().sinifGetir(kod);
+      if (!s) { const l = ogrSiniflari(), i = l.findIndex(x => x.kod === kod); if (i >= 0) { toast(t('"{0}" sınıfı kapatıldı.', l[i].sinifAd || kod)); l.splice(i, 1); kaydet(); } delete SB[kod]; return null; }
+      SB[kod] = { s, z: Date.now() }; return s;
+    } catch (e) { return c ? c.s : null; }
   }
-  // Ana sayfadaki ödev kartı (önce boş yer, sonra doldurulur)
+  // Ana sayfadaki ödev kartları (her sınıf için)
   function odevKartiDoldur() {
-    const yer = $('#odevYer'); if (!yer || !S.sinif) return;
-    sinifBilgiGetir().then(s => {
+    const yer = $('#odevYer'); if (!yer || !girisli() || !ogrSiniflari().length) return;
+    Promise.all(ogrSiniflari().map(c => sinifBilgiGetir(c.kod))).then(l => {
       if (!document.body.contains(yer)) return;
-      if (!s || !s.odev || !s.odev.birim || !unitById(s.odev.birim)) { yer.innerHTML = ''; return; }
-      const o = s.odev, u = unitById(o.birim), bitti = gecti(o.birim);
-      const gecikti = o.son && !bitti && o.son < bugun();
-      yer.innerHTML = `<section class="kart tekrar ${bitti ? '' : 'vurgulu'}" style="margin-bottom:14px"><div><h2>${t('📌 Ödev')} · <span class="soluk" style="font-weight:500">${esc(s.ad || '')}</span></h2>
-        <p><b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ` · ${gecikti ? '<span class="kirmizi">' : ''}${t('son gün: {0}', odevSonStr(o.son))}${gecikti ? '</span>' : ''}` : ''}</p>
-        ${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}
-        <p>${bitti ? `<span class="yesil">${t('✓ Tamamladın ({0})', yuzdeStr(S.ilerleme[o.birim].en))}</span>` : t('Bölüm testinden {0} al, ödev tamamlansın.', yuzdeStr(GECME))}</p></div>
-        ${bitti ? '' : `<button class="btn" data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}">${t('Başla')}</button>`}</section>`;
+      yer.innerHTML = l.filter(s => s && s.odev && s.odev.birim && unitById(s.odev.birim)).map(s => {
+        const o = s.odev, u = unitById(o.birim), bitti = gecti(o.birim), gecikti = o.son && !bitti && o.son < bugun();
+        return `<section class="kart tekrar ${bitti ? '' : 'vurgulu'}" style="margin-bottom:14px"><div><h2>${t('📌 Ödev')} · <span class="soluk" style="font-weight:500">${esc(s.ad || '')}</span></h2>
+          <p><b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ` · ${gecikti ? '<span class="kirmizi">' : ''}${t('son gün: {0}', odevSonStr(o.son))}${gecikti ? '</span>' : ''}` : ''}</p>
+          ${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}
+          <p>${bitti ? `<span class="yesil">${t('✓ Tamamladın ({0})', yuzdeStr(S.ilerleme[o.birim].en))}</span>` : t('Bölüm testinden {0} al, ödev tamamlansın.', yuzdeStr(GECME))}</p></div>
+          ${bitti ? '' : `<button class="btn" data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}">${t('Başla')}</button>`}</section>`;
+      }).join('');
     });
+  }
+  // Sınıf içi karşılaştırma tablosu (sınıftaki herkes görür)
+  const SIRALA = [['ad', 'Ad'], ['gecilen', 'Bölüm'], ['ort', 'Ort.'], ['ezAyet', 'Ezber'], ['ok', 'Okuma'], ['seri', 'Seri']];
+  function siralamaHTML(ogrenciler, olcut, benim) {
+    const deger = (x, k) => { const z = x.ozet || {}; return k === 'ad' ? String(x.ad || '').toLocaleLowerCase('tr') : k === 'ok' ? (z.ok && z.ok[0] ? z.ok[1] / z.ok[0] : -1) : (z[k] == null ? -1 : z[k]); };
+    const l = ogrenciler.slice().sort((a, b) => olcut === 'ad' ? (deger(a, 'ad') < deger(b, 'ad') ? -1 : 1) : (deger(b, olcut) - deger(a, olcut)) || (deger(b, 'gecilen') - deger(a, 'gecilen')));
+    const madalya = i => olcut === 'ad' ? '' : ['🥇', '🥈', '🥉'][i] || (i + 1);
+    return `<div class="sirala-kap"><table class="sirala"><thead><tr><th></th>${SIRALA.map(([k, ad]) => `<th class="${k === olcut ? 'aktif' : ''}" data-sirala="${k}">${t(ad)}${k === olcut && k !== 'ad' ? ' ▼' : ''}</th>`).join('')}</tr></thead><tbody>
+      ${l.map((x, i) => { const z = x.ozet || {}; return `<tr class="${x.uid === benim ? 'ben' : ''}"><td>${madalya(i)}</td><td>${esc(x.ad || '?')}</td><td>${z.gecilen || 0}/${z.toplam || U.length}</td><td>${z.ort == null ? '—' : yuzdeStr(z.ort)}</td><td>${z.ezAyet || 0}</td><td>${z.ok && z.ok[0] ? yuzdeStr(Math.round(z.ok[1] / z.ok[0] * 100)) : '—'}</td><td>🔥${z.seri || 0}</td></tr>`; }).join('')}</tbody></table></div>
+      <p class="soluk kucukyazi">${t('Bölüm: geçilen bölüm · Ort.: son testlerin ortalaması · Ezber: ezberlenen ayet · Okuma: hatasız okunan ayet oranı. Başlığa dokunarak sırala.')}</p>`;
+  }
+  function siralamaBagla(kap, ogrenciler, benim) {
+    const yaz = k => { kap.innerHTML = siralamaHTML(ogrenciler, k, benim); kap.querySelectorAll('[data-sirala]').forEach(th => th.onclick = () => yaz(th.dataset.sirala)); };
+    yaz('gecilen');
   }
 
   function girisIste(baslik) {
@@ -960,57 +982,36 @@
       <p>${t('Sınıflar internet üzerinden çalışır. Hoca da öğrenci de bir hesapla giriş yapmalı.')}</p>
       <button class="btn" data-git="hesap">${t('Giriş yap / Hesap aç')}</button></article></main>`;
   }
+  const mesgul = (btn, v) => { if (!btn) return; btn.disabled = v; btn.dataset.yazi = btn.dataset.yazi || btn.textContent; btn.textContent = v ? t('Bekle…') : btn.dataset.yazi; };
 
   EKRAN.sinif = function () {
     if (!B() || !B().hazir || !girisli()) return girisIste(t('Sınıf'));
-    const k = B().kullanici();
-    const varsayilanAd = (S.sinif && S.sinif.ad) || k.displayName || (k.email || '').split('@')[0];
-    const ogr = S.sinif;
+    const k = B().kullanici(), l = ogrSiniflari();
+    const varsayilanAd = (l[0] && l[0].ad) || k.displayName || (k.email || '').split('@')[0];
     app.innerHTML = `${ust(t('Sınıf'))}<main>
       <p class="soluk">${t('Hoca sınıf açar ve kodunu öğrencilerine verir. Öğrenci kodu girip katılır; hoca öğrencilerinin ilerlemesini görür ve ödev verir.')}</p>
       <h2 class="baslik">${t('🎓 Öğrenciyim')}</h2>
-      ${ogr ? `<article class="kart"><h2>${esc(ogr.sinifAd || '')} <span class="rozet ok">${esc(ogr.kod)}</span></h2>
-          <p>${t('Sınıfta görünen adın: ')}<b>${esc(ogr.ad)}</b></p>
-          <div id="ogrOdev"><p class="soluk">${t('Yükleniyor…')}</p></div>
-          <p class="soluk kucukyazi">${t('Hocan; geçtiğin bölümleri, puanlarını, son testlerini, ezberini ve serini görür. Ezber kaydını yalnızca sen gönderirsen dinler.')}</p>
-          <div id="dinletmelerim"></div>
-          <div class="satir sola"><button class="btn" id="ozetGonder">${t('🔄 İlerlememi şimdi gönder')}</button><button class="btn ikincil" id="ayril">${t('Sınıftan ayrıl')}</button></div></article>`
-        : `<article class="kart form"><label>${t('Sınıf kodu')}<input id="kod" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="${t('ör. K7M2QX')}" style="text-transform:uppercase;letter-spacing:.2em"></label>
+      <div class="bolumler">${l.map(c => `<button class="bolum" data-git="ogrSinif|${esc(c.kod)}"><span class="ikon">🎓</span><span class="bad"><small>${esc(c.kod)} · ${t('adın: {0}', esc(c.ad))}</small>${esc(c.sinifAd || c.kod)}</span><span class="rozet">›</span></button>`).join('')}</div>
+      ${l.length ? `<details class="kart" style="margin-top:10px"><summary><b>${t('➕ Başka bir sınıfa katıl')}</b></summary>` : '<article class="kart">'}
+        <div class="form"><label>${t('Sınıf kodu')}<input id="kod" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="${t('ör. K7M2QX')}" style="text-transform:uppercase;letter-spacing:.2em"></label>
           <label>${t('Adın (hocan bu adı görür)')}<input id="ad" maxlength="40" value="${esc(varsayilanAd)}"></label>
-          <p class="hata" id="hata1"></p><button class="btn genis" id="katil">${t('Sınıfa katıl')}</button></article>`}
+          <p class="hata" id="hata1"></p><button class="btn genis" id="katil">${t('Sınıfa katıl')}</button></div>
+      ${l.length ? '</details>' : '</article>'}
       <h2 class="baslik">${t('👨‍🏫 Hocayım')}</h2>
       <article class="kart form"><label>${t('Yeni sınıfın adı')}<input id="sinifAd" maxlength="60" placeholder="${t('ör. Cuma kursu')}"></label>
         <p class="hata" id="hata2"></p><button class="btn genis" id="olustur">${t('Sınıf oluştur')}</button></article>
       <div id="siniflarim" class="bolumler"><p class="soluk">${t('Sınıfların yükleniyor…')}</p></div>
     </main>`;
-    const mesgul = (btn, v) => { btn.disabled = v; btn.dataset.yazi = btn.dataset.yazi || btn.textContent; btn.textContent = v ? t('Bekle…') : btn.dataset.yazi; };
-    if (ogr) {
-      sinifBilgiGetir(true).then(s => {
-        const yer = $('#ogrOdev'); if (!yer) return;
-        if (!s) { yer.innerHTML = `<p class="soluk">${t('Sınıf bilgisi alınamadı (internet yok olabilir).')}</p>`; return; }
-        const o = s.odev, u = o && unitById(o.birim);
-        yer.innerHTML = u ? `<p>${t('📌 Ödev: ')}<b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ' · ' + t('son gün: {0}', odevSonStr(o.son)) : ''} ${gecti(u.id) ? '<span class="yesil">✓</span>' : ''}</p>${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}` : `<p class="soluk">${t('Şu an verilmiş bir ödev yok.')}</p>`;
-      });
-      B().dinletmelerim(ogr.kod).then(l => { const y = $('#dinletmelerim'); if (!y || !l.length) return;
-        y.innerHTML = `<p style="margin-top:12px"><b>${t('🎧 Ezber dinletmelerim')}</b></p>` + l.slice(0, 10).map(d => `<div class="kayit"><div>${esc(sureNoAdi(d.n))} <small>${tarihStr(d.tarih)}</small>${d.not ? `<small>“${esc(d.not)}”</small>` : ''}</div><div class="sag">${dinletDurum(d)}</div></div>`).join('');
-      }).catch(() => { });
-      $('#ozetGonder').onclick = async e => { mesgul(e.currentTarget, true); try { await B().ozetGonder(ogr.kod, ogr.ad, ozetHazirla()); toast(t('İlerlemen hocana gönderildi ✓')); } finally { mesgul($('#ozetGonder'), false); } };
-      $('#ayril').onclick = async () => {
-        if (!confirm(t('Sınıftan ayrılmak istiyor musun? Hocan artık ilerlemeni göremez.'))) return;
-        try { await B().siniftanAyril(ogr.kod); } catch (e) { if (!/izin|Permission/i.test(e.message)) return toast(e.message); }
-        S.sinif = null; sinifBilgi = null; kaydet(); toast(t('Sınıftan ayrıldın')); ciz();
-      };
-    } else {
-      $('#katil').onclick = async e => {
-        const kod = $('#kod').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ad = $('#ad').value.trim();
-        const h = m => { $('#hata1').textContent = m || ''; }; h();
-        if (kod.length !== 6) return h(t('Sınıf kodu 6 karakterdir.'));
-        if (!ad) return h(t('Adını yaz.'));
-        const btn = e.currentTarget; mesgul(btn, true);
-        try { const s = await B().sinifaKatil(kod, ad, ozetHazirla()); S.sinif = { kod, ad, sinifAd: s.ad || '' }; sinifBilgi = s; sinifBilgiZaman = Date.now(); kaydet(); toast(t('Sınıfa katıldın ✓')); ciz(); }
-        catch (x) { h(x.message); mesgul(btn, false); }
-      };
-    }
+    $('#katil').onclick = async e => {
+      const kod = $('#kod').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ad = $('#ad').value.trim();
+      const h = m => { $('#hata1').textContent = m || ''; }; h();
+      if (kod.length !== 6) return h(t('Sınıf kodu 6 karakterdir.'));
+      if (!ad) return h(t('Adını yaz.'));
+      if (l.some(c => c.kod === kod)) return h(t('Bu sınıftasın zaten.'));
+      const btn = e.currentTarget; mesgul(btn, true);
+      try { const s = await B().sinifaKatil(kod, ad, ozetHazirla()); l.push({ kod, ad, sinifAd: s.ad || '' }); SB[kod] = { s, z: Date.now() }; kaydet(); toast(t('Sınıfa katıldın ✓')); git('ogrSinif', kod); }
+      catch (x) { h(x.message); mesgul(btn, false); }
+    };
     $('#olustur').onclick = async e => {
       const ad = $('#sinifAd').value.trim(); const h = m => { $('#hata2').textContent = m || ''; }; h();
       if (!ad) return h(t('Sınıfa bir ad ver.'));
@@ -1018,12 +1019,45 @@
       try { const kod = await B().sinifOlustur(ad); toast(t('Sınıf oluşturuldu ✓')); git('sinifDetay', kod); }
       catch (x) { h(x.message); mesgul(btn, false); }
     };
-    B().siniflarim().then(l => {
+    B().siniflarim().then(l2 => {
       const yer = $('#siniflarim'); if (!yer) return;
-      l.sort((a, b) => ((b.olusturma && b.olusturma.toMillis ? b.olusturma.toMillis() : 0) - (a.olusturma && a.olusturma.toMillis ? a.olusturma.toMillis() : 0)));
-      yer.innerHTML = l.length ? l.map(s => `<button class="bolum" data-git="sinifDetay|${esc(s.kod)}"><span class="ikon">👥</span><span class="bad"><small>${esc(s.kod)}</small>${esc(s.ad || '')}</span><span class="rozet">›</span></button>`).join('')
+      l2.sort((a, b) => ((b.olusturma && b.olusturma.toMillis ? b.olusturma.toMillis() : 0) - (a.olusturma && a.olusturma.toMillis ? a.olusturma.toMillis() : 0)));
+      yer.innerHTML = l2.length ? l2.map(s => `<button class="bolum" data-git="sinifDetay|${esc(s.kod)}"><span class="ikon">👥</span><span class="bad"><small>${esc(s.kod)}</small>${esc(s.ad || '')}</span><span class="rozet">›</span></button>`).join('')
         : `<p class="soluk">${t('Henüz bir sınıf açmadın.')}</p>`;
     }).catch(e => { const yer = $('#siniflarim'); if (yer) yer.innerHTML = `<p class="hata">${esc(e.message)}</p>`; });
+  };
+
+  // Öğrencinin bir sınıfı: ödev, sıralama, dinletmeler
+  EKRAN.ogrSinif = function (kod) {
+    if (!B() || !B().hazir || !girisli()) return girisIste(t('Sınıf'));
+    const c = ogrSiniflari().find(x => x.kod === kod); if (!c) { ekranYigini.pop(); return ciz(); }
+    app.innerHTML = `${ust(esc(c.sinifAd || kod))}<main>
+      <article class="kart"><h2>${esc(c.sinifAd || '')} <span class="rozet ok">${esc(kod)}</span></h2>
+        <p>${t('Sınıfta görünen adın: ')}<b>${esc(c.ad)}</b></p>
+        <div id="ogrOdev"><p class="soluk">${t('Yükleniyor…')}</p></div>
+        <div class="satir sola"><button class="btn" id="ozetGonder">${t('🔄 İlerlememi şimdi gönder')}</button></div></article>
+      <h2 class="baslik">${t('🏆 Sınıf sıralaması')}</h2><article class="kart" id="sirala"><p class="soluk">${t('Yükleniyor…')}</p></article>
+      <div id="dinletmelerim"></div>
+      <p class="soluk kucukyazi">${t('Sınıftakiler; geçtiğin bölümleri, puanlarını, ezberini, okuma oranını ve serini görür. Ezber kaydını yalnızca sen gönderirsen hocan dinler.')}</p>
+      <button class="btn ikincil tehlike-yazi genis" id="ayril">${t('Sınıftan ayrıl')}</button>
+    </main>`;
+    sinifBilgiGetir(kod, true).then(s => {
+      const yer = $('#ogrOdev'); if (!yer) return;
+      if (!s) { yer.innerHTML = `<p class="soluk">${t('Sınıf bilgisi alınamadı (internet yok olabilir).')}</p>`; return; }
+      const o = s.odev, u = o && unitById(o.birim);
+      yer.innerHTML = u ? `<p>${t('📌 Ödev: ')}<b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ' · ' + t('son gün: {0}', odevSonStr(o.son)) : ''} ${gecti(u.id) ? '<span class="yesil">✓</span>' : ''}</p>${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}` : `<p class="soluk">${t('Şu an verilmiş bir ödev yok.')}</p>`;
+    });
+    B().ogrenciler(kod).then(l => { const k = $('#sirala'); if (k) siralamaBagla(k, l, B().kullanici().uid); })
+      .catch(e => { const k = $('#sirala'); if (k) k.innerHTML = `<p class="soluk">${esc(e.message)}</p>`; });
+    kuranIndex().then(() => B().dinletmelerim(kod)).then(l => { const y = $('#dinletmelerim'); if (!y || !l.length) return;
+      y.innerHTML = `<h2 class="baslik">${t('🎧 Ezber dinletmelerim')}</h2>` + l.slice(0, 10).map(d => `<div class="kayit"><div>${esc(sureNoAdi(d.n))} <small>${tarihStr(d.tarih)}</small>${d.not ? `<small>“${esc(d.not)}”</small>` : ''}</div><div class="sag">${dinletDurum(d)}</div></div>`).join('');
+    }).catch(() => { });
+    $('#ozetGonder').onclick = async e => { const b_ = e.currentTarget; mesgul(b_, true); try { await B().ozetGonder(kod, c.ad, ozetHazirla()); toast(t('İlerlemen gönderildi ✓')); ciz(); } finally { mesgul(b_, false); } };
+    $('#ayril').onclick = async () => {
+      if (!confirm(t('Sınıftan ayrılmak istiyor musun? Hocan artık ilerlemeni göremez.'))) return;
+      try { await B().siniftanAyril(kod); } catch (e) { if (!/izin|Permission/i.test(e.message)) return toast(e.message); }
+      const l = ogrSiniflari(); l.splice(l.findIndex(x => x.kod === kod), 1); delete SB[kod]; kaydet(); toast(t('Sınıftan ayrıldın')); geri();
+    };
   };
 
   EKRAN.sinifDetay = function (kod) {
@@ -1059,17 +1093,19 @@
           <label>${t('Son gün (isteğe bağlı)')}<input id="odevSon" type="date" value="${esc(o.son || '')}"></label>
           <label>${t('Not (isteğe bağlı)')}<input id="odevNot" maxlength="200" value="${esc(o.not || '')}" placeholder="${t('ör. Örnekleri 3 kez dinleyin')}"></label>
           <button class="btn genis" id="odevKaydet">${t('Ödevi kaydet')}</button></article>
+        <h2 class="baslik">${t('🏆 Sınıf sıralaması')}</h2><article class="kart" id="sirala"></article>
         <h2 class="baslik">${t('🎧 Ezber dinletmeleri')}</h2><div id="dinletmeler"><p class="soluk">${t('Yükleniyor…')}</p></div>
         <h2 class="baslik">${t('Öğrenciler ({0})', ogrenciler.length)}</h2>
         ${ogrenciler.length ? ogrenciler.map(satir).join('') : `<p class="soluk">${t('Henüz katılan öğrenci yok. Kodu öğrencilerine ver.')}</p>`}
         <p class="soluk kucukyazi">${t('Öğrencinin ilerlemesi, onun telefonu internete bağlanıp eşitlendiğinde güncellenir.')}</p>
         <article class="kart"><h2>${t('⚠️ Sınıfı sil')}</h2><p>${t('Sınıf kapanır, kod çalışmaz. Öğrencilerin kendi ilerlemesi silinmez.')}</p><button class="btn tehlike" id="sinifSil">${t('Sınıfı sil')}</button></article>`;
       $('#paylas').onclick = async () => {
-        const yazi = t('Tecvid Öğren uygulamasında "{0}" sınıfına katıl: Ayarlar → Sınıf → Öğrenciyim → kod: {1}', s.ad || '', kod);
+        const yazi = t('Hüsn-i Kıraat uygulamasında "{0}" sınıfına katıl: Profil → Sınıf → Öğrenciyim → kod: {1}', s.ad || '', kod);
         try { if (navigator.share) { await navigator.share({ text: yazi }); return; } } catch (e) { return; }
         try { await navigator.clipboard.writeText(yazi); toast(t('Kopyalandı')); } catch (e) { toast(kod); }
       };
       $('#yenile').onclick = () => ciz();
+      siralamaBagla($('#sirala'), ogrenciler, null);
       kuranIndex().then(() => B().dinletmeler(kod)).then(l => {
         const y = $('#dinletmeler'); if (!y) return;
         if (!l.length) { y.innerHTML = `<p class="soluk">${t('Henüz gelen ezber kaydı yok. Öğrenciler Ezber modunda "Hocama ezber dinlet" ile gönderir.')}</p>`; return; }
@@ -1340,6 +1376,8 @@
           ${pl.uzak.length ? `<button class="btn ikincil" data-git="sure|${pl.uzak[0].n}||tekrar">${t('Tekrar et')}</button>` : ''}</div>
         <div class="plan-satir"><span>❓</span><div><b>${t('Ezber yoklaması')}</b><small>${due ? t('{0} soru tekrar zamanı geldi.', due) : t('Sonraki/önceki ayet, ayetin devamı, hangi sûre, benzer ayetler.')}</small></div>
           <button class="btn ${due ? '' : 'ikincil'}" id="yoklama">${t('Başla')}</button></div>
+        <div class="plan-satir"><span>🎤</span><div><b>${t('Okuma raporu')}</b><small>${(S.okuma || []).length ? t('{0} ayet okudun. Hatalarını ve gelişimini gör.', (S.okuma || []).length) : t('Oku, yapay zekâ tecvid hatalarını göstersin.')}</small></div>
+          <button class="btn ikincil" data-git="okumaRaporu">${t('Aç')}</button></div>
         <p class="soluk kucukyazi">${t('Günlük yeni ders:')} ${[1, 3, 5, 10].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hedef="${k}">${t('{0} ayet', k)}</button>`).join(' ')}</p>
       </section>
       <h2 class="baslik">${t('Ezberlerim')}</h2>
@@ -1385,6 +1423,7 @@
   function dinletHTML() {
     if (DINLET.kayitci) return `<button class="sesbtn kirmizi-btn kaydediyor" id="dinletDur">${t('⏹ Kaydı bitir')}</button> <span class="soluk kucukyazi">${t('En fazla 2 dakika')}</span>`;
     if (DINLET.url) return `<p class="kucukyazi"><b>${t('Kaydın hazır:')}</b></p><audio controls src="${DINLET.url}" style="width:100%"></audio>
+      ${ogrSiniflari().length > 1 ? `<label class="kucukyazi">${t('Hangi sınıfa?')} <select id="dinletSinif">${ogrSiniflari().map(c => `<option value="${esc(c.kod)}">${esc(c.sinifAd || c.kod)}</option>`).join('')}</select></label>` : ''}
       <div class="satir sola"><button class="btn" id="dinletGonder">${t('📤 Hocama gönder')}</button><button class="btn ikincil" id="dinletSil">${t('Sil')}</button></div>`;
     return `<button class="lejant-ac" id="dinletBas">🎙️ ${t('Hocama ezber dinlet')}</button> <span class="soluk kucukyazi">${t('Ezberden oku, kaydını hocan dinlesin.')}</span>`;
   }
@@ -1393,7 +1432,7 @@
     const yenile = () => { kutu.innerHTML = dinletHTML(); dinletBagla(n, son); };
     const b = $('#dinletBas'); if (b) b.onclick = async () => {
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
-      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Tecvid Öğren için mikrofona izin ver.')); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
       const parca = []; let r; try { r = new MediaRecorder(akis, { audioBitsPerSecond: 24000 }); } catch (e) { r = new MediaRecorder(akis); }
       DINLET.kayitci = r; DINLET.bas = Date.now();
       r.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
@@ -1406,11 +1445,101 @@
       g.disabled = true; g.textContent = t('Gönderiliyor…');
       const veri = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.readAsDataURL(DINLET.blob); });
       if (veri.length > 880000) { toast(t('Kayıt çok uzun. Daha kısa bir bölüm oku (yaklaşık 2 dakikadan az).')); g.disabled = false; g.textContent = t('📤 Hocama gönder'); return; }
-      try { await B().dinletGonder(S.sinif.kod, { ad: S.sinif.ad, n, a1: 1, a2: son, ses: veri, mime: DINLET.blob.type || 'audio/webm', sure: DINLET.sure || 0 }); toast(t('Kaydın hocana gönderildi ✓')); if (DINLET.url) URL.revokeObjectURL(DINLET.url); DINLET.url = null; DINLET.blob = null; yenile(); }
+      const sec_ = $('#dinletSinif'); const c = ogrSiniflari().find(x => x.kod === (sec_ ? sec_.value : '')) || ogrSiniflari()[0];
+      try { await B().dinletGonder(c.kod, { ad: c.ad, n, a1: 1, a2: son, ses: veri, mime: DINLET.blob.type || 'audio/webm', sure: DINLET.sure || 0 }); toast(t('Kaydın hocana gönderildi ✓')); if (DINLET.url) URL.revokeObjectURL(DINLET.url); DINLET.url = null; DINLET.blob = null; yenile(); }
       catch (x) { toast(x.message); g.disabled = false; g.textContent = t('📤 Hocama gönder'); }
     };
   }
   const dinletDurum = d => d.puan === 'iyi' ? `<span class="rozet ok">👍 ${t('Güzel')}</span>` : d.puan === 'tekrar' ? `<span class="rozet kilit" style="background:var(--altin-acik)">🔁 ${t('Tekrar çalış')}</span>` : `<span class="rozet kilit">${t('Dinlenmedi')}</span>`;
+
+  // ============================================================ OKUMA RAPORU (yapay zekâ ile tecvid kontrolü)
+  // S.okuma = [{ t, n, a, w (kelime), j (açık hata), k (ince hata), notlar: [[kelime, kural, şiddet, mesaj]] }]
+  let okumaYukleniyor = null;
+  function okumaHazirla() {
+    if (window.Okuma) return Promise.resolve(window.Okuma);
+    if (!okumaYukleniyor) okumaYukleniyor = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'js/okuma.js'; s.onload = () => ok(window.Okuma); s.onerror = () => no(new Error(t('Okuma raporu yüklenemedi.'))); document.head.appendChild(s); });
+    return okumaYukleniyor;
+  }
+  const KURAL_AD = () => ({
+    NormalMaddRule: t('Med-i tabîî'), MonfaselMaddRule: t('Med-i munfasıl'), MottaselMaddRule: t('Med-i muttasıl'), MottaselMaddPauseRule: t('Med-i muttasıl'),
+    LazemMaddRule: t('Med-i lâzım'), AaredMaddRule: t('Med-i ârız'), LeenMaddRule: t('Med-i lîn'), BadalMadd: t('Med-i bedel'), LeenHamzaMadd: t('Med-i lîn'),
+    qalqalah: t('Kalkale'), ikhfa: t('İhfâ'), iqlab: t('İklâb'), ghunnah: t('Ğunne'), idgham_ghunnah: t('İdğâm (ğunneli)'), idgham: t('İdğâm'),
+    shadda: t('Şedde'), letter: t('Harf hatası'), vowel: t('Hareke hatası'), dropped: t('Düşen ses'), added: t('Fazladan ses'), word: t('Okunmayan kelime'), madd_added: t('Yersiz uzatma')
+  });
+  const kuralAdi = r => { const m = KURAL_AD(); const k = r.replace(':uneven', ''); return (m[k] || k) + (r.endsWith(':uneven') ? ' ' + t('(eşit değil)') : ''); };
+  const OKU_KAYIT = { r: null, n: 0, a: 0, zaman: null };
+  function raporHTML(n, a, sonuc) {
+    const x = SURE(n), kel = x.ayet[a - 1].split(' '), K = sonuc.kelimeler, eslesir = kel.length === K.length;
+    const j = K.reduce((s, w) => s + w.notes.filter(z => z.severity === 'jali').length, 0), k = K.reduce((s, w) => s + w.notes.filter(z => z.severity !== 'jali').length, 0);
+    const renk = w => !w.notes.length ? 'r-iyi' : w.notes.some(z => z.severity === 'jali') ? 'r-kotu' : 'r-orta';
+    const kelimeler = eslesir ? `<div class="ayet rapor-ayet" dir="rtl" lang="ar">${kel.map((w, i) => `<span class="${renk(K[i])}">${esc(w)}</span>`).join(' ')}</div>` : '';
+    const notlar = K.filter(w => w.notes.length).map(w => `<li><b class="ar">${eslesir ? esc(kel[w.index]) : t('{0}. kelime', w.index + 1)}</b> ${w.notes.map(z => `<span class="${z.severity === 'jali' ? 'kirmizi' : 'turuncu'}">${metin(z.msg)}</span>`).join('; ')}</li>`).join('');
+    const medler = K.flatMap(w => w.madd.map(m => `${eslesir ? esc(kel[w.index]) : w.index + 1}: ${esc(kuralAdi(m.rule))} ${DIL === 'en' ? m.heard + ' counts' : m.heard / 2 + ' elif'}`));
+    return `<div class="rapor ${j ? 'kotu' : k ? 'orta' : 'iyi'}">
+      <p><b>${j ? t('🔴 {0} açık hata', j) : k ? t('🟠 {0} ince (tecvid) hatası', k) : t('🟢 Hata bulunmadı. Maşallah!')}</b>${j && k ? ' · ' + t('{0} ince hata', k) : ''}</p>
+      ${kelimeler}${notlar ? `<ul class="rapor-not">${notlar}</ul>` : ''}
+      ${medler.length ? `<p class="soluk kucukyazi">${t('Duyulan medler:')} <span class="ar-karisik">${medler.join(' · ')}</span></p>` : ''}
+      <p class="soluk kucukyazi">${t('🔴 açık hata (lahn-i celî), 🟠 ince hata (lahn-i hafî). Yapay zekâ yanılabilir; son söz hocanındır.')}</p></div>`;
+  }
+  function raporKaydet(n, a, sonuc) {
+    const K = sonuc.kelimeler, notlar = [];
+    K.forEach(w => w.notes.forEach(z => notlar.push([w.index, z.rule, z.severity === 'jali' ? 'j' : 'k', z.msg])));
+    S.okuma = (S.okuma || []).concat([{ t: simdi(), n, a, w: K.length, j: notlar.filter(x => x[2] === 'j').length, k: notlar.filter(x => x[2] === 'k').length, notlar }]).slice(-300);
+    seriGuncelle(); kaydet();
+  }
+  // Sûre ekranında ayet başına "Oku, kontrol et"
+  function okumaBagla(n) {
+    app.querySelectorAll('[data-oku]').forEach(b => b.onclick = async () => {
+      const a = +b.dataset.oku, kutu = document.getElementById('rapor-' + a);
+      if (OKU_KAYIT.r) { if (OKU_KAYIT.a === a) OKU_KAYIT.r.state !== 'inactive' && OKU_KAYIT.r.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+      let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+      if (ses) { ses.pause(); ses = null; }
+      const parca = []; const r = new MediaRecorder(akis); Object.assign(OKU_KAYIT, { r, n, a });
+      b.classList.add('kirmizi-btn', 'kaydediyor'); b.textContent = t('⏹ Bitir');
+      kutu.hidden = false; kutu.innerHTML = `<p class="soluk">${t('🎙️ Dinliyorum… Ayeti oku, bitince "Bitir"e dokun (en fazla 28 saniye).')}</p>`;
+      O.modelAc().catch(() => { });   // kayıt sürerken model hazırlansın
+      r.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+      r.onstop = async () => {
+        akis.getTracks().forEach(x => x.stop()); clearTimeout(OKU_KAYIT.zaman); OKU_KAYIT.r = null;
+        b.classList.remove('kirmizi-btn', 'kaydediyor'); b.textContent = t('🎤 Tekrar oku');
+        kutu.innerHTML = `<p class="soluk">${t('⏳ Okuyuşun inceleniyor…')}</p>`;
+        try {
+          const sonuc = await O.ayetRaporu(n, a, new Blob(parca, { type: r.mimeType || 'audio/webm' }));
+          if (!document.body.contains(kutu)) return;
+          kutu.innerHTML = raporHTML(n, a, sonuc); raporKaydet(n, a, sonuc);
+        } catch (e) { if (document.body.contains(kutu)) kutu.innerHTML = `<p class="hata">${esc(e.message || String(e))}</p>`; }
+      };
+      r.start(); OKU_KAYIT.zaman = setTimeout(() => r.state !== 'inactive' && r.stop(), 28000);
+    });
+  }
+
+  EKRAN.okumaRaporu = function () {
+    const l = (S.okuma || []).slice().reverse();
+    const top = l.length, temiz = l.filter(x => !x.j && !x.k).length, acik = l.reduce((s, x) => s + x.j, 0), ince = l.reduce((s, x) => s + x.k, 0);
+    const sayac = {}; l.forEach(x => x.notlar.forEach(z => { const k = z[1].replace(':uneven', ''); sayac[k] = (sayac[k] || 0) + 1; }));
+    const enCok = Object.entries(sayac).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const maks = enCok.length ? enCok[0][1] : 1;
+    // son 7 günün eğilimi: ayet başına hata
+    const gun = d => new Date(d).toISOString().slice(0, 10);
+    const son = l.filter(x => x.t > simdi() - 14 * GUN), once = son.filter(x => x.t <= simdi() - 7 * GUN), simdi_ = son.filter(x => x.t > simdi() - 7 * GUN);
+    const oran = a => a.length ? (a.reduce((s, x) => s + x.j + x.k, 0) / a.length) : null;
+    const o1 = oran(once), o2 = oran(simdi_);
+    app.innerHTML = `${ust(t('Okuma raporu'))}<main>
+      <article class="kart"><p>${t('Bir sûre aç, ayetin altındaki 🎤 düğmesine dokun ve oku. Yapay zekâ okuyuşunu dinler; kelime kelime harf, hareke, med, ğunne, ihfâ, iklâb, idğâm, şedde ve kalkale hatalarını gösterir.')}</p>
+        <p class="soluk kucukyazi">${t('Model telefonda çalışır, ses hiçbir yere gönderilmez. Yapay zekâ yanılabilir; bir hocanın yerini tutmaz.')}</p>
+        <button class="btn" data-sekme-git-ic="sureler">${t('Sûre seç ve oku')}</button></article>
+      ${top ? `<div class="istatler kart"><div><b>${top}</b><small>${t('okunan ayet')}</small></div><div><b>${yuzdeStr(Math.round(temiz / top * 100))}</b><small>${t('hatasız')}</small></div><div><b>${acik}</b><small>${t('açık hata')}</small></div><div><b>${ince}</b><small>${t('ince hata')}</small></div></div>
+        ${o1 != null && o2 != null ? `<p class="fark ${o2 < o1 ? 'yukari' : o2 > o1 ? 'asagi' : ''}">${o2 < o1 ? t('▲ Bu hafta ayet başına hatan azaldı: {0} → {1}', o1.toFixed(1), o2.toFixed(1)) : o2 > o1 ? t('▼ Bu hafta ayet başına hatan arttı: {0} → {1}', o1.toFixed(1), o2.toFixed(1)) : t('● Hata oranın aynı')}</p>` : ''}
+        ${enCok.length ? `<h2 class="baslik">${t('En sık hataların')}</h2><article class="kart">${enCok.map(([k, v]) => `<div class="cubuk"><span>${esc(kuralAdi(k))}</span><div class="bar"><div class="kotu" style="width:${Math.round(v / maks * 100)}%"></div></div><b>${v}</b></div>`).join('')}</article>` : ''}
+        <h2 class="baslik">${t('Son okumalar')}</h2>
+        <div class="tablo">${l.slice(0, 60).map(x => `<button class="kayit" data-git="sure|${x.n}|||${x.a}" style="text-align:left;width:100%;font:inherit;color:inherit"><div><b>${esc(sureNoAdi(x.n))} ${x.a}</b><small>${tarihStr(x.t)}</small>${x.notlar.slice(0, 2).map(z => `<small>• ${metin(z[3])}</small>`).join('')}</div>
+          <div class="sag">${!x.j && !x.k ? '<span class="rozet ok">✓</span>' : `${x.j ? `<span class="kirmizi">🔴 ${x.j}</span>` : ''} ${x.k ? `<span class="turuncu">🟠 ${x.k}</span>` : ''}`}</div></button>`).join('')}</div>`
+        : `<p class="soluk ortala">${t('Henüz okuma yapmadın.')}</p>`}
+    </main>`;
+    const g = app.querySelector('[data-sekme-git-ic]'); if (g) g.onclick = () => { ekranYigini = [['sureler', []]]; ciz(); };
+  };
 
   // Sayfa sayfa okuma (Medine mushafı)
   EKRAN.sayfa = function (p) {
@@ -1485,7 +1614,9 @@
         ${mealAcik && mealVar && mealVar[i] ? `<p class="meal">${esc(mealVar[i])}</p>` : ''}
         <div class="sesler"><button class="sesbtn" data-ayet-cal="${i + 1}">${t('▶ Dinle')}</button>
           ${ezberModu ? `<button class="sesbtn ikincil" data-dtg="${i + 1}">${t('🔁 Dinle, tekrar et, gizle')}</button>${ezberli ? `<span class="rozet ok">✓ ${t('ezberde')}</span>` : `<button class="sesbtn" data-ezberledim="${i + 1}">${t('✓ Ezberledim')}</button>`}` : ''}
+          <button class="sesbtn ikincil" data-oku="${i + 1}">🎤 ${t('Oku, kontrol et')}</button>
           ${bz ? `<button class="lejant-ac" data-benzer="${i + 1}">🔁 ${t('{0} benzer ayet', bz.length)}</button>` : ''}</div>
+        <div class="rapor-kutu" id="rapor-${i + 1}" hidden></div>
         <div class="benzer-kutu" id="benzer-${i + 1}" hidden></div>
         ${ezberModu ? '' : kayitHTML('sure' + r, ayetUrl(r))}<span hidden data-yedek="${ayetUrl(r, KARILER[0].klasor)}" data-ses="${ayetUrl(r)}"></span>
       </article>`;
@@ -1500,7 +1631,7 @@
         <div class="filtre">${[[0, t('Hiçbiri')], [1, t('Yarısı')], [2, t('İlk kelime kalsın')], [3, t('Hepsi')]].map(([v, ad]) => `<button class="${seviye === v ? 'aktif' : ''}" data-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="soluk kucukyazi">${t('Gizli kelimeye dokununca görünür ve okunur. Önce dinle, sonra tekrar et, sonra gizleyip ezberden oku.')}</p>
         ${seviye ? `<button class="lejant-ac" id="hepsiniAc">👁️ ${t('Gizlileri göster')}</button>` : ''}
-        ${S.sinif && girisli() ? `<div class="dinlet-kutu" id="dinletKutu">${dinletHTML()}</div>` : ''}
+        ${ogrSiniflari().length && girisli() ? `<div class="dinlet-kutu" id="dinletKutu">${dinletHTML()}</div>` : ''}
       </section>`;
     app.innerHTML = `${ust(esc(sureAdi(x)) + ' · <span class="ar" style="font-size:1.1rem">' + esc(x.ar) + '</span>')}<main>
       ${ezberModu ? ezberUst : ''}
@@ -1558,6 +1689,7 @@
     app.querySelectorAll('[data-ezberledim]').forEach(b => b.onclick = () => { ezberIsaretle(n, +b.dataset.ezberledim); yenile({ hedef: +b.dataset.ezberledim + 1 }); });
     const eb = $('#ezberEkleBtn'); if (eb) eb.onclick = () => { ezberEkle(n); yenile({}); };
     dinletBagla(n, e ? Math.max(1, e.a) : x.ayet.length);
+    okumaBagla(n);
     const te = $('#tekrarEttim'); if (te) te.onclick = () => { tekrarEttim(n); toast(t('Tekrar kaydedildi ✓')); geri(); };
     app.querySelectorAll('[data-benzer]').forEach(b => b.onclick = async () => {
       const i = +b.dataset.benzer, kutu = document.getElementById('benzer-' + i);
@@ -1608,7 +1740,8 @@
       <div class="istatler kart"><div><b>${gecilen}/${U.length}</b><small>${t('bölüm')}</small></div><div><b>${S.gecmis.length}</b><small>${t('test')}</small></div><div><b>${ezb}</b><small>${t('ezber sûre')}</small></div><div><b>🔥 ${S.seri.gun || 0}</b><small>${t('gün seri')}</small></div></div>
       <div class="bolumler">
         ${satir('hesap', '☁️', k ? t('Hesabım') : t('Giriş yap / Hesap aç'), k ? esc(k.email || '') : t('İlerlemen kaybolmasın'))}
-        ${satir('sinif', '👨‍🏫', t('Sınıf (hoca–öğrenci)'), S.sinif ? t('Sınıfın: ') + esc(S.sinif.sinifAd || S.sinif.kod) : t('Katıl ya da sınıf aç'))}
+        ${satir('okumaRaporu', '🎤', t('Okuma raporu'), t('Okuyuşundaki hatalar ve gelişimin'))}
+        ${satir('sinif', '👨‍🏫', t('Sınıf (hoca–öğrenci)'), ogrSiniflari().length ? ogrSiniflari().map(c => esc(c.sinifAd || c.kod)).join(', ') : t('Katıl ya da sınıf aç'))}
         ${satir('ayarlar', '⚙️', t('Ayarlar'), t('Dil, tema, yazı boyutu, kâri, hatırlatma, yedek'))}
         ${FS() ? satir('indir', '📥', t('İnternetsiz ses'), t('Sesleri telefona indir')) : ''}
       </div></main>`;
@@ -1625,6 +1758,8 @@
       <article class="kart"><h2>${t('🎨 Görünüm')}</h2>
         <p><b>${t('Tema')}</b></p>
         <div class="satir sola">${[['sistem', t('Telefona göre')], ['acik', t('☀️ Açık')], ['koyu', t('🌙 Koyu')]].map(([v, ad]) => `<button class="btn ${tema === v ? '' : 'ikincil'}" data-tema="${v}">${ad}</button>`).join('')}</div>
+        <p style="margin-top:16px"><b>${t('Renk')}</b></p>
+        <div class="renkler">${[['yesil', '#0f5a47', t('Yeşil')], ['lacivert', '#1d3f72', t('Lacivert')], ['bordo', '#7a1f2b', t('Bordo')], ['mor', '#4b2a7a', t('Mor')], ['sepya', '#6b4423', t('Sepya')]].map(([v, c, ad]) => `<button class="${(S.ayar.renk || 'yesil') === v ? 'aktif' : ''}" data-renk="${v}" style="background:${c}" title="${ad}" aria-label="${ad}">${(S.ayar.renk || 'yesil') === v ? '✓' : ''}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Yazı boyutu')}</b></p>
         <div class="satir sola">${[[0.9, 'A−'], [1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="btn ${(S.ayar.yazi || 1) === v ? '' : 'ikincil'}" data-yazi="${v}">${ad}</button>`).join('')}</div>
         <p style="margin-top:12px"><b>${t('Arapça yazı boyutu')}</b></p>
@@ -1654,13 +1789,14 @@
     </main>`;
     app.querySelectorAll('[data-dil]').forEach(b => b.onclick = () => { if (b.dataset.dil === DIL) return; try { localStorage.setItem('tecvid-ogren.dil', b.dataset.dil); } catch (e) { } location.reload(); });
     app.querySelectorAll('[data-tema]').forEach(b => b.onclick = () => { S.ayar.tema = b.dataset.tema; temaUygula(); kaydet(); ciz(); });
+    app.querySelectorAll('[data-renk]').forEach(b => b.onclick = () => { S.ayar.renk = b.dataset.renk; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-yazi]').forEach(b => b.onclick = () => { S.ayar.yazi = +b.dataset.yazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-aryazi]').forEach(b => b.onclick = () => { S.ayar.arYazi = +b.dataset.aryazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-renkli]').forEach(b => b.onclick = () => { S.ayar.renkli = b.dataset.renkli === '1'; kaydet(); ciz(); });
     const hatirAyarla = async (acik, saat) => {
       S.ayar.hatirlat = { acik, saat }; kaydet();
       const ok = await hatirlatmaKur(acik);
-      if (acik && LN() && !ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Tecvid Öğren için bildirimlere izin ver.')); }
+      if (acik && LN() && !ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); }
       else if (acik) toast(t('Hatırlatma kuruldu: her gün {0}', saat));
       ciz();
     };
@@ -1710,7 +1846,7 @@
         const at = new Date(); at.setDate(at.getDate() + g); at.setHours(sa, dk, 0, 0);
         if (at.getTime() <= Date.now() + 60000) continue;
         if (g === 0 && calisti) continue;
-        bildirimler.push({ id: HATIR_ID[g], title: t('Tecvid Öğren'), body: hatirlatmaMetni(g + new Date().getDate()), schedule: { at, allowWhileIdle: true } });
+        bildirimler.push({ id: HATIR_ID[g], title: t('Hüsn-i Kıraat'), body: hatirlatmaMetni(g + new Date().getDate()), schedule: { at, allowWhileIdle: true } });
       }
       if (bildirimler.length) await ln.schedule({ notifications: bildirimler });
       return true;
@@ -1722,6 +1858,21 @@
     return k.map(w => { const h = kelimeHTML(r, w, o); o += w.length + 1; return h; }).join(' ');
   }
 
+  // Açılış: "Sizin en hayırlınız Kur'an'ı öğrenen ve öğretendir." (Buhârî, Fezâilü'l-Kur'ân 21; no. 5027)
+  const HADIS_AR = 'خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ';
+  const hadisMetni = () => t('“Sizin en hayırlınız Kur\'an\'ı öğrenen ve öğretendir.”');
+  const hadisKaynak = () => t('Buhârî, Fezâilü\'l-Kur\'ân 21');
+  function acilisGoster() {
+    if (navigator.webdriver) return;   // otomatik testlerde atla
+    const d = document.createElement('div'); d.className = 'acilis';
+    d.innerHTML = `<div class="acilis-ic"><div class="acilis-logo">۞</div><h1>${t('Hüsn-i Kıraat')}</h1>
+      <p class="acilis-ar" dir="rtl" lang="ar">${HADIS_AR}</p><p class="acilis-tr">${hadisMetni()}</p><p class="acilis-kaynak">${hadisKaynak()}</p>
+      <p class="acilis-dokun">${t('Devam etmek için dokun')}</p></div>`;
+    document.body.appendChild(d);
+    const kapat = () => { if (!d.isConnected) return; d.classList.add('gizlen'); setTimeout(() => d.remove(), 450); };
+    d.onclick = kapat; setTimeout(kapat, 2600);
+  }
+  acilisGoster();
   anaSayfa();
   bulutBagla();
   hatirlatmaKur(false);

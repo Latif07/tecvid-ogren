@@ -1,0 +1,4 @@
+tajweed-v2-int8.onnx — HisnLabs Tajweed v2 (https://huggingface.co/Hisnlabs/tajweed-v2), Apache-2.0.
+Rule engine in js/okuma.js is a JavaScript port of imam.py from https://github.com/HisnLabs/tajweed (Apache-2.0).
+Base encoder: tarteel-ai/whisper-base-ar-quran (Apache-2.0). Phonetizer used offline: quran-transcript (MIT).
+js/ort/: onnxruntime-web 1.31.1 (MIT, Microsoft).

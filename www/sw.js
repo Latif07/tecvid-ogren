@@ -12,7 +12,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;   // sesler ve Firebase doğrudan ağdan
-  const surekli = /\/(kuran|fonts|icons)\//.test(u.pathname);              // değişmeyen dosyalar: önce önbellek
+  const surekli = /\/(kuran|fonts|icons|model|ort)\//.test(u.pathname);              // değişmeyen dosyalar: önce önbellek
   e.respondWith((async () => {
     const c = await caches.open(SURUM);
     if (surekli) { const v = await c.match(e.request); if (v) return v; }

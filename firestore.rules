@@ -14,9 +14,11 @@ service cloud.firestore {
                     && request.resource.data.hocaUid == resource.data.hocaUid;
       allow delete: if request.auth != null && resource.data.hocaUid == request.auth.uid;
       // Öğrenci kendi kaydını yazar; hoca sınıfındaki öğrencileri görür ve çıkarabilir
+      // Sınıftaki herkes sıralamayı görebilsin: öğrenci kayıtlarını hoca ve sınıfın öğrencileri okur
       match /ogrenciler/{uid} {
         allow read: if request.auth != null && (request.auth.uid == uid
-                    || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid);
+                    || get(/databases/$(database)/documents/classes/$(kod)).data.hocaUid == request.auth.uid
+                    || exists(/databases/$(database)/documents/classes/$(kod)/ogrenciler/$(request.auth.uid)));
         allow create, update: if request.auth != null && request.auth.uid == uid
                     && exists(/databases/$(database)/documents/classes/$(kod));
         allow delete: if request.auth != null && (request.auth.uid == uid

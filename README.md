@@ -1,6 +1,9 @@
 <p align="center">
-  <img src="docs/banner.jpg" alt="Tecvid Öğren" width="100%">
+  <img src="docs/banner.jpg" alt="Hüsn-i Kıraat" width="100%">
 </p>
+
+<h1 align="center">Hüsn-i Kıraat</h1>
+<p align="center"><i>«Sizin en hayırlınız Kur'an'ı öğrenen ve öğretendir.» (Buhârî, Fezâilü'l-Kur'ân 21)</i></p>
 
 <p align="center">
   <a href="https://github.com/Latif07/tecvid-ogren/releases/latest"><b>📥 Son sürümü indir (APK)</b></a>
@@ -52,6 +55,16 @@ Yanlış yaptığın sorular kısa süre sonra tekrar karşına çıkar. Doğru 
 - **Açık / koyu tema** ya da telefona göre otomatik.
 - **Kâri seçimi:** Husarî ve Minşâvî (öğretim ve mürettel), Abdülbâsıt, Afâsî, Sudeys, Mâhir el-Muaykılî, Gâmidî.
 - **English:** Bütün dersler, sorular ve menüler İngilizce de var (Ayarlar → Dil / Language).
+
+### Okuma raporu (yapay zekâ)
+Ayetin altındaki 🎤 ile oku: telefonda çalışan bir model okuyuşunu dinler ve kelime kelime **harf, hareke, med süresi, ğunne, ihfâ, iklâb, idğâm, şedde ve kalkale** hatalarını gösterir (🔴 açık hata, 🟠 ince hata). Profil → Okuma raporu'nda en sık hataların ve haftalık gelişimin görünür. Ses hiçbir yere gönderilmez.
+Model: [HisnLabs tajweed-v2](https://huggingface.co/Hisnlabs/tajweed-v2) (Apache-2.0). Yapay zekâ yanılabilir; bir hocanın yerini tutmaz.
+
+### Sınıflar
+Öğrenci birden çok sınıfa katılabilir. Sınıfta herkes **sıralamayı** görür (geçilen bölüm, ortalama puan, ezber, hatasız okuma oranı, seri); hoca ödev verir, ezber kaydı dinler.
+
+### Görünüm
+Açık / koyu tema ve renk seçenekleri: yeşil, lacivert, bordo, mor, sepya.
 
 ### Ezber (hıfz)
 - **Ezber modu:** Kelimeleri yarısı / ilk kelime hariç / tamamı olarak gizle; gizli kelimeye dokununca açılır. "Dinle, tekrar et, gizle" ile ayeti önce dinle, sonra ezberden oku. "✓ Ezberledim" ile ilerlemeni işaretle.

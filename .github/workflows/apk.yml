@@ -73,7 +73,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Tecvid Öğren 1.0.${{ github.run_number }}
+          name: Hüsn-i Kıraat 1.0.${{ github.run_number }}
           body: |
             Telefona kurmak için aşağıdaki **tecvid-ogren.apk** dosyasına dokun.
             Güncellemeler eskisinin üstüne kurulur, ilerlemen silinmez.
