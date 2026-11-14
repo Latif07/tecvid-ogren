@@ -26,7 +26,7 @@ jobs:
       - name: Sürüm numarasını yaz (önbellek yenilensin)
         run: sed -i "s/SURUM_YER/${{ github.run_number }}-${GITHUB_SHA::7}/" www/sw.js
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: www
       - id: dagit
