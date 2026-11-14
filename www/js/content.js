@@ -71,6 +71,60 @@ window.TC = (function () {
   const U = [];
   function unit(o) { U.push(o); }
 
+  // Elif-Ba: harfleri sıfırdan tanıma (tecvide başlamadan önce)
+  const HARFLER = [['ا', 'Elif'], ['ب', 'Be'], ['ت', 'Te'], ['ث', 'Se'], ['ج', 'Cim'], ['ح', 'Ha'], ['خ', 'Hı'], ['د', 'Dal'], ['ذ', 'Zel'], ['ر', 'Ra'],
+    ['ز', 'Ze'], ['س', 'Sin'], ['ش', 'Şın'], ['ص', 'Sad'], ['ض', 'Dad'], ['ط', 'Tı'], ['ظ', 'Zı'], ['ع', 'Ayn'], ['غ', 'Ğayn'], ['ف', 'Fe'],
+    ['ق', 'Kaf'], ['ك', 'Kef'], ['ل', 'Lam'], ['م', 'Mim'], ['ن', 'Nun'], ['و', 'Vav'], ['ه', 'He'], ['لا', 'Lamelif'], ['ي', 'Ye']];
+  const harfTablo = (adlar) => `<div class="harf-tablo">${HARFLER.map((h, i) => `<div><span class="ar">${h[0]}</span><small>${adlar[i]}</small></div>`).join('')}</div>`;
+  const SEKILLER = ['ب', 'ج', 'ع', 'ه', 'ك', 'م', 'ي'];
+  const sekilTablo = (b) => `<table class="sekil-tablo"><tr>${b.map(x => `<th>${x}</th>`).join('')}</tr>${SEKILLER.map(h => `<tr><td class="ar">${h}</td><td class="ar">${h}ـ</td><td class="ar">ـ${h}ـ</td><td class="ar">ـ${h}</td></tr>`).join('')}</table>`;
+
+  unit({
+    id: 'e1', ad: "Elif-Ba: Arap harfleri", ikon: '🔠', kurallar: [],
+    sayfalar: [
+      { t: "Elif-Ba nedir?", h: `<p>Kur'an'ı okuyabilmek için önce harfleri tanımak gerekir. Bu harflerin hepsine birden <b>Elif-Ba</b> denir (ilk iki harfin adı).</p><ul><li>Arapça <b>sağdan sola</b> yazılır ve okunur.</li><li><b>28 harf</b> vardır. Eski elifbalarda <span class="ar">لا</span> (lamelif) de ayrıca sayılır.</li><li>Harfler kelimenin içinde <b>birbirine bitişir</b>; bu yüzden aynı harf başta, ortada ve sonda biraz farklı görünür.</li><li>Sesleri harekeler verir (üstün, esre, ötre). Onları bir sonraki bölümde öğreneceksin.</li></ul><p class="not">Harfleri ezberlemek için acele etme. Her gün tabloya bakıp yüksek sesle adlarını söyle.</p>` },
+      { t: "Harfler ve adları", h: `<p>Sağdan sola, sırayla:</p>${harfTablo(HARFLER.map(h => h[1]))}<p class="soluk kucukyazi">Sıralama geleneksel elifbadaki gibidir (vav, he, lamelif, ye).</p>` },
+      { t: "Noktalara dikkat", h: `<p>Birçok harf aynı şekildedir; onları <b>noktalar</b> ayırır:</p><ul><li><span class="ar">ب</span> altta 1 · <span class="ar">ت</span> üstte 2 · <span class="ar">ث</span> üstte 3 · <span class="ar">ن</span> üstte 1 · <span class="ar">ي</span> altta 2</li><li><span class="ar">ج</span> altta 1 · <span class="ar">ح</span> noktasız · <span class="ar">خ</span> üstte 1</li><li><span class="ar">د</span> noktasız · <span class="ar">ذ</span> üstte 1</li><li><span class="ar">ر</span> noktasız · <span class="ar">ز</span> üstte 1</li><li><span class="ar">س</span> noktasız · <span class="ar">ش</span> üstte 3</li><li><span class="ar">ص</span> noktasız · <span class="ar">ض</span> üstte 1</li><li><span class="ar">ط</span> noktasız · <span class="ar">ظ</span> üstte 1</li><li><span class="ar">ع</span> noktasız · <span class="ar">غ</span> üstte 1</li><li><span class="ar">ف</span> üstte 1 · <span class="ar">ق</span> üstte 2</li></ul><p class="not">Bir noktanın yeri bile harfi, dolayısıyla kelimeyi ve manayı değiştirir.</p>` },
+      { t: "Başta, ortada, sonda", h: `<p>Harfler bitiştiği için şekil değiştirir. Birkaç örnek (sağdan sola: tek başına, başta, ortada, sonda):</p>${sekilTablo(['Tek', 'Başta', 'Ortada', 'Sonda'])}<p>Ortada <span class="ar">ـبـ ـتـ ـثـ ـنـ ـيـ</span> aynı çizgidir; yine noktalarına bakarak ayırırsın.</p>` },
+      { t: "Bitişmeyen harfler", h: `<p>Şu 6 harf <b>kendinden sonraki harfe bitişmez</b> (öncekine bitişebilir):</p><p class="ar buyuk">ا د ذ ر ز و</p><p>Bu yüzden bu harflerden sonra kelimenin içinde küçük bir boşluk varmış gibi görünür: <span class="ar">وَرَدَ</span> (ve-ra-de) harflerin hiçbiri birbirine bitişmez.</p><p><span class="ar">لا</span> (lamelif), lâm ile elifin özel bitişik yazılışıdır.</p>` },
+      { t: "Kalın harfler ve karışanlar", h: `<p><b>Kalın okunan 7 harf</b> (İbnü'l-Cezerî'nin sözüyle <span class="ar">خُصَّ ضَغْطٍ قِظْ</span>):</p><p class="ar buyuk">خ ص ض غ ط ق ظ</p><p>Bunların dışındaki harfler genelde incedir. Sık karıştırılanlar:</p><ul><li><span class="ar">ه</span> (boğazın en derininden, hafif nefesle) — <span class="ar">ح</span> (boğazın ortasından, hırıltısız) — <span class="ar">خ</span> (boğazın üstünden, hırıltılı)</li><li><span class="ar">س</span> (ince) — <span class="ar">ص</span> (kalın) — <span class="ar">ث</span> (dil ucu dişler arasında)</li><li><span class="ar">ز</span> — <span class="ar">ذ</span> — <span class="ar">ظ</span></li><li><span class="ar">ك</span> (ince) — <span class="ar">ق</span> (kalın, dilin kökünden)</li><li><span class="ar">ء</span> (hemze, boğazın en derininden) — <span class="ar">ع</span> (boğazın ortasından)</li></ul><p>Çıkış yerlerini "Mahrecler" bölümünde, karışan harfleri dinleyerek "Karıştırılan harfler" bölümünde ayrıntılı çalışacaksın.</p>` },
+      { t: "Kelimede harfleri bulmak", h: `<p>Kur'an'dan birkaç kelimeyi harflerine ayıralım (sağdan sola):</p><ul><li><span class="ar">بِسۡمِ</span> = <span class="ar">ب</span> + <span class="ar">س</span> + <span class="ar">م</span></li><li><span class="ar">قُلۡ</span> = <span class="ar">ق</span> + <span class="ar">ل</span></li><li><span class="ar">رَبِّ</span> = <span class="ar">ر</span> + <span class="ar">ب</span> (şeddeli)</li><li><span class="ar">ٱلۡحَمۡدُ</span> = <span class="ar">ا</span> + <span class="ar">ل</span> + <span class="ar">ح</span> + <span class="ar">م</span> + <span class="ar">د</span></li></ul><p>Alıştırma ve testte kelimeyi <b>dinleyip</b> içindeki harfi bulacağın sorular da var.</p>` }
+    ],
+    sorular: [
+      { q: "Arapça hangi yönde yazılır ve okunur?", a: "Sağdan sola", w: ["Soldan sağa", "Yukarıdan aşağıya", "İkisi de olur"] },
+      { q: "Arap alfabesinde kaç harf vardır (lamelif ayrıca sayılmazsa)?", a: "28", w: ["22", "26", "32"] },
+      { q: "ب harfinin adı nedir?", a: "Be", w: ["Te", "Se", "Nun"] },
+      { q: "ث harfinin adı nedir?", a: "Se", w: ["Te", "Şın", "Be"] },
+      { q: "خ harfinin adı nedir?", a: "Hı", w: ["Ha", "Cim", "Ğayn"] },
+      { q: "ذ harfinin adı nedir?", a: "Zel", w: ["Dal", "Ze", "Zı"] },
+      { q: "ش harfinin adı nedir?", a: "Şın", w: ["Sin", "Sad", "Se"] },
+      { q: "ض harfinin adı nedir?", a: "Dad", w: ["Sad", "Dal", "Zı"] },
+      { q: "ظ harfinin adı nedir?", a: "Zı", w: ["Tı", "Zel", "Dad"] },
+      { q: "غ harfinin adı nedir?", a: "Ğayn", w: ["Ayn", "Hı", "Fe"] },
+      { q: "ق harfinin adı nedir?", a: "Kaf", w: ["Fe", "Kef", "Vav"] },
+      { q: "Hangisi 'Cim' harfidir?", a: "ج", w: ["ح", "خ", "د"] },
+      { q: "Hangisi 'Ayn' harfidir?", a: "ع", w: ["غ", "ء", "ه"] },
+      { q: "Hangisi 'He' harfidir?", a: "ه", w: ["ح", "خ", "ع"] },
+      { q: "Hangi harf kendinden sonraki harfe BİTİŞMEZ?", a: "د", w: ["ب", "م", "ل"] },
+      { q: "Hangisi kendinden sonraki harfe bitişen bir harftir?", a: "ن", w: ["ا", "ر", "و"] },
+      { q: "ت harfinin noktaları nasıldır?", a: "Üstte 2 nokta", w: ["Altta 1 nokta", "Üstte 3 nokta", "Altta 2 nokta"] },
+      { q: "ي (ye) harfinin noktaları nasıldır?", a: "Altta 2 nokta", w: ["Üstte 2 nokta", "Altta 1 nokta", "Noktası yoktur"] },
+      { q: "ف ile ق arasındaki fark nedir?", a: "ف'de üstte 1, ق'da üstte 2 nokta var", w: ["İkisi aynı harftir", "ف'de altta nokta var", "ق noktasızdır"] },
+      { q: "'قُلۡ' kelimesinin ilk harfi hangisidir?", a: "ق", w: ["ف", "ك", "ع"] },
+      { q: "Kalın okunan 7 harf hangileridir?", a: "خ ص ض غ ط ق ظ", w: ["ب ت ث ن ي ف ك", "ا و ي ه ء ع ح", "ل ر ن م ب و ي"] }
+    ],
+    dinle: [
+      { h: 'ق', r: '112:1', w: 1, k: 'قُلۡ', g: ['ق', 'ف', 'ع', 'غ'] },
+      { h: 'ص', r: '1:7', w: 1, k: 'صِرَٰطَ', g: ['ص', 'ض', 'س', 'ش'] },
+      { h: 'د', r: '111:1', w: 2, k: 'يَدَآ', g: ['د', 'ذ', 'ر', 'ز'] },
+      { h: 'ب', r: '105:1', w: 5, k: 'رَبُّكَ', g: ['ب', 'ت', 'ث', 'ن'] },
+      { h: 'ث', r: '108:1', w: 3, k: 'ٱلۡكَوۡثَرَ', g: ['ث', 'ت', 'ب', 'ن'] },
+      { h: 'ع', r: '103:1', w: 1, k: 'وَٱلۡعَصۡرِ', g: ['ع', 'غ', 'ح', 'خ'] },
+      { h: 'ح', r: '1:2', w: 1, k: 'ٱلۡحَمۡدُ', g: ['ح', 'ج', 'خ', 'ه'] },
+      { h: 'ش', r: '113:2', w: 2, k: 'شَرِّ', g: ['ش', 'س', 'ص', 'ض'] }
+    ]
+  });
+
   unit({
     id: 'u0', ad: "Başlangıç: Harekeler ve işaretler", ikon: '✏️', kurallar: [],
     sayfalar: [
@@ -759,7 +813,7 @@ window.TC = (function () {
   });
 
   unit({ id: 'x3', ara: true, ad: "Ara sınav 3: İdğamlar, kalkale, lâm, râ, vakf, lahn, adab", ikon: '🏁', kapsar: ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1', 'a1'] });
-  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1', 'a1'] });
+  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['e1', 'u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1', 'a1'] });
 
   const GRUP_AD = { med: "Medler", nun: "Nûn sâkin ve tenvin", mim: "Mîm sâkin", gunne: "Ğunne", idgam: "İdğâmlar", kalkale: "Kalkale", lam: "Lâm-ı tarif", lafza: "Lafzatullah", ra: "Râ", vakf: "Vakf ve sekte", ozel: "Özel okunuşlar" };
 
@@ -772,5 +826,5 @@ window.TC = (function () {
     "Hesap ve eşitleme: Firebase (Google) — Apache 2.0 lisanslı SDK."
   ];
 
-  return { R, U, GRUP_AD, KAYNAK, MAHREC_SVG };
+  return { R, U, GRUP_AD, KAYNAK, MAHREC_SVG, harfTablo, sekilTablo };
 })();

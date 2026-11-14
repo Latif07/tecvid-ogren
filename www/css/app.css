@@ -226,3 +226,11 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .filtre button i { width: 11px; height: 11px; border-radius: 3px; background: currentColor; flex: none; }
 .filtre button small { color: var(--soluk); }
 .filtre button.aktif { border-color: var(--ana); background: var(--iyi-bg); font-weight: 700; }
+/* elif-ba */
+.harf-tablo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; direction: rtl; margin: 10px 0; }
+.harf-tablo div { background: var(--bg); border: 1px solid var(--cizgi); border-radius: 10px; text-align: center; padding: 4px 2px 6px; direction: ltr; }
+.harf-tablo .ar { display: block; font-size: calc(1.9em * var(--ar-olcek, 1)); line-height: 1.6; }
+.harf-tablo small { color: var(--soluk); font-size: .74rem; font-weight: 600; }
+.sekil-tablo { width: 100%; border-collapse: collapse; direction: rtl; margin: 8px 0; }
+.sekil-tablo th { font-size: .76rem; color: var(--soluk); font-weight: 600; padding: 4px; }
+.sekil-tablo td { text-align: center; border-top: 1px solid var(--cizgi); padding: 0 4px; }

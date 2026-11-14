@@ -66,37 +66,43 @@ Her testin **tarihi, puanı, süresi** ve **bir önceki denemeye göre farkı** 
 
 ---
 
-## Müfredat (21 bölüm + 4 sınav)
+## Müfredat (27 bölüm + 4 sınav)
 
 | # | Bölüm |
 |---|---|
-| 0 | Başlangıç: harekeler, cezm, şedde, tenvin, med harfleri, Medine mushafı işaretleri |
-| 1 | Med-i tabîî |
-| 2 | Med-i muttasıl |
-| 3 | Med-i munfasıl |
-| 4 | Med-i lâzım (kelime/harf, müsakkal/muhaffef) |
-| 5 | Med-i ârız ve med-i lîn |
-| 6 | Zamir ve sıla (hâ-i kinâye) |
+| 0 | Elif-Ba: Arap harfleri |
+| 1 | Başlangıç: harekeler, cezm, şedde, tenvin, med harfleri, Medine mushafı işaretleri |
+| 2 | Mahrecler: harflerin çıkış yerleri |
+| 3 | Harflerin sıfatları |
+| 4 | Karıştırılan harfler (dinleyerek) |
+| 5 | Med-i tabîî |
+| 6 | Med-i muttasıl |
+| 7 | Med-i munfasıl |
+| 8 | Med-i lâzım |
+| 9 | Med-i ârız ve med-i lîn |
+| 10 | Zamir ve sıla (hâ-i kinâye) |
 | 🏁 | **Ara sınav 1: Bütün medler** |
-| 7 | Nûn sâkin ve tenvin: İzhâr |
-| 8 | İdğâm-ı me'al-ğunne |
-| 9 | İdğâm-ı bilâ-ğunne |
-| 10 | İklâb |
-| 11 | İhfâ |
-| 12 | Mîm sâkin (ihfâ-i şefevî, idğâm-ı misleyn, izhâr-ı şefevî) |
-| 13 | Ğunne |
+| 11 | Nûn sâkin ve tenvin: İzhâr |
+| 12 | İdğâm-ı me'al-ğunne |
+| 13 | İdğâm-ı bilâ-ğunne |
+| 14 | İklâb |
+| 15 | İhfâ |
+| 16 | Mîm sâkin |
+| 17 | Ğunne |
 | 🏁 | **Ara sınav 2: Nûn, mîm ve ğunne** |
-| 14 | İdğâmlar: misleyn, mütecâniseyn, mütekâribeyn |
-| 15 | Kalkale |
-| 16 | Lâm-ı tarif: şemsî ve kamerî |
-| 17 | Lafzatullah |
-| 18 | Râ harfi: kalın ve ince |
-| 19 | Vakf, durak işaretleri ve sekte |
-| 20 | Hafs'a özel okunuşlar: imâle, işmâm, teshîl |
+| 18 | İdğâmlar: misleyn, mütecâniseyn, mütekâribeyn |
+| 19 | Kalkale |
+| 20 | Lâm-ı tarif: şemsî ve kamerî |
+| 21 | Lafzatullah |
+| 22 | Râ harfi: kalın ve ince |
+| 23 | Vakf, durak işaretleri ve sekte |
+| 24 | Hafs'a özel okunuşlar: imâle, işmâm, teshîl |
+| 25 | Lahn: okuma hataları |
+| 26 | Okuma adabı, istiâze ve besmele |
 | 🏁 | **Ara sınav 3** |
 | 🏆 | **Büyük final** |
 
-Toplam **497 soru**, **111 ayetten 167 örnek**. Rivayet: **Hafs an Âsım**.
+Toplam **596 soru**, **111 ayetten 167 örnek**, ayrıca 114 sûrenin tamamı renkli tecvidle. Rivayet: **Hafs an Âsım**.
 
 ---
 

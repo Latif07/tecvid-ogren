@@ -2,6 +2,8 @@
  * Only applied when window.DIL === 'en'. Measures follow the Turkish course: "1 alif" = the length of a natural madd. */
 (function () {
   const MSVG = ((window.TC && window.TC.MAHREC_SVG) || '').replace('Mahreç şeması', 'Articulation points diagram');
+  const HT = (a) => (window.TC && window.TC.harfTablo ? window.TC.harfTablo(a) : '');
+  const ST = (a) => (window.TC && window.TC.sekilTablo ? window.TC.sekilTablo(a) : '');
   const L = (b) => `<ol class="mahrec-liste">${b.map(x => `<li><b>${x[0]}</b><span>${x[1]}</span></li>`).join('')}</ol>`;
   const RULES = {
     tabii: ['Natural madd (ṭabīʿī)', 'A madd letter with no cause after it: lengthen 1 alif.', '1 alif'],
@@ -44,6 +46,41 @@
   };
 
   const UNITS = {
+    e1: {
+      ad: 'Alif-Bāʾ: the Arabic letters',
+      sayfalar: [
+        ['What is the Alif-Bāʾ?', `<p>Before you can read the Qur'an you need to recognise the letters. Together they are called the <b>Alif-Bāʾ</b> (after the names of the first two letters).</p><ul><li>Arabic is written and read <b>from right to left</b>.</li><li>There are <b>28 letters</b>. Traditional primers also list <span class="ar">لا</span> (lām-alif) separately.</li><li>Letters <b>join together</b> inside a word, so the same letter looks a little different at the start, in the middle and at the end.</li><li>The sounds come from the vowel marks (fatḥah, kasrah, ḍammah). You will learn them in the next unit.</li></ul><p class="not">Don't rush to memorise the letters. Look at the table every day and say their names out loud.</p>`],
+        ['The letters and their names', `<p>From right to left, in order:</p>${HT(['Alif', 'Bāʾ', 'Tāʾ', 'Thāʾ', 'Jīm', 'Ḥāʾ', 'Khāʾ', 'Dāl', 'Dhāl', 'Rāʾ', 'Zāy', 'Sīn', 'Shīn', 'Ṣād', 'Ḍād', 'Ṭāʾ', 'Ẓāʾ', 'ʿAyn', 'Ghayn', 'Fāʾ', 'Qāf', 'Kāf', 'Lām', 'Mīm', 'Nūn', 'Wāw', 'Hāʾ', 'Lām-alif', 'Yāʾ'])}<p class="soluk kucukyazi">The order follows the traditional Turkish primer (hāʾ, wāw, lām-alif, yāʾ).</p>`],
+        ['Watch the dots', `<p>Many letters share the same shape; the <b>dots</b> tell them apart:</p><ul><li><span class="ar">ب</span> 1 below · <span class="ar">ت</span> 2 above · <span class="ar">ث</span> 3 above · <span class="ar">ن</span> 1 above · <span class="ar">ي</span> 2 below</li><li><span class="ar">ج</span> 1 below · <span class="ar">ح</span> no dot · <span class="ar">خ</span> 1 above</li><li><span class="ar">د</span> no dot · <span class="ar">ذ</span> 1 above</li><li><span class="ar">ر</span> no dot · <span class="ar">ز</span> 1 above</li><li><span class="ar">س</span> no dot · <span class="ar">ش</span> 3 above</li><li><span class="ar">ص</span> no dot · <span class="ar">ض</span> 1 above</li><li><span class="ar">ط</span> no dot · <span class="ar">ظ</span> 1 above</li><li><span class="ar">ع</span> no dot · <span class="ar">غ</span> 1 above</li><li><span class="ar">ف</span> 1 above · <span class="ar">ق</span> 2 above</li></ul><p class="not">Even the position of one dot changes the letter, and so the word and its meaning.</p>`],
+        ['Start, middle, end', `<p>Because letters join, their shape changes. Some examples (right to left: on its own, at the start, in the middle, at the end):</p>${ST(['Alone', 'Start', 'Middle', 'End'])}<p>In the middle <span class="ar">ـبـ ـتـ ـثـ ـنـ ـيـ</span> are the same stroke; you tell them apart by their dots.</p>`],
+        ['Letters that don\'t join', `<p>These 6 letters <b>do not join to the letter after them</b> (they can join to the one before):</p><p class="ar buyuk">ا د ذ ر ز و</p><p>So after them the word looks as if it has a small gap: in <span class="ar">وَرَدَ</span> (wa-ra-da) none of the letters join each other.</p><p><span class="ar">لا</span> (lām-alif) is the special joined form of lām followed by alif.</p>`],
+        ['Heavy letters and confusable pairs', `<p><b>The 7 heavy letters</b> (in Ibn al-Jazarī's phrase <span class="ar">خُصَّ ضَغْطٍ قِظْ</span>):</p><p class="ar buyuk">خ ص ض غ ط ق ظ</p><p>The other letters are generally light. Letters people often mix up:</p><ul><li><span class="ar">ه</span> (deepest part of the throat, a light breath) — <span class="ar">ح</span> (middle of the throat, no rasp) — <span class="ar">خ</span> (top of the throat, with a rasp)</li><li><span class="ar">س</span> (light) — <span class="ar">ص</span> (heavy) — <span class="ar">ث</span> (tip of the tongue between the teeth)</li><li><span class="ar">ز</span> — <span class="ar">ذ</span> — <span class="ar">ظ</span></li><li><span class="ar">ك</span> (light) — <span class="ar">ق</span> (heavy, from the back of the tongue)</li><li><span class="ar">ء</span> (hamzah, deepest part of the throat) — <span class="ar">ع</span> (middle of the throat)</li></ul><p>You will study the articulation points in the "Articulation points" unit and practise the confusable letters by ear in "Letters that are easily confused".</p>`],
+        ['Finding letters in a word', `<p>Let's split a few Qur'anic words into their letters (right to left):</p><ul><li><span class="ar">بِسۡمِ</span> = <span class="ar">ب</span> + <span class="ar">س</span> + <span class="ar">م</span></li><li><span class="ar">قُلۡ</span> = <span class="ar">ق</span> + <span class="ar">ل</span></li><li><span class="ar">رَبِّ</span> = <span class="ar">ر</span> + <span class="ar">ب</span> (with shaddah)</li><li><span class="ar">ٱلۡحَمۡدُ</span> = <span class="ar">ا</span> + <span class="ar">ل</span> + <span class="ar">ح</span> + <span class="ar">م</span> + <span class="ar">د</span></li></ul><p>In the practice and the test there are also questions where you <b>listen</b> to a word and find a letter in it.</p>`]
+      ],
+      sorular: [
+        ['Which direction is Arabic written and read?', 'Right to left', ['Left to right', 'Top to bottom', 'Either way']],
+        ['How many letters are in the Arabic alphabet (not counting lām-alif separately)?', '28', ['22', '26', '32']],
+        ['What is the name of the letter ب?', 'Bāʾ', ['Tāʾ', 'Thāʾ', 'Nūn']],
+        ['What is the name of the letter ث?', 'Thāʾ', ['Tāʾ', 'Shīn', 'Bāʾ']],
+        ['What is the name of the letter خ?', 'Khāʾ', ['Ḥāʾ', 'Jīm', 'Ghayn']],
+        ['What is the name of the letter ذ?', 'Dhāl', ['Dāl', 'Zāy', 'Ẓāʾ']],
+        ['What is the name of the letter ش?', 'Shīn', ['Sīn', 'Ṣād', 'Thāʾ']],
+        ['What is the name of the letter ض?', 'Ḍād', ['Ṣād', 'Dāl', 'Ẓāʾ']],
+        ['What is the name of the letter ظ?', 'Ẓāʾ', ['Ṭāʾ', 'Dhāl', 'Ḍād']],
+        ['What is the name of the letter غ?', 'Ghayn', ['ʿAyn', 'Khāʾ', 'Fāʾ']],
+        ['What is the name of the letter ق?', 'Qāf', ['Fāʾ', 'Kāf', 'Wāw']],
+        ['Which one is the letter Jīm?', 'ج', ['ح', 'خ', 'د']],
+        ['Which one is the letter ʿAyn?', 'ع', ['غ', 'ء', 'ه']],
+        ['Which one is the letter Hāʾ?', 'ه', ['ح', 'خ', 'ع']],
+        ['Which letter does NOT join to the letter after it?', 'د', ['ب', 'م', 'ل']],
+        ['Which one is a letter that joins to the letter after it?', 'ن', ['ا', 'ر', 'و']],
+        ['What are the dots of ت like?', '2 dots above', ['1 dot below', '3 dots above', '2 dots below']],
+        ['What are the dots of ي (yāʾ) like?', '2 dots below', ['2 dots above', '1 dot below', 'It has no dots']],
+        ['What is the difference between ف and ق?', 'ف has 1 dot above, ق has 2 dots above', ['They are the same letter', 'ف has a dot below', 'ق has no dots']],
+        ['What is the first letter of the word \'قُلۡ\'?', 'ق', ['ف', 'ك', 'ع']],
+        ['Which are the 7 heavy letters?', 'خ ص ض غ ط ق ظ', ['ب ت ث ن ي ف ك', 'ا و ي ه ء ع ح', 'ل ر ن م ب و ي']]
+      ]
+    },
     u0: {
       ad: 'Getting started: vowels and signs',
       sayfalar: [
