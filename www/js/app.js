@@ -44,6 +44,24 @@
     { id: 'sudais', klasor: 'Abdurrahmaan_As-Sudais_192kbps', ad: DIL === 'en' ? 'Abdur-Rahman as-Sudais' : 'Abdurrahman es-Sudeys', tur: t('Mürettel') },
     { id: 'maher', klasor: 'MaherAlMuaiqly128kbps', ad: DIL === 'en' ? 'Maher al-Muaiqly' : 'Mâhir el-Muaykılî', tur: t('Mürettel') },
     { id: 'ghamadi', klasor: 'Ghamadi_40kbps', ad: DIL === 'en' ? 'Saad al-Ghamdi' : 'Sa‘d el-Gâmidî', tur: t('Mürettel') },
+    { id: 'husary_mujawwad', klasor: 'Husary_128kbps_Mujawwad', ad: DIL === 'en' ? 'Mahmoud Khalil al-Husary' : 'Mahmûd Halîl el-Husarî', tur: t('Mücevved (makamlı, yavaş)') },
+    { id: 'minshawy_mujawwad', klasor: 'Minshawy_Mujawwad_192kbps', ad: DIL === 'en' ? 'Muhammad Siddiq al-Minshawi' : 'Muhammed Sıddîk el-Minşâvî', tur: t('Mücevved (makamlı, yavaş)') },
+    { id: 'abdulbasit_mujawwad', klasor: 'Abdul_Basit_Mujawwad_128kbps', ad: DIL === 'en' ? 'Abdul Basit Abdus-Samad' : 'Abdülbâsıt Abdüssamed', tur: t('Mücevved (makamlı, yavaş)') },
+    { id: 'mustafa_ismail', klasor: 'Mustafa_Ismail_48kbps', ad: DIL === 'en' ? 'Mustafa Ismail' : 'Mustafa İsmâil', tur: t('Mürettel') },
+    { id: 'tablawi', klasor: 'Mohammad_al_Tablaway_128kbps', ad: DIL === 'en' ? 'Muhammad al-Tablawi' : 'Muhammed et-Tablâvî', tur: t('Mürettel') },
+    { id: 'hudhaify', klasor: 'Hudhaify_128kbps', ad: DIL === 'en' ? 'Ali al-Hudhaifi' : 'Ali el-Huzeyfî', tur: t('Mürettel') },
+    { id: 'ayyoub', klasor: 'Muhammad_Ayyoub_128kbps', ad: DIL === 'en' ? 'Muhammad Ayyub' : 'Muhammed Eyyûb', tur: t('Mürettel') },
+    { id: 'shatri', klasor: 'Abu_Bakr_Ash-Shaatree_128kbps', ad: DIL === 'en' ? 'Abu Bakr al-Shatri' : 'Ebû Bekir eş-Şâtırî', tur: t('Mürettel') },
+    { id: 'shuraym', klasor: 'Saood_ash-Shuraym_128kbps', ad: DIL === 'en' ? 'Saud al-Shuraim' : 'Suûd eş-Şüreym', tur: t('Mürettel') },
+    { id: 'rifai', klasor: 'Hani_Rifai_192kbps', ad: DIL === 'en' ? 'Hani ar-Rifai' : 'Hânî er-Rifâî', tur: t('Mürettel') },
+    { id: 'jibreel', klasor: 'Muhammad_Jibreel_128kbps', ad: DIL === 'en' ? 'Muhammad Jibreel' : 'Muhammed Cibrîl', tur: t('Mürettel') },
+    { id: 'basfar', klasor: 'Abdullah_Basfar_192kbps', ad: DIL === 'en' ? 'Abdullah Basfar' : 'Abdullah Basfar', tur: t('Mürettel') },
+    { id: 'juhany', klasor: 'Abdullaah_3awwaad_Al-Juhaynee_128kbps', ad: DIL === 'en' ? 'Abdullah Awad al-Juhani' : 'Abdullah Avvâd el-Cühenî', tur: t('Mürettel') },
+    { id: 'ajamy', klasor: 'ahmed_ibn_ali_al_ajamy_128kbps', ad: DIL === 'en' ? 'Ahmad al-Ajmi' : 'Ahmed el-Acemî', tur: t('Mürettel') },
+    { id: 'dussary', klasor: 'Yasser_Ad-Dussary_128kbps', ad: DIL === 'en' ? 'Yasser al-Dosari' : 'Yâsir ed-Devserî', tur: t('Mürettel') },
+    { id: 'qatami', klasor: 'Nasser_Alqatami_128kbps', ad: DIL === 'en' ? 'Nasser al-Qatami' : 'Nâsır el-Katâmî', tur: t('Mürettel') },
+    { id: 'budair', klasor: 'Salah_Al_Budair_128kbps', ad: DIL === 'en' ? 'Salah al-Budair' : 'Salâh el-Budeyr', tur: t('Mürettel') },
+    { id: 'bukhatir', klasor: 'Salaah_AbdulRahman_Bukhatir_128kbps', ad: DIL === 'en' ? 'Salah Bukhatir' : 'Salâh Buhâtır', tur: t('Mürettel') },
   ];
   const kari = () => KARILER.find(k => k.id === S.ayar.kari) || KARILER[0];
 
@@ -1862,8 +1880,8 @@
     const ornek = '1:1';
     app.innerHTML = `${ust(t('Kâri seç'))}<main>
       <article class="kart"><p>${t('Örneklerdeki ayetleri hangi kâriden dinlemek istersin? Dinlemek için ▶\'ye, seçmek için isme dokun.')}</p>
-      <div class="secenek-liste">${KARILER.map(k => `<button class="${k.id === kari().id ? 'aktif' : ''}" data-kari="${k.id}"><span>${esc(k.ad)}<small>${esc(k.tur)}</small></span>
-        <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}">▶</span></button>`).join('')}</div>
+      ${benzersiz(KARILER.map(k => k.tur)).map(tur => `<h2 class="baslik">${esc(tur)}</h2><div class="secenek-liste">${KARILER.filter(k => k.tur === tur).map(k => `<button class="${k.id === kari().id ? 'aktif' : ''}" data-kari="${k.id}"><span>${esc(k.ad)}<small>${esc(k.tur)}</small></span>
+        <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}">▶</span></button>`).join('')}</div>`).join('')}
       <p class="soluk kucukyazi">${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')}</p></article></main>`;
     app.querySelectorAll('[data-kari]').forEach(b => b.onclick = e => {
       if (e.target.closest('[data-ses]')) return;

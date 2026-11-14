@@ -23,6 +23,7 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Mücevved (makamlı, yavaş)": "Mujawwad (melodic, slow)",
  "Müfredat": "Curriculum",
  "{0}/{1} bölüm · bütün dersler ve sınavlar": "{0}/{1} units · all lessons and exams",
  "Bir öğrenci": "A student",
