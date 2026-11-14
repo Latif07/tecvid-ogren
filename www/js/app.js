@@ -450,7 +450,7 @@
   }
   function vadesiGelenler() {
     const acik = new Set(acikDersler().map(u => u.id));
-    return Object.keys(S.srs).filter(k => acik.has(k.split(':')[1]) && S.srs[k].vade <= simdi());
+    return Object.keys(S.srs).filter(k => (k.startsWith('k:') || acik.has(k.split(':')[1])) && S.srs[k].vade <= simdi());
   }
 
   // ------------------------------------------------------------ test başlıkları (dilden bağımsız kimlik)
@@ -472,7 +472,15 @@
   function git(ad, ...arg) { ekranYigini.push([ad, arg]); ciz(); window.scrollTo(0, 0); }
   function geri() { if (oturum && !oturum.bitti && !confirm(t('Testten çıkmak istiyor musun? Bu test kaydedilmez.'))) return; oturum = null; if (ekranYigini.length > 1) ekranYigini.pop(); ciz(); window.scrollTo(0, 0); }
   function anaSayfa() { oturum = null; ekranYigini = [['ana', []]]; ciz(); window.scrollTo(0, 0); }
-  function ciz() { if (kayitci) kayitDurdur(); const [ad, arg] = ekranYigini[ekranYigini.length - 1]; EKRAN[ad](...arg); }
+  function ciz() {
+    if (kayitci) kayitDurdur();
+    const [ad, arg] = ekranYigini[ekranYigini.length - 1];
+    // Ekran değişince sûrenin "tamamını dinle" çalması dursun
+    const anahtar = ad + '|' + JSON.stringify(arg);
+    if (sureCalma && anahtar !== ciz.son) { sureCalma.iptal = true; sureCalma = null; if (ses) { ses.pause(); ses = null; } }
+    ciz.son = anahtar;
+    EKRAN[ad](...arg);
+  }
   window.addEventListener('popstate', () => { geri(); history.pushState(null, ''); });
   history.pushState(null, '');
   try {
@@ -654,7 +662,10 @@
   EKRAN.tekrarBasla = function () {
     ekranYigini.pop();
     const k = vadesiGelenler().sort((a, b) => zayiflik(b) - zayiflik(a)).slice(0, 15);
-    oturumBaslat({ tur: 'tekrar', kimlik: 'tekrar', baslik: t('Günlük tekrar'), anahtarlar: karistir(k), puanli: true });
+    // sûre soruları için o sûreler yüklü olmalı
+    const lazim = benzersiz(k.filter(x => x.startsWith('k:')).map(x => +x.split(':')[1]).filter(n => !SURE(n)));
+    Promise.all(lazim.map(n => sureYukle(n).catch(() => null))).then(() =>
+      oturumBaslat({ tur: 'tekrar', kimlik: 'tekrar', baslik: t('Günlük tekrar'), anahtarlar: karistir(k), puanli: true }));
   };
 
   EKRAN.soru = function () {
@@ -767,12 +778,17 @@
       const n = +$('#adet').value;
       oturumBaslat({ tur: 'karma', kimlik: `karma|-|${sec_.length}|${n}`, baslik: t('Karma test ({0} bölüm, {1} soru)', sec_.length, n), anahtarlar: sec(sec_.flatMap(anahtarlar), n, true), puanli: true });
     };
-    $('#zayifT').onclick = () => {
-      const k = Object.keys(S.srs).filter(x => acik.some(u => u.id === x.split(':')[1]) && (S.srs[x].yanlis || 0) > 0).sort((a, b) => zayiflik(b) - zayiflik(a)).slice(0, 15);
-      if (!k.length) return toast(t('Henüz yanlış yaptığın soru yok. 👏'));
-      oturumBaslat({ tur: 'zayif', kimlik: 'zayif', baslik: t('Zayıf konular testi'), anahtarlar: karistir(k), puanli: true });
-    };
+    $('#zayifT').onclick = zayifBaslat;
   };
+  // En çok yanlış yapılan 15 soru (açık bölümlerden ve sûre testlerinden)
+  function zayifBaslat() {
+    const acik = acikDersler();
+    const k = Object.keys(S.srs).filter(x => (x.startsWith('k:') || acik.some(u => u.id === x.split(':')[1])) && (S.srs[x].yanlis || 0) > 0).sort((a, b) => zayiflik(b) - zayiflik(a)).slice(0, 15);
+    if (!k.length) return toast(t('Henüz yanlış yaptığın soru yok. 👏'));
+    const lazim = benzersiz(k.filter(x => x.startsWith('k:')).map(x => +x.split(':')[1]).filter(n => !SURE(n)));
+    Promise.all(lazim.map(n => sureYukle(n).catch(() => null))).then(() =>
+      oturumBaslat({ tur: 'zayif', kimlik: 'zayif', baslik: t('Zayıf konular testi'), anahtarlar: karistir(k), puanli: true }));
+  }
 
   EKRAN.zayif = function () {
     // kural bazında başarı
@@ -787,8 +803,9 @@
     app.innerHTML = `${ust(t('Zayıf konular'))}<main>
       ${satir.length ? `<article class="kart"><p class="soluk">${t('Her konuda doğru cevap oranın. En zayıftan en güçlüye doğru sıralı.')}</p>
         ${satir.map(x => `<div class="cubuk"><span>${esc(x.ad)}</span><div class="bar"><div style="width:${x.oran}%" class="${x.oran < 60 ? 'kotu' : x.oran < 80 ? 'orta' : 'iyi'}"></div></div><b>${yuzdeStr(x.oran)}</b></div>`).join('')}</article>
-        <button class="btn genis" data-git="testler">${t('Zayıf konular testine git')}</button>` : `<article class="kart"><p>${t('Henüz yeterli veri yok. Biraz test çözünce burada konu konu başarı oranını göreceksin.')}</p></article>`}
+        <button class="btn genis" id="zayifBasla">${t('🎯 Zayıf konular testine başla')}</button>` : `<article class="kart"><p>${t('Henüz yeterli veri yok. Biraz test çözünce burada konu konu başarı oranını göreceksin.')}</p></article>`}
     </main>`;
+    const zb = $('#zayifBasla'); if (zb) zb.onclick = zayifBaslat;
   };
 
   EKRAN.gecmis = function (filtre = 'hepsi') {
@@ -1330,5 +1347,5 @@
   anaSayfa();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { S: () => S, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();

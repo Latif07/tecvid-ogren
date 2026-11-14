@@ -1,12 +1,15 @@
 /* Dil seçimi ve arayüz çevirileri. Önce yüklenir: window.DIL ve window.t() tanımlar. */
 (function () {
   var dil = 'tr';
-  try { dil = localStorage.getItem('tecvid-ogren.dil') || ((navigator.language || '').toLowerCase().indexOf('tr') === 0 ? 'tr' : 'en'); } catch (e) { }
+  // Varsayılan dil Türkçe; İngilizce yalnızca Ayarlar'dan seçilince
+  try { dil = localStorage.getItem('tecvid-ogren.dil') || 'tr'; } catch (e) { }
   if (dil !== 'en') dil = 'tr';
   window.DIL = dil;
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "🎯 Zayıf konular testine başla": "🎯 Start the weak-topics test",
+
  "Okunuşu gizle": "Hide transliteration",
  "Okunuşu göster": "Show transliteration",
  "Okunuş yaklaşık bir yazımdır; Arapça harflerin hepsini Latin harfle tam yazmak mümkün değil. Doğru okuyuşu kâriyi dinleyerek öğren.": "Transliteration is only an approximation; not every Arabic sound can be written exactly in Latin letters. Learn the correct recitation by listening to the reciter.",
