@@ -4,15 +4,23 @@ import subprocess, time, json, os, sys
 from playwright.sync_api import sync_playwright
 OUT = 'tools/android-test/cikti'; os.makedirs(OUT, exist_ok=True)
 log = []
-def adb(*a): return subprocess.run(['adb', *a], capture_output=True, text=True).stdout.strip()
-def ekran(ad): subprocess.run(f'adb exec-out screencap -p > {OUT}/{ad}.png', shell=True); log.append('📸 ' + ad)
+def adb(*a):
+    try: return subprocess.run(['adb', *a], capture_output=True, text=True, timeout=30).stdout.strip()
+    except Exception as e: return 'HATA ' + str(e)
+def ekran(ad):
+    try: subprocess.run(f'adb exec-out screencap -p > {OUT}/{ad}.png', shell=True, timeout=30)
+    except Exception: pass
+    log.append('📸 ' + ad)
 def yaz(*a): s = ' '.join(str(x) for x in a); print(s, flush=True); log.append(s)
 
 pid = adb('shell', 'pidof', 'com.latif07.tecvidogren'); yaz('pid', pid)
-adb('forward', 'tcp:9222', f'localabstract:webview_devtools_remote_{pid}')
+soket = [l.split()[-1].lstrip('@') for l in adb('shell', 'cat', '/proc/net/unix').splitlines() if 'devtools_remote' in l]
+yaz('devtools soketleri', soket)
+hedef = next((x for x in soket if x.endswith(pid)), soket[0] if soket else f'webview_devtools_remote_{pid}')
+adb('forward', 'tcp:9222', f'localabstract:{hedef}')
 ekran('00_acilis')
 with sync_playwright() as p:
-    b = p.chromium.connect_over_cdp('http://localhost:9222')
+    b = p.chromium.connect_over_cdp('http://127.0.0.1:9222', timeout=30000)
     pg = b.contexts[0].pages[0]
     hatalar = []
     pg.on('console', lambda m: hatalar.append(f'{m.type}: {m.text}') if m.type in ('error', 'warning') else None)
@@ -56,3 +64,4 @@ with sync_playwright() as p:
         yaz('sekme', s, '→', pg.evaluate("document.querySelector('.ust h1') && document.querySelector('.ust h1').textContent"))
     yaz('KONSOL/JS HATALARI', json.dumps(hatalar[:30], ensure_ascii=False))
 open(f'{OUT}/rapor.txt', 'w').write('\n'.join(log))
+print('\n'.join(log))
