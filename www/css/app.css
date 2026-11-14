@@ -203,3 +203,11 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 .kayit-kutu { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--cizgi); }
 .sesbtn.kirmizi-btn { background: var(--kotu); border-color: var(--kotu); color: #fff; }
 .sesbtn.kaydediyor { animation: nabiz 1s infinite; }
+
+/* --- uygulama sûreleri --- */
+.ayet-kart .ayet { font-size: 2rem; line-height: 2.4; text-align: right; }
+.ayet-kart.caliyor-ayet { border-color: var(--altin); box-shadow: 0 0 0 2px var(--altin); }
+.kelime { cursor: pointer; border-radius: 6px; }
+.kelime:active, .kelime.caliyor { background: var(--isaret); }
+.ayet-no { font-size: .8em; color: var(--altin); }
+.besmele { font-size: 1.9rem; }

@@ -1,3 +1,4 @@
 node_modules/
 android/
 *.apk
+tools/.tum_ayetler.json
