@@ -734,8 +734,32 @@ window.TC = (function () {
     ]
   });
 
-  unit({ id: 'x3', ara: true, ad: "Ara sınav 3: İdğamlar, kalkale, lâm, râ, vakf, lahn", ikon: '🏁', kapsar: ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1'] });
-  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1'] });
+  unit({
+    id: 'a1', ad: "Okuma adabı, istiâze ve besmele", ikon: '🕌', kurallar: [],
+    sayfalar: [
+      { t: "Kur'an okuma adabı", h: `<p>Âlimlerin (Gazzâlî, Nevevî) saydığı edepler:</p><ul><li>Abdestli olmak, temiz bir yerde ve kıbleye dönük okumak</li><li>İstiâze ve besmele ile başlamak</li><li>Tecvidle, acele etmeden ve huşû ile okumak</li><li>Ayetlerin anlamını düşünmek; rahmet ayetinde rahmet istemek, azap ayetinde Allah'a sığınmak, secde ayetinde secde etmek</li><li>Okurken gülmek, konuşmak ve başka işlerle meşgul olmaktan kaçınmak</li><li>Başkalarını rahatsız edecekse sesli okumamak</li><li>Düzenli okumak ve ezberini tekrar etmek</li></ul>` },
+      { t: "Sûre başında istiâze ve besmele", h: `<p><span class="ar">أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيۡطَٰنِ ٱلرَّجِيمِ</span> <b>istiâze</b>, <span class="ar">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span> <b>besmele</b>dir. Bir sûreye başından başlarken ikisi şu <b>dört şekilde</b> okunabilir:</p><ol><li><b>Vakfu'l-küll:</b> İstiâzede dur, besmelede dur, sonra sûreye başla.</li><li><b>Vakfu'l-evvel, vaslu's-sânî:</b> İstiâzede dur; besmeleyi sûreye bağla.</li><li><b>Vaslu'l-evvel, vakfu's-sânî:</b> İstiâzeyi besmeleye bağla, besmelede dur, sonra sûreye başla.</li><li><b>Vaslu'l-küll:</b> Üçünü birden bağla.</li></ol><p class="not"><b>Tevbe sûresi</b> başından okunurken yalnızca istiâze okunur, besmele okunmaz.</p>` },
+      { t: "İki sûre arasında ve sûre ortasında", h: `<p>Bir sûreyi bitirip diğerine geçerken araya besmele girer. Şunlara dikkat:</p><ul><li>Önceki sûrenin son ayetini besmeleye bağlayıp <b>besmelede durmak caiz değildir</b>. Besmele, bitirdiğin sûrenin sonuymuş gibi duyulur.</li><li>Besmele okunacaksa sonraki sûreye bağlanabilir ya da ayrı okunabilir.</li><li><b>Sûrenin ortasından</b> başlarken istiâze okunur; besmele okunup okunmaması konusunda âlimler farklı görüştedir. Okunursa, besmele başlanan ayete bağlanmaz.</li></ul>` },
+      { t: "Okuma hızları", h: `<ul><li><b>Tahkîk:</b> En yavaş okuyuş. Harfler mahreç ve sıfatlarıyla, medler tam, duraklar yerinde. <b>Öğrenme ve talim için</b> kullanılır.</li><li><b>Tedvîr:</b> Orta hızda okuyuş.</li><li><b>Hadr:</b> En hızlı okuyuş. Ancak tecvid kurallarına uyulursa caizdir.</li><li><b>Tertîl:</b> Anlamı düşünerek, acele etmeden okumak. Tahkîke çok yakındır.</li></ul><p class="not">Hadrden daha hızlı okumak caiz görülmemiştir, çünkü harfler mahreçlerini ve sıfatlarını kaybeder.</p>` },
+      { t: "Secde ayetleri", h: `<p>Mushafta <span class="ar">۩</span> işaretiyle gösterilir. Secde ayetini okuyan ve dinleyenin <b>tilâvet secdesi</b> yapması gerekir (Hanefî mezhebinde vâciptir). Türkiye'de yaygın olan Hanefî uygulamasında <b>14</b> secde ayeti vardır:</p><p>A'râf 206 · Ra'd 15 · Nahl 50 · İsrâ 109 · Meryem 58 · Hac 18 · Furkân 60 · Neml 26 · Secde 15 · Sâd 24 · Fussilet 38 · Necm 62 · İnşikâk 21 · Alak 19</p><p class="not">Ayet numaraları Medine mushafına göredir; bazı Türkçe kaynaklar Nahl 49, Neml 25 ve Fussilet 37 olarak gösterir. Medine mushafında <b>Hac 77</b> de işaretlidir; bu ayeti de secde ayeti sayan âlimler vardır. Tilâvet secdesinin nasıl yapıldığını ilmihalden ya da hocandan öğren.</p>` }
+    ],
+    sorular: [
+      { q: "Kur'an okumaya nasıl başlanır?", a: "İstiâze ve besmele ile", w: ["Doğrudan ayetle", "Sadece amin ile", "Sadece salavat ile"] },
+      { q: "Tevbe sûresi başından okunurken ne yapılır?", a: "Sadece istiâze okunur, besmele okunmaz", w: ["İkisi de okunmaz", "Sadece besmele okunur", "İki kez besmele okunur"] },
+      { q: "Sûre başında istiâze ve besmele kaç şekilde okunabilir?", a: "4", w: ["1", "2", "7"] },
+      { q: "\"Vaslu'l-küll\" ne demektir?", a: "İstiâze, besmele ve sûre başı birbirine bağlanır", w: ["Her birinde durulur", "Sadece istiâzede durulur", "Besmele okunmaz"] },
+      { q: "İki sûre arasında hangisi caiz DEĞİLDİR?", a: "Önceki sûrenin sonunu besmeleye bağlayıp besmelede durmak", w: ["Besmeleyi sonraki sûreye bağlamak", "Hepsini ayrı ayrı okumak", "Hepsini birbirine bağlamak"] },
+      { q: "En yavaş okuma hızı hangisidir?", a: "Tahkîk", w: ["Hadr", "Tedvîr", "Hezreme"] },
+      { q: "Orta hızdaki okuyuşun adı nedir?", a: "Tedvîr", w: ["Tahkîk", "Hadr", "Tertîl"] },
+      { q: "Hadr ne zaman caizdir?", a: "Tecvid kurallarına uyulursa", w: ["Her zaman", "Hiçbir zaman", "Sadece namazda"] },
+      { q: "Secde ayetleri mushafta hangi işaretle gösterilir?", a: "۩", w: ["ۜ", "ۖ", "ۢ"] },
+      { q: "Türkiye'de yaygın uygulamada kaç secde ayeti vardır?", a: "14", w: ["7", "15", "30"] },
+      { q: "Talim ve öğrenme için hangi okuyuş kullanılır?", a: "Tahkîk", w: ["Hadr", "Hezreme", "Tedvîr"] }
+    ]
+  });
+
+  unit({ id: 'x3', ara: true, ad: "Ara sınav 3: İdğamlar, kalkale, lâm, râ, vakf, lahn, adab", ikon: '🏁', kapsar: ['u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1', 'a1'] });
+  unit({ id: 'x4', ara: true, final: true, ad: "Büyük final: Bütün tecvid", ikon: '🏆', kapsar: ['u0', 'm1', 'm2', 'm3', 'u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'l1', 'a1'] });
 
   const GRUP_AD = { med: "Medler", nun: "Nûn sâkin ve tenvin", mim: "Mîm sâkin", gunne: "Ğunne", idgam: "İdğâmlar", kalkale: "Kalkale", lam: "Lâm-ı tarif", lafza: "Lafzatullah", ra: "Râ", vakf: "Vakf ve sekte", ozel: "Özel okunuşlar" };
 

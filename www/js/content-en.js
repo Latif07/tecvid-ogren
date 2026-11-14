@@ -471,7 +471,30 @@
         ['What is the most effective way to avoid mistakes?', 'Reading to a teacher and being corrected', ['Reading fast', 'Only reading the text', 'Never listening']]
       ]
     },
-    x3: { ad: 'Checkpoint 3: Idghāms, qalqalah, lām, rāʾ, waqf, laḥn' },
+    a1: {
+      ad: 'Etiquette, istiʿādhah and basmalah',
+      sayfalar: [
+        ["Etiquette of reading the Qur'an", `<p>Etiquette listed by scholars (al-Ghazālī, an-Nawawī):</p><ul><li>Being in wuḍūʾ, in a clean place, facing the qiblah</li><li>Beginning with the istiʿādhah and basmalah</li><li>Reading with tajwīd, unhurried and with humility (khushūʿ)</li><li>Reflecting on the meanings; asking for mercy at verses of mercy, seeking refuge at verses of punishment, prostrating at verses of prostration</li><li>Avoiding laughing, talking or doing other things while reading</li><li>Not reading aloud if it would disturb others</li><li>Reading regularly and reviewing what you have memorised</li></ul>`],
+        ['Istiʿādhah and basmalah at the start of a sūrah', `<p><span class="ar">أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيۡطَٰنِ ٱلرَّجِيمِ</span> is the <b>istiʿādhah</b>, <span class="ar">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span> is the <b>basmalah</b>. When starting a sūrah from its beginning they may be read in <b>four ways</b>:</p><ol><li><b>Stop at all:</b> stop after the istiʿādhah, stop after the basmalah, then start the sūrah.</li><li><b>Stop at the first, join the second:</b> stop after the istiʿādhah; join the basmalah to the sūrah.</li><li><b>Join the first, stop at the second:</b> join the istiʿādhah to the basmalah, stop, then start the sūrah.</li><li><b>Join all:</b> join all three together.</li></ol><p class="not">When starting <b>Sūrat at-Tawbah</b> from its beginning, only the istiʿādhah is read, without the basmalah.</p>`],
+        ['Between two sūrahs and in the middle of a sūrah', `<p>When you finish one sūrah and move to the next, the basmalah comes in between. Pay attention to these:</p><ul><li>It is <b>not allowed</b> to join the last āyah of the previous sūrah to the basmalah and then <b>stop at the basmalah</b>. It sounds as if the basmalah were the end of the sūrah you finished.</li><li>The basmalah may be joined to the next sūrah or read separately.</li><li>When starting <b>in the middle of a sūrah</b>, the istiʿādhah is read; scholars differ on whether to read the basmalah. If it is read, it is not joined to the āyah you begin with.</li></ul>`],
+        ['Reading speeds', `<ul><li><b>Taḥqīq:</b> the slowest recitation. Letters with their makhārij and ṣifāt, full madds, proper stops. Used for <b>learning and teaching</b>.</li><li><b>Tadwīr:</b> a medium-speed recitation.</li><li><b>Ḥadr:</b> the fastest recitation. Allowed only if the tajwīd rules are kept.</li><li><b>Tartīl:</b> reading unhurriedly while reflecting on the meaning. Very close to taḥqīq.</li></ul><p class="not">Reading faster than ḥadr is not considered permissible, because the letters lose their makhārij and ṣifāt.</p>`],
+        ['Verses of prostration', `<p>They are marked in the muṣḥaf with the sign <span class="ar">۩</span>. Whoever reads or hears a verse of prostration should make the <b>prostration of recitation</b> (sajdat at-tilāwah; it is wājib in the Ḥanafī school). In the Ḥanafī practice common in Turkey there are <b>14</b> verses of prostration:</p><p>al-Aʿrāf 206 · ar-Raʿd 15 · an-Naḥl 50 · al-Isrāʾ 109 · Maryam 58 · al-Ḥajj 18 · al-Furqān 60 · an-Naml 26 · as-Sajdah 15 · Ṣād 24 · Fuṣṣilat 38 · an-Najm 62 · al-Inshiqāq 21 · al-ʿAlaq 19</p><p class="not">Verse numbers follow the Madani muṣḥaf; some Turkish sources give an-Naḥl 49, an-Naml 25 and Fuṣṣilat 37. In the Madani muṣḥaf <b>al-Ḥajj 77</b> is also marked; some scholars count it as a verse of prostration too. Learn how the prostration of recitation is made from a fiqh book or your teacher.</p>`]
+      ],
+      sorular: [
+        ["How do you begin reading the Qur'an?", 'With the istiʿādhah and basmalah', ['Straight with the āyah', 'With āmīn only', 'With ṣalawāt only']],
+        ['What do you do when starting Sūrat at-Tawbah from its beginning?', 'Read only the istiʿādhah, not the basmalah', ['Read neither', 'Read only the basmalah', 'Read the basmalah twice']],
+        ['In how many ways can the istiʿādhah and basmalah be read at the start of a sūrah?', '4', ['1', '2', '7']],
+        ['What does "join all" mean?', 'The istiʿādhah, basmalah and start of the sūrah are joined together', ['You stop at each one', 'You stop only after the istiʿādhah', 'The basmalah is not read']],
+        ['Which one is NOT allowed between two sūrahs?', 'Joining the end of the previous sūrah to the basmalah and stopping at the basmalah', ['Joining the basmalah to the next sūrah', 'Reading them all separately', 'Joining them all together']],
+        ['Which is the slowest reading speed?', 'Taḥqīq', ['Ḥadr', 'Tadwīr', 'Hadhramah']],
+        ['What is the medium-speed recitation called?', 'Tadwīr', ['Taḥqīq', 'Ḥadr', 'Tartīl']],
+        ['When is ḥadr allowed?', 'If the tajwīd rules are kept', ['Always', 'Never', 'Only in prayer']],
+        ['Which sign marks the verses of prostration in the muṣḥaf?', '۩', ['ۜ', 'ۖ', 'ۢ']],
+        ['How many verses of prostration are there in the practice common in Turkey?', '14', ['7', '15', '30']],
+        ['Which recitation is used for teaching and learning?', 'Taḥqīq', ['Ḥadr', 'Hadhramah', 'Tadwīr']]
+      ]
+    },
+    x3: { ad: 'Checkpoint 3: Idghāms, qalqalah, lām, rāʾ, waqf, laḥn, etiquette' },
     x4: { ad: 'Grand final: All of tajwīd' }
   };
 
