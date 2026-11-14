@@ -1,0 +1,29 @@
+name: Kâri listesi kontrol
+
+on:
+  workflow_dispatch:
+
+jobs:
+  kontrol:
+    runs-on: ubuntu-latest
+    steps:
+      - name: everyayah kâri listesini indir ve klasörleri doğrula
+        run: |
+          curl -sSL --max-time 60 https://everyayah.com/data/recitations.js -o rec.js || true
+          echo "=== recitations.js boyut: $(wc -c < rec.js)"
+          python3 - <<'PY'
+          import re, json, subprocess
+          s = open('rec.js', encoding='utf-8', errors='replace').read()
+          i = s.find('{'); j = s.rfind('}')
+          try:
+              d = json.loads(s[i:j+1])
+          except Exception as e:
+              print('JSON okunamadı:', e); print(s[:3000]); raise SystemExit
+          for k, v in d.items():
+              if not isinstance(v, dict): continue
+              sub = v.get('subfolder'); 
+              if not sub: continue
+              url = f'https://everyayah.com/data/{sub}/112001.mp3'
+              code = subprocess.run(['curl', '-s', '-o', '/dev/null', '-w', '%{http_code}', '-I', '--max-time', '20', url], capture_output=True, text=True).stdout
+              print(f"KARI\t{code}\t{sub}\t{v.get('name')}\t{v.get('bitrate')}")
+          PY
