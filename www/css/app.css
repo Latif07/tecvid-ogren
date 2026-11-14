@@ -595,3 +595,6 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-renk:disabled { opacity: .45; } .c-renk small { position: absolute; bottom: 2px; font-size: .6rem; font-weight: 700; }
 .c-ses-kontrol { border: 2px solid #ffd24a; margin-top: 12px; } .c-ses-kontrol h2 { margin-top: 0; }
 .c-balon-yazi { min-width: 0; overflow-wrap: anywhere; }
+.c-goster { overflow: hidden; padding: 4px 0; }
+.c-goster .ar.dev { display: block; line-height: 1.5; padding-bottom: .1em; }
+.ar.golge { -webkit-text-stroke-width: 2.5px; text-shadow: 3px 3px 0 color-mix(in srgb, var(--soluk) 30%, transparent); }

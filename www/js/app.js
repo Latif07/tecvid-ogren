@@ -553,6 +553,7 @@
     if (sureCalma && anahtar !== ciz.son) { sureCalma.iptal = true; sureCalma = null; if (ses) { ses.pause(); ses = null; } }
     if (anahtar !== ciz.son && window.Konfeti) window.Konfeti.durdur();
     if (anahtar !== ciz.son && window.Sesli) window.Sesli.sus();
+    if (anahtar !== ciz.son) document.querySelectorAll('.sozluk-pencere').forEach(x => x.remove());   // sözlük penceresi ekranla birlikte kapanır
     ciz.son = anahtar;
     EKRAN[ad](...arg);
     gunlukSerit(ad);

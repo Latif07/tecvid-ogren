@@ -320,7 +320,7 @@
       if (tur === 'sira') return secenekli({ soru: t('Bu ayetten sonra hangisi gelir?'), goster: ar(A[k], 'ayet-k'), dogru: A[k + 1], secenek: karistir([A[k + 1], ...baska([k, k + 1], kac - 1).map(i => A[i])]), arSec: true, uzun: true });
       if (tur === 'eksik') {
         const w = A[k].split(' '), j = rnd(w.length), tum = [...new Set(A.join(' ').split(' '))].filter(y => y !== w[j]);
-        const gosterilen = w.map((y, i) => i === j ? '<span class="bosluk">…</span>' : y).join(' ');
+        const gosterilen = w.map((y, i) => i === j ? '<span class="bosluk">ـــــ</span>' : y).join(' ');
         return secenekli({ soru: t('Eksik kelime hangisi?'), goster: ar(gosterilen, 'ayet-k'), dogru: w[j], secenek: karistir([w[j], ...karistir(tum).slice(0, kac - 1)]), arSec: true });
       }
       const i = rnd(A.length);
@@ -441,8 +441,6 @@
         cx.clearRect(0, 0, W, H);
         if (anim < 1) { cx.save(); cx.beginPath(); cx.rect(W * (1 - anim) - 2, 0, W * anim + 4, H); cx.clip(); harfCiz(cx, renk); cx.restore(); cx.beginPath(); cx.arc(W * (1 - anim), H * .5, 9, 0, 7); cx.fillStyle = '#f2a516'; cx.fill(); }
         else harfCiz(cx, renk);
-        // başlangıç noktası: harfin en sağ üst ucu (Arapça sağdan başlar)
-        if (anim >= 1 && basla && !cizildi) { cx.beginPath(); cx.arc(basla.x, basla.y, 10, 0, 7); cx.fillStyle = '#f2a516'; cx.fill(); cx.fillStyle = '#fff'; cx.font = 'bold 12px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('1', basla.x, basla.y + 1); }
         cx.drawImage(iz, 0, 0);
       };
       const azHareket = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
