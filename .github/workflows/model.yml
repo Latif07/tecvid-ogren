@@ -1,0 +1,35 @@
+name: Okuma raporu modeli (test dosyaları)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  indir:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Modeli ve örnek sesleri indir
+        run: |
+          mkdir -p out && cd out
+          curl -fsSL -o tajweed-v2-int8.onnx https://huggingface.co/Hisnlabs/tajweed-v2/resolve/main/onnx/model-int8.onnx
+          ls -la
+          sudo apt-get install -y -qq ffmpeg > /dev/null
+          for f in 001001 001002 001007 112001 112002 113002 114001 002005 105004; do
+            curl -fsSL -o h_$f.mp3 https://everyayah.com/data/Husary_Muallim_128kbps/$f.mp3
+            ffmpeg -loglevel error -y -i h_$f.mp3 -ar 16000 -ac 1 -c:a pcm_s16le h_$f.wav
+          done
+          for f in 112001 001002 002005; do
+            curl -fsSL -o a_$f.mp3 https://everyayah.com/data/Alafasy_128kbps/$f.mp3
+            ffmpeg -loglevel error -y -i a_$f.mp3 -ar 16000 -ac 1 -c:a pcm_s16le a_$f.wav
+          done
+          rm -f *.mp3; ls -la
+      - name: Release'e koy
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: arac-model
+          name: Geliştirme dosyaları (okuma raporu modeli)
+          prerelease: true
+          body: Yalnızca geliştirme ve test için. HisnLabs tajweed-v2 (Apache-2.0) ve everyayah.com örnek kayıtları.
+          files: out/*
