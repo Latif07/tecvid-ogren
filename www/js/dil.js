@@ -7,6 +7,27 @@
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "{0}. sûre": "Surah {0}",
+ "📖 Kur'an-ı Kerîm": "📖 The Qur'an",
+ "114 sûre renkli tecvidle: oku, dinle, kural ara, tekrar et, kendini kaydet.": "All 114 surahs with colour-coded tajweed: read, listen, find rules, repeat and record yourself.",
+ "Kur'an-ı Kerîm": "The Qur'an",
+ "🔍 Bütün Kur'an'da kural ara": "🔍 Find a rule across the whole Qur'an",
+ "Bütün sûreler": "All surahs",
+ "Sûre ara (ad ya da numara)": "Search surahs (name or number)",
+ "Sûre listesi açılamadı.": "Could not open the surah list.",
+ "Kural ara": "Find a rule",
+ "Bir kural seç; bütün Kur'an'da kaç yerde geçtiğini ve hangi sûrelerde olduğunu gör.": "Pick a rule to see how many times it occurs in the whole Qur'an and in which surahs.",
+ "Taranıyor…": "Searching…",
+ "Bütün Kur'an'da <b>{0}</b> yerde, <b>{1}</b> sûrede geçiyor.": "Occurs <b>{0}</b> times in <b>{1}</b> surahs of the Qur'an.",
+ "Sayılar renkli tecvid etiketlerinden otomatik çıkarılmıştır; küçük farklar olabilir.": "Counts are taken automatically from the colour-coded tajweed labels, so small differences are possible.",
+ "{0} ayette {1} yer": "{1} times in {0} ayahs",
+ "Sûre açılamadı.": "Could not open the surah.",
+ "Kural ara: sadece bu kuralı renklendir": "Find a rule: colour only this rule",
+ "{0} ayette geçiyor.": "Occurs in {0} ayahs.",
+ "Filtreyi kaldır": "Clear filter",
+ "✓ Sesler indirildi": "✓ Audio downloaded",
+ "Bu sûrenin seslerini indir": "Download this surah's audio",
+
  "İndirme durdu: internet bağlantısı yok.": "Download stopped: no internet connection.",
  "İndirme durduruldu.": "Download stopped.",
  "İndirme bitti ({0} dosya bulunamadı).": "Download finished ({0} files not found).",

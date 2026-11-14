@@ -53,6 +53,14 @@ Yanlış yaptığın sorular kısa süre sonra tekrar karşına çıkar. Doğru 
 - **Kâri seçimi:** Husarî ve Minşâvî (öğretim ve mürettel), Abdülbâsıt, Afâsî, Sudeys, Mâhir el-Muaykılî, Gâmidî.
 - **English:** Bütün dersler, sorular ve menüler İngilizce de var (Ayarlar → Dil / Language).
 
+### Bütün Kur'an, internetsiz ses ve diğerleri
+- **114 sûre renkli tecvidle:** Sûre ara, dinle (1/3/5 tekrar), kelimeye dokunup kelimeyi dinle, kendini kaydedip kâriyle karşılaştır, her sûrede "kural bul" testi.
+- **Kural ara:** Bir sûrede sadece seçtiğin kuralı renklendir ya da bir kuralın bütün Kur'an'da nerelerde geçtiğini gör.
+- **İnternetsiz ses:** Seçtiğin kârinin ders ve sûre seslerini telefona indir (Ayarlar → İnternetsiz ses, ya da sûre sayfasından).
+- **Yazı boyutu:** Genel yazı ve Arapça yazı ayrı ayrı büyütülebilir.
+- **Hoca–öğrenci sınıfı:** Hoca sınıf kodu verir, öğrencilerinin ilerlemesini görür, ödev verir.
+- **Günlük hatırlatma:** Seçtiğin saatte bildirim; o gün çalıştıysan gelmez.
+
 ### Geçmiş ve ilerleme
 Her testin **tarihi, puanı, süresi** ve **bir önceki denemeye göre farkı** kaydedilir. Ayrıca puan grafiği, son 5 testin önceki 5 teste göre eğilimi ve konu konu başarı oranın görünür.
 
@@ -98,7 +106,7 @@ Toplam **497 soru**, **111 ayetten 167 örnek**. Rivayet: **Hafs an Âsım**.
 2. Dosyayı aç. Telefon "bilinmeyen uygulamalar" izni isterse ver.
 3. Yeni sürümler eskisinin üstüne kurulur, ilerlemen silinmez.
 
-> Sesler internet ister. Dersler, testler ve geçmiş internetsiz çalışır. Bütün veriler yalnızca telefonunda saklanır. Ayarlar'dan yedek alıp geri yükleyebilirsin.
+> Sesler internet ister (indirdiğin sesler hariç). Dersler, testler, Kur'an metni ve geçmiş internetsiz çalışır. Bütün veriler yalnızca telefonunda saklanır. Ayarlar'dan yedek alıp geri yükleyebilirsin.
 
 ## Nasıl derlenir?
 Kod `main` dalına her gönderildiğinde GitHub Actions (`.github/workflows/apk.yml`) APK'yı otomatik derler ve **Releases** bölümüne koyar. Uygulama HTML/JavaScript ile yazıldı ve [Capacitor](https://capacitorjs.com) ile Android'e paketlendi.

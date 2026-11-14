@@ -284,8 +284,10 @@
 
   // ------------------------------------------------------------ ayet gösterimi (renkli tecvid)
   function kelimeHTML(r, kelime, bas) {
-    const etiket = S.ayar.renkli && !kelimeHTML.renksiz ? RENK[r] : null;
-    if (!etiket) return esc(kelime);
+    const f = kelimeHTML.filtre;
+    let etiket = f || (S.ayar.renkli && !kelimeHTML.renksiz) ? RENK[r] : null;
+    if (etiket && f) etiket = etiket.filter(e => e[2] === f);
+    if (!etiket || !etiket.length) return esc(kelime);
     let html = '', akan = '', akanSinif = null;
     for (let i = 0; i < kelime.length; i++) {
       const p = bas + i; let sinif = null;
@@ -314,8 +316,30 @@
     return `<div class="ayet" dir="rtl" lang="ar">${parca.join(' ')}</div>`;
   }
   const SURELER = window.SURELER || [];
-  const SURE = n => SURELER.find(x => x.n === n);
+  const SURE = n => SURELER.find(x => x.n === n) || KURAN[n];
   const sureAdi = x => DIL === 'en' ? x.en : x.tr;
+  // ------------------------------------------------------------ bütün Kur'an (sûre dosyaları www/kuran/NNN.json, istenince yüklenir)
+  const KURAN = {}; let KURAN_INDEX = null;
+  const sureNoAdi = n => { const x = SURE(n) || (KURAN_INDEX || []).find(y => y.n === n); return x ? sureAdi(x) : t('{0}. sûre', n); };
+  async function kuranIndex() {
+    if (KURAN_INDEX) return KURAN_INDEX;
+    try { KURAN_INDEX = await (await fetch('kuran/index.json')).json(); } catch (e) { KURAN_INDEX = null; }
+    return KURAN_INDEX;
+  }
+  async function sureYukle(n) {
+    if (SURE(n)) return SURE(n);
+    const x = await (await fetch(`kuran/${pad(n)}.json`)).json();
+    x.ayet.forEach((a, i) => { const r = `${n}:${i + 1}`; AYAH[r] = a; if (x.renk[i + 1]) RENK[r] = x.renk[i + 1]; });
+    delete x.renk; KURAN[n] = x; return x;
+  }
+  // Tekrar listesindeki başka sûrelerin soruları için o sûreleri önceden yükle
+  (async () => {
+    await kuranIndex();
+    const lazim = benzersiz(Object.keys(S.srs || {}).filter(k => k.startsWith('k:')).map(k => +k.split(':')[1]).filter(n => !SURE(n)));
+    for (const n of lazim) { try { await sureYukle(n); } catch (e) { } }
+  })();
+  const trSade = s => String(s).toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ'’‘ʿʾ-]/g, '').replace(/ı/g, 'i');
+
   const LEJ_AD = Object.fromEntries(LEJANT);
   const LEJ_ACIKLAMA = {
     m2: t('Med harfi; sebep yoksa 1 elif, durunca ârız/lîn olarak 1–4 elif.'), mt: t('Med harfi ve hemze aynı kelimede: 2–5 elif.'), mf: t('Med harfi kelime sonunda, hemze sonraki kelimede: 1–4 elif.'),
@@ -436,7 +460,7 @@
     if (tur === 'bolum' || tur === 'ara' || tur === 'final') { const u = unitById(id); if (u) return u.ad; }
     if (tur === 'alistirma') { const u = unitById(id); if (u) return t('Alıştırma: ') + u.ad; }
     if (tur === 'tekrar') return t('Günlük tekrar');
-    if (tur === 'sure') { const x = SURE(+id); if (x) return t('Kural bul: {0}', sureAdi(x)); }
+    if (tur === 'sure') return t('Kural bul: {0}', sureNoAdi(+id));
     if (tur === 'hizli') return t('Hızlı test');
     if (tur === 'zayif') return t('Zayıf konular testi');
     if (tur === 'karma') return t('Karma test ({0} bölüm, {1} soru)', a, b);
@@ -495,7 +519,7 @@
           ${vade ? `<button class="btn" data-git="tekrarBasla">${t('Başla')}</button>` : ''}
         </section>
         <section class="kart tekrar">
-          <div><h2>${t('📖 Uygulama sûreleri')}</h2><p>${t('Fâtiha ve son 10 sûre: renkli tecvidle oku, dinle, tekrar et, kendini kaydet.')}</p></div>
+          <div><h2>${t('📖 Kur\'an-ı Kerîm')}</h2><p>${t('114 sûre renkli tecvidle: oku, dinle, kural ara, tekrar et, kendini kaydet.')}</p></div>
           <button class="btn" data-git="sureler">${t('Aç')}</button>
         </section>
         <nav class="hizli">
@@ -1038,17 +1062,67 @@
     indirmeGoster();
   };
 
+  const sureSatir = (x, adet) => { const ok = (S.sure || {})[x.n]; return `<button class="bolum" data-git="sure|${x.n}" data-ara="${esc(trSade(x.n + ' ' + x.tr + ' ' + x.en))}"><span class="ikon" style="font-size:.8rem;width:28px;color:var(--soluk)">${x.n}</span><span class="bad"><small>${t('{0} ayet', adet)}</small>${esc(sureAdi(x))}</span><span class="ar" style="font-size:1.1rem;line-height:1.2">${esc(x.ar)}</span>${ok && ok.en != null ? `<span class="rozet ok">✓ ${yuzdeStr(ok.en)}</span>` : ''}</button>`; };
   EKRAN.sureler = function () {
-    app.innerHTML = `${ust(t('Uygulama sûreleri'))}<main>
+    app.innerHTML = `${ust(t('Kur\'an-ı Kerîm'))}<main>
       <p class="soluk">${t('Önce dinle, sonra oku. Kelimeye dokunursan o kelimeyi dinlersin.')}</p>
-      <div class="bolumler">${SURELER.map(x => { const ok = (S.sure || {})[x.n]; return `<button class="bolum" data-git="sure|${x.n}"><span class="ikon ar" style="font-size:1.1rem;line-height:1.2;width:auto">${esc(x.ar)}</span><span class="bad"><small>${t('{0} ayet', x.ayet.length)}</small>${esc(sureAdi(x))}</span>${ok && ok.en != null ? `<span class="rozet ok">✓ ${yuzdeStr(ok.en)}</span>` : ''}</button>`; }).join('')}</div>
+      <button class="btn genis ikincil" data-git="kuralAra">${t('🔍 Bütün Kur\'an\'da kural ara')}</button>
+      <h2 class="baslik">${t('Uygulama sûreleri')}</h2>
+      <div class="bolumler">${SURELER.map(x => sureSatir(x, x.ayet.length)).join('')}</div>
+      <h2 class="baslik">${t('Bütün sûreler')}</h2>
+      <div class="form"><input id="sureAra" type="search" placeholder="${t('Sûre ara (ad ya da numara)')}"></div>
+      <div class="bolumler" id="tumSureler" style="margin-top:10px"><p class="soluk">${t('Yükleniyor…')}</p></div>
     </main>`;
+    kuranIndex().then(l => {
+      const yer = $('#tumSureler'); if (!yer) return;
+      if (!l) { yer.innerHTML = `<p class="hata">${t('Sûre listesi açılamadı.')}</p>`; return; }
+      yer.innerHTML = l.map(x => sureSatir(x, x.a)).join('');
+      $('#sureAra').oninput = e => { const q = trSade(e.target.value.trim()); yer.querySelectorAll('[data-ara]').forEach(b => { b.hidden = q && !b.dataset.ara.includes(q); }); };
+    });
+  };
+  // Bütün Kur'an'da bir kuralın geçtiği yerler (114 sûre dosyası taranır)
+  EKRAN.kuralAra = function (sinif) {
+    app.innerHTML = `${ust(t('Kural ara'))}<main>
+      <article class="kart"><p>${t('Bir kural seç; bütün Kur\'an\'da kaç yerde geçtiğini ve hangi sûrelerde olduğunu gör.')}</p>
+        <div class="filtre">${LEJANT.filter(([k]) => k !== 's').map(([k, ad]) => `<button class="${sinif === k ? 'aktif' : ''}" data-sinif="${k}"><i class="tc-${k}"></i>${esc(ad)}</button>`).join('')}</div></article>
+      <div id="sonuc">${sinif ? `<p class="soluk">${t('Taranıyor…')}</p>` : ''}</div></main>`;
+    app.querySelectorAll('[data-sinif]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['kuralAra', [b.dataset.sinif]]; ciz(); });
+    if (!sinif) return;
+    (async () => {
+      const l = await kuranIndex(); const yer = $('#sonuc'); if (!l || !yer) return;
+      const sonuc = []; let i = 0;
+      for (const x of l) {
+        try { await sureYukle(x.n); } catch (e) { continue; }
+        let yer_ = 0, ayet = 0;
+        for (let a = 1; a <= x.a; a++) { const k = (RENK[`${x.n}:${a}`] || []).filter(e => e[2] === sinif).length; yer_ += k; if (k) ayet++; }
+        if (yer_) sonuc.push({ x, yer_, ayet });
+        if (++i % 10 === 0 && document.body.contains(yer)) yer.innerHTML = `<p class="soluk">${t('Taranıyor…')} ${i}/114</p>`;
+      }
+      if (!document.body.contains(yer)) return;
+      const top = sonuc.reduce((s, o) => s + o.yer_, 0);
+      const ad = LEJ_AD[sinif];
+      yer.innerHTML = `<article class="kart"><h2><span class="tc-${sinif}">■</span> ${esc(ad)}</h2>
+          <p>${t('Bütün Kur\'an\'da <b>{0}</b> yerde, <b>{1}</b> sûrede geçiyor.', top, sonuc.length)}</p>
+          ${LEJ_ACIKLAMA[sinif] ? `<p class="soluk">${esc(LEJ_ACIKLAMA[sinif])}</p>` : ''}
+          <p class="soluk kucukyazi">${t('Sayılar renkli tecvid etiketlerinden otomatik çıkarılmıştır; küçük farklar olabilir.')}</p></article>
+        <div class="bolumler">${sonuc.map(o => `<button class="bolum" data-git="sure|${o.x.n}|${sinif}"><span class="ikon" style="font-size:.8rem;width:28px;color:var(--soluk)">${o.x.n}</span><span class="bad"><small>${t('{0} ayette {1} yer', o.ayet, o.yer_)}</small>${esc(sureAdi(o.x))}</span><span class="ar" style="font-size:1.1rem;line-height:1.2">${esc(o.x.ar)}</span></button>`).join('')}</div>`;
+    })();
   };
   let sureCalma = null;
-  EKRAN.sure = function (n) {
-    n = +n; const x = SURE(n); if (!x) return anaSayfa();
+  EKRAN.sure = function (n, filtre) {
+    n = +n; const x = SURE(n);
+    if (!x) {
+      app.innerHTML = `${ust(esc(sureNoAdi(n)))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`;
+      sureYukle(n).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'sure' && +ek[1][0] === n) ciz(); })
+        .catch(() => { app.querySelector('main').innerHTML = `<p class="hata">${t('Sûre açılamadı.')}</p>`; });
+      return;
+    }
     const tekrar = S.ayar.tekrar || 1;
-    const ayetler = x.ayet.map((a, i) => {
+    const sayim = {}; x.ayet.forEach((_, i) => (RENK[`${n}:${i + 1}`] || []).forEach(e => { sayim[e[2]] = (sayim[e[2]] || 0) + 1; }));
+    const gorunen = filtre ? x.ayet.map((_, i) => i).filter(i => (RENK[`${n}:${i + 1}`] || []).some(e => e[2] === filtre)) : x.ayet.map((_, i) => i);
+    kelimeHTML.filtre = filtre || null;
+    const ayetler = gorunen.map(i => {
+      const a = x.ayet[i];
       const r = `${n}:${i + 1}`; let o = 0;
       const kel = a.split(' ').map((w, wi) => { const h = `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${kelimeHTML(r, w, o)}</span>`; o += w.length + 1; return h; }).join(' ');
       return `<article class="kart ayet-kart" id="ayet-${i + 1}">
@@ -1057,7 +1131,8 @@
         ${kayitHTML('sure' + r, ayetUrl(r))}<span hidden data-yedek="${ayetUrl(r, KARILER[0].klasor)}" data-ses="${ayetUrl(r)}"></span>
       </article>`;
     }).join('');
-    const besmele = n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(window.BESMELE || '')}</div>` : '';
+    kelimeHTML.filtre = null;
+    const besmele = !filtre && n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(window.BESMELE || '')}</div>` : '';
     app.innerHTML = `${ust(esc(sureAdi(x)) + ' · <span class="ar" style="font-size:1.1rem">' + esc(x.ar) + '</span>')}<main>
       <section class="kart">
         <div class="satir sola"><button class="btn" id="hepsi">${t('▶ Tamamını dinle')}</button><button class="btn ikincil" data-git="sureTest|${n}">${t('🔍 Kural bul testi')}</button></div>
@@ -1065,13 +1140,17 @@
         <div class="satir sola">${[1, 3, 5].map(k => `<button class="btn ${tekrar === k ? '' : 'ikincil'}" data-tekrar="${k}">${k}×</button>`).join('')}</div>
         <div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${t('Renklerin anlamı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button></div>
         <div id="lejant" hidden>${lejantHTML()}</div>
+        <p class="soluk kucukyazi" style="margin-top:10px">${t('Kural ara: sadece bu kuralı renklendir')}</p>
+        <div class="filtre">${LEJANT.filter(([k]) => sayim[k]).map(([k, ad]) => `<button class="${filtre === k ? 'aktif' : ''}" data-filtre="${k}"><i class="tc-${k}"></i>${esc(ad)} <small>${sayim[k]}</small></button>`).join('')}</div>
+        ${filtre ? `<p style="margin-top:8px"><b>${t('{0} ayette geçiyor.', gorunen.length)}</b> <button class="link" data-filtre="">${t('Filtreyi kaldır')}</button></p>` : ''}
+        ${FS() ? `<div id="indirDurum"></div><div class="satir sola">${(() => { const l = indirListesi(kari().klasor, n), v = indirilenSay(l); return v >= l.length ? `<span class="rozet ok">${t('✓ Sesler indirildi')}</span>` : indirme ? '' : `<button class="lejant-ac" id="sureIndir">📥 ${t('Bu sûrenin seslerini indir')} (${v}/${l.length})</button>`; })()}</div>` : ''}
       </section>
       ${besmele}${ayetler}
     </main>`;
     const durdur = () => { if (sureCalma) { sureCalma.iptal = true; sureCalma = null; } if (ses) { ses.pause(); ses = null; } document.querySelectorAll('.ayet-kart.caliyor-ayet').forEach(e => e.classList.remove('caliyor-ayet')); };
-    function calSira(baslangic, bitis) {
+    function calSira(baslangic, bitis, secili) {
       durdur(); const is = { iptal: false }; sureCalma = is;
-      const liste = []; for (let i = baslangic; i <= bitis; i++) for (let k = 0; k < tekrar; k++) liste.push(i);
+      const liste = []; for (const i of (secili || Array.from({ length: bitis - baslangic + 1 }, (_, j) => baslangic + j))) for (let k = 0; k < tekrar; k++) liste.push(i);
       let j = 0;
       const sonraki = () => {
         if (is.iptal) return;
@@ -1085,10 +1164,13 @@
       };
       sonraki();
     }
-    $('#hepsi').onclick = () => { if (sureCalma) { durdur(); $('#hepsi').textContent = t('▶ Tamamını dinle'); return; } $('#hepsi').textContent = t('⏹ Durdur'); calSira(1, x.ayet.length); S.sure = S.sure || {}; S.sure[n] = Object.assign({}, S.sure[n], { dinlendi: Date.now() }); kaydet(); };
+    $('#hepsi').onclick = () => { if (sureCalma) { durdur(); $('#hepsi').textContent = t('▶ Tamamını dinle'); return; } $('#hepsi').textContent = t('⏹ Durdur'); calSira(1, x.ayet.length, gorunen.map(i => i + 1)); S.sure = S.sure || {}; S.sure[n] = Object.assign({}, S.sure[n], { dinlendi: Date.now() }); kaydet(); };
     app.querySelectorAll('[data-ayet-cal]').forEach(b => b.onclick = () => { const i = +b.dataset.ayetCal; calSira(i, i); });
     app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { S.ayar.tekrar = +b.dataset.tekrar; kaydet(); durdur(); ciz(); });
     const la = $('#lejantAc'); la.onclick = () => { const l = $('#lejant'); l.hidden = !l.hidden; };
+    app.querySelectorAll('[data-filtre]').forEach(b => b.onclick = () => { durdur(); const f = b.dataset.filtre; ekranYigini[ekranYigini.length - 1] = ['sure', [n, f === filtre ? '' : f]]; ciz(); });
+    const si = $('#sureIndir'); if (si) si.onclick = () => { indirBaslat(indirListesi(kari().klasor, n), sureAdi(x) + ':'); si.remove(); };
+    indirmeGoster();
   };
   EKRAN.sureTest = function (n) {
     ekranYigini.pop(); n = +n; const x = SURE(n);
