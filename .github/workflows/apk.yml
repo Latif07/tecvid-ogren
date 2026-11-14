@@ -55,6 +55,8 @@ jobs:
           # Uygulama simgesi
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           cp -r android-res/mipmap-* android/app/src/main/res/
+          # Bildirim simgesi (günlük hatırlatma)
+          mkdir -p android/app/src/main/res/drawable && cp android-res/drawable/*.xml android/app/src/main/res/drawable/
           # Sabit imza anahtarı: güncellemeler eski sürümün üstüne kurulabilsin
           mkdir -p ~/.android && cp android-res/debug.keystore ~/.android/debug.keystore
           # Sürüm numarası

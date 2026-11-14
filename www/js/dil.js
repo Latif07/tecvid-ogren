@@ -7,6 +7,18 @@
   document.documentElement.lang = dil;
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   var EN = {
+ "⏰ Günlük hatırlatma": "⏰ Daily reminder",
+ "Her gün seçtiğin saatte telefonuna bir hatırlatma gelir. O gün zaten çalıştıysan gelmez.": "Every day at the time you choose, your phone gets a reminder. If you've already studied that day, it is skipped.",
+ "Saat:": "Time:",
+ "Bildirimler telefondaki uygulamada çalışır.": "Notifications work in the phone app.",
+ "Bildirim izni verilmedi. Telefon ayarlarından Tecvid Öğren için bildirimlere izin ver.": "Notification permission was not granted. Allow notifications for Tecvid Öğren in your phone settings.",
+ "Hatırlatma kuruldu: her gün {0}": "Reminder set: every day at {0}",
+ "🔁 Günlük tekrar zamanı. Birkaç soru çöz, öğrendiklerin kalıcı olsun.": "🔁 Time for your daily review. Answer a few questions so what you learned sticks.",
+ "📖 Sıradaki bölüm: {0}. Bugün 10 dakika ayır.": "📖 Next unit: {0}. Set aside 10 minutes today.",
+ "📖 Bir sûre aç, dinle ve renkli tecvidle oku.": "📖 Open a surah, listen, and read it with colour-coded tajweed.",
+ "🔥 Serini bozma! Bugün kısa bir test çöz.": "🔥 Don't break your streak! Take a short test today.",
+ "🎙️ Bir ayet seç, kâriyi dinle, kendini kaydet ve karşılaştır.": "🎙️ Pick an ayah, listen to the reciter, record yourself and compare.",
+
  "👨‍🏫 Sınıf (hoca–öğrenci)": "👨‍🏫 Class (teacher–student)",
  "Sınıfın hocası sınıfı kapattı.": "Your teacher has closed the class.",
  "📌 Ödev": "📌 Homework",

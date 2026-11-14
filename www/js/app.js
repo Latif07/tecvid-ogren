@@ -34,7 +34,7 @@
   const lejantHTML = () => `<div class="lejant">${LEJANT.map(([k, ad]) => `<span class="tc-${k}"><i></i><b style="color:var(--metin);font-weight:500">${esc(ad)}</b></span>`).join('')}</div>`;
 
   // ------------------------------------------------------------ durum
-  const bos = () => ({ ilerleme: {}, okunan: {}, srs: {}, gecmis: [], ayar: { hiz: 1, kari: 'husary_muallim', tema: 'sistem', renkli: true }, seri: { son: '', gun: 0 } });
+  const bos = () => ({ ilerleme: {}, okunan: {}, srs: {}, gecmis: [], ayar: { hiz: 1, kari: 'husary_muallim', tema: 'sistem', renkli: true, hatirlat: { acik: false, saat: '20:00' } }, seri: { son: '', gun: 0 } });
   let S;
   try { S = Object.assign(bos(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { S = bos(); }
   S.ayar = Object.assign(bos().ayar, S.ayar);
@@ -105,7 +105,7 @@
   }
   window.addEventListener('bulut-hazir', bulutBagla);
   window.addEventListener('online', () => esitle(true));
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') esitle(true); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { esitle(true); if (typeof hatirlatmaKur === 'function') hatirlatmaKur(false); } });
 
   const bugun = () => new Date().toISOString().slice(0, 10);
   const simdi = () => Date.now();
@@ -617,7 +617,7 @@
       S.ilerleme[o.id] = il;
     }
     if (o.tur === 'sure') { S.sure = S.sure || {}; const v = S.sure[o.sure] || {}; v.en = Math.max(v.en || 0, yuzde); S.sure[o.sure] = v; }
-    seriGuncelle(); kaydet();
+    seriGuncelle(); kaydet(); hatirlatmaKur(false);
     ekranYigini.pop();
     git('sonuc', kayit.id, onceki ? onceki.yuzde : null, yeniAcildi);
   }
@@ -1030,6 +1030,7 @@
     const yedek = JSON.stringify(S);
     const hk = B() && B().kullanici();
     const tema = S.ayar.tema || 'sistem';
+    const hat = S.ayar.hatirlat || { acik: false, saat: '20:00' };
     app.innerHTML = `${ust(t('Ayarlar'))}<main>
       <article class="kart"><h2>${t('🌐 Dil / Language')}</h2>
         <div class="dil-sec"><button class="btn ${DIL === 'tr' ? '' : 'ikincil'}" data-dil="tr">Türkçe</button><button class="btn ${DIL === 'en' ? '' : 'ikincil'}" data-dil="en">English</button></div></article>
@@ -1041,6 +1042,11 @@
         <div class="satir sola"><button class="btn ${S.ayar.renkli ? '' : 'ikincil'}" data-renkli="1">${t('Açık')}</button><button class="btn ${S.ayar.renkli ? 'ikincil' : ''}" data-renkli="0">${t('Kapalı')}</button></div>
         <div class="ayet" dir="rtl" lang="ar" style="margin-top:12px">${['109:3', '96:2'].map(r => kelimeHTMLtam(r)).join(' ۝ ')}</div>
         ${lejantHTML()}</article>
+      <article class="kart"><h2>${t('⏰ Günlük hatırlatma')}</h2>
+        <p class="soluk">${t('Her gün seçtiğin saatte telefonuna bir hatırlatma gelir. O gün zaten çalıştıysan gelmez.')}</p>
+        <div class="satir sola"><button class="btn ${hat.acik ? '' : 'ikincil'}" data-hatir="1">${t('Açık')}</button><button class="btn ${hat.acik ? 'ikincil' : ''}" data-hatir="0">${t('Kapalı')}</button>
+          <label>${t('Saat:')} <input type="time" id="hatirSaat" value="${esc(hat.saat || '20:00')}" style="font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)"></label></div>
+        ${LN() ? '' : `<p class="soluk kucukyazi">${t('Bildirimler telefondaki uygulamada çalışır.')}</p>`}</article>
       <article class="kart"><h2>${t('🎙️ Kâri')}</h2><p>${esc(kari().ad)} · <span class="soluk">${esc(kari().tur)}</span></p>
         <button class="btn" data-git="kariSec">${t('Kâri seç')}</button></article>
       <article class="kart"><h2>${t('🔊 Ses hızı')}</h2>
@@ -1062,6 +1068,15 @@
     app.querySelectorAll('[data-dil]').forEach(b => b.onclick = () => { if (b.dataset.dil === DIL) return; try { localStorage.setItem('tecvid-ogren.dil', b.dataset.dil); } catch (e) { } location.reload(); });
     app.querySelectorAll('[data-tema]').forEach(b => b.onclick = () => { S.ayar.tema = b.dataset.tema; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-renkli]').forEach(b => b.onclick = () => { S.ayar.renkli = b.dataset.renkli === '1'; kaydet(); ciz(); });
+    const hatirAyarla = async (acik, saat) => {
+      S.ayar.hatirlat = { acik, saat }; kaydet();
+      const ok = await hatirlatmaKur(acik);
+      if (acik && LN() && !ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Tecvid Öğren için bildirimlere izin ver.')); }
+      else if (acik) toast(t('Hatırlatma kuruldu: her gün {0}', saat));
+      ciz();
+    };
+    app.querySelectorAll('[data-hatir]').forEach(b => b.onclick = () => hatirAyarla(b.dataset.hatir === '1', $('#hatirSaat').value || '20:00'));
+    $('#hatirSaat').onchange = e => { if (e.target.value) hatirAyarla(!!(S.ayar.hatirlat || {}).acik, e.target.value); };
     app.querySelectorAll('[data-hiz]').forEach(b => b.onclick = () => { S.ayar.hiz = +b.dataset.hiz; kaydet(); ciz(); });
     $('#kopyala').onclick = async () => { try { await navigator.clipboard.writeText(yedek); toast(t('Kopyalandı')); } catch (e) { const x = $('#yedek'); x.select(); document.execCommand('copy'); toast(t('Kopyalandı')); } };
     $('#geriyukle').onclick = () => {
@@ -1076,6 +1091,42 @@
       anaSayfa();
     };
   };
+  // ------------------------------------------------------------ günlük hatırlatma (telefon bildirimi)
+  // Önümüzdeki 14 gün için her gün seçilen saatte bir bildirim kurulur; bugün çalıştıysan bugünkü atlanır.
+  const LN = () => { const C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() ? C.registerPlugin('LocalNotifications') : null; };
+  const HATIR_ID = Array.from({ length: 14 }, (_, i) => 7100 + i);
+  function hatirlatmaMetni(i) {
+    const siradaki = U.find(u => !gecti(u.id));
+    const l = [
+      t('🔁 Günlük tekrar zamanı. Birkaç soru çöz, öğrendiklerin kalıcı olsun.'),
+      siradaki ? t('📖 Sıradaki bölüm: {0}. Bugün 10 dakika ayır.', siradaki.ad) : t('📖 Bir sûre aç, dinle ve renkli tecvidle oku.'),
+      t('🔥 Serini bozma! Bugün kısa bir test çöz.'),
+      t('🎙️ Bir ayet seç, kâriyi dinle, kendini kaydet ve karşılaştır.'),
+    ];
+    return l[i % l.length];
+  }
+  async function hatirlatmaKur(izinIste) {
+    const ln = LN(); const h = S.ayar.hatirlat || {};
+    if (!ln) return false;
+    try {
+      await ln.cancel({ notifications: HATIR_ID.map(id => ({ id })) });
+      if (!h.acik) return true;
+      let izin = await ln.checkPermissions();
+      if (izin.display !== 'granted' && izinIste) izin = await ln.requestPermissions();
+      if (izin.display !== 'granted') return false;
+      const [sa, dk] = (h.saat || '20:00').split(':').map(Number);
+      const calisti = S.seri.son === bugun();
+      const bildirimler = [];
+      for (let g = 0; g < 14; g++) {
+        const at = new Date(); at.setDate(at.getDate() + g); at.setHours(sa, dk, 0, 0);
+        if (at.getTime() <= Date.now() + 60000) continue;
+        if (g === 0 && calisti) continue;
+        bildirimler.push({ id: HATIR_ID[g], title: t('Tecvid Öğren'), body: hatirlatmaMetni(g + new Date().getDate()), schedule: { at, allowWhileIdle: true } });
+      }
+      if (bildirimler.length) await ln.schedule({ notifications: bildirimler });
+      return true;
+    } catch (e) { console.warn('hatırlatma', e); return false; }
+  }
   // Ayarlardaki önizleme: ayetin tamamı renkli
   function kelimeHTMLtam(r) {
     const k = AYAH[r].split(' '); let o = 0;
@@ -1084,5 +1135,6 @@
 
   anaSayfa();
   bulutBagla();
+  hatirlatmaKur(false);
   window.__TECVID = { S: () => S, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();
