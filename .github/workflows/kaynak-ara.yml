@@ -6,22 +6,20 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - name: Diyanet portalı uç adları (içerik yazdırılmaz)
+      - name: Diyanet portalı uç şablonları ve erişim başlıkları (içerik yazdırılmaz)
         shell: bash
         run: |
           set +e
           UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
-          H=(-A "$UA" -H 'Referer: https://kuran.diyanet.gov.tr/kuran' --retry 3 -m 60 -sL)
-          echo "pagedata: $(curl "${H[@]}" -o pd.json -w '%{http_code}' 'https://kuran.diyanet.gov.tr/mushaf/qurandm/pagedata?id=1') $(stat -c%s pd.json) bayt"
-          python3 -c "import json;d=json.load(open('pd.json'));print('anahtarlar:', list(d.keys())[:20] if isinstance(d,dict) else type(d))" 2>&1 | head -3
-          curl "${H[@]}" https://kuran.diyanet.gov.tr/ -o m.html
-          js=$(grep -oE '/assets/index-[^"]+\.js' m.html | head -1)
-          echo "ana js: $js $(curl "${H[@]}" -o b.js -w '%{http_code}' "https://kuran.diyanet.gov.tr$js") $(stat -c%s b.js)"
-          grep -oE '/assets/[A-Za-z0-9_.-]+\.js' b.js | sort -u > alt.txt; echo "alt parça: $(wc -l < alt.txt)"
-          cat b.js > hepsi.js
-          for p in $(cat alt.txt); do curl "${H[@]}" "https://kuran.diyanet.gov.tr$p" >> hepsi.js; echo >> hepsi.js; done
-          echo "toplam js: $(stat -c%s hepsi.js)"
-          echo "== uç adları"
-          grep -oE '["`/](mushaf|qurandm|api|meal|tefsir|audio|ses|mp3|kari|okuyucu|reciter|hafiz|webdosya)[^"`<> ]{0,100}' hepsi.js | sort -u | head -120
-          echo "== tam adresler"
-          grep -oE 'https?://[A-Za-z0-9._/-]*diyanet[A-Za-z0-9._/?=&{}$-]*' hepsi.js | sort -u | head -60
+          H=(-A "$UA" -H 'Referer: https://kuran.diyanet.gov.tr/kuran' --retry 4 --retry-all-errors -m 60 -sL)
+          for i in 1 2 3; do curl "${H[@]}" https://kuran.diyanet.gov.tr/ -o m.html && [ -s m.html ] && break; sleep 3; done
+          js=$(grep -oE '/assets/index-[^"]+\.js' m.html | head -1); curl "${H[@]}" "https://kuran.diyanet.gov.tr$js" -o hepsi.js
+          for p in $(grep -oE '/assets/[A-Za-z0-9_.-]+\.js' hepsi.js | sort -u); do curl "${H[@]}" "https://kuran.diyanet.gov.tr$p" >> hepsi.js; done
+          echo "== bağlam"
+          for k in 'kuranikerim/Sound' '/ses/tilavet' 'meal_1.json' '/meal/sayfa/' 'sync/manifest' 'qurandm' '/api/v2' 'dil_id'; do
+            grep -boE ".{0,160}${k//\//\\/}.{0,200}" hepsi.js | head -3 | cut -c1-420; echo
+          done
+          echo "== başlıklar (CORS ve tür)"
+          for u in 'https://kuran.diyanet.gov.tr/mushaf/qurandm/pagedata?id=1' 'https://kuran.diyanet.gov.tr/api/v2/sync/manifest' 'https://kuran.diyanet.gov.tr/ses/tilavet?dil_id=1' 'https://webdosya.diyanet.gov.tr/kuran/kuranikerim/Sound/'; do
+            echo "-- $u"; curl -sI -m 30 -A "$UA" -H 'Origin: https://latif07.github.io' "$u" | grep -iE '^(HTTP|content-type|content-length|access-control)' 
+          done
