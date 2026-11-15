@@ -115,6 +115,7 @@
       const x = (a.ezber || {})[n], y = (b.ezber || {})[n]; if (!x || !y) { r.ezber[n] = x || y; continue; }
       const yeni_ = (x.son || 0) >= (y.son || 0) ? x : y; r.ezber[n] = Object.assign({}, yeni_, { a: Math.max(x.a || 0, y.a || 0), tam: !!(x.tam || y.tam), eklendi: Math.min(x.eklendi || 0, y.eklendi || 0) || x.eklendi || y.eklendi, bitti: x.bitti || y.bitti });
     }
+    if (a.muezzin || b.muezzin) { r.muezzin = {}; for (const id of new Set([...Object.keys(a.muezzin || {}), ...Object.keys(b.muezzin || {})])) { const x = (a.muezzin || {})[id], y = (b.muezzin || {})[id]; r.muezzin[id] = !x ? y : !y ? x : ((x.son || 0) >= (y.son || 0) ? x : y); } }
     const ha = a.hatim, hb = b.hatim; r.hatim = !ha ? hb || null : !hb ? ha : (ha.bas > hb.bas ? ha : hb.bas > ha.bas ? hb : (ha.sayfa >= hb.sayfa ? ha : hb));
     r.sonSayfa = a.sonSayfa || b.sonSayfa;
     if (a.mesk || b.mesk) { r.mesk = Object.assign({}, b.mesk || {}, a.mesk || {}); for (const k of Object.keys(r.mesk)) { const x = (a.mesk || {})[k] || {}, y = (b.mesk || {})[k] || {}; r.mesk[k] = { p: Math.max(x.p || 0, y.p || 0), tamam: !!(x.tamam || y.tamam), t: Math.max(x.t || 0, y.t || 0) }; } }
@@ -333,7 +334,7 @@
     return `<div class="kayit-kutu" data-kayit-kutu="${anahtar}">
       <button class="sesbtn ikincil" data-kayit-bas="${anahtar}">${var_ ? t('🎙️ Yeniden kaydet') : t('🎙️ Kendini kaydet')}</button>
       ${var_ ? `<button class="sesbtn ikincil" data-ses="${var_}">${t('▶ Sesim')}</button>
-      <button class="sesbtn" data-karsilastir="${anahtar}" data-kari-url="${kariUrl}">${t('🔁 Karşılaştır')}</button>` : ''}
+      ${kariUrl ? `<button class="sesbtn" data-karsilastir="${anahtar}" data-kari-url="${kariUrl}">${t('🔁 Karşılaştır')}</button>` : ''}` : ''}
     </div>`;
   }
   function kayitKutuYenile(anahtar) {
@@ -1621,6 +1622,7 @@
           <button class="btn ikincil" data-git="okumaRaporu">${t('Aç')}</button></div>
         <p class="soluk kucukyazi">${t('Günlük yeni ders:')} ${[1, 3, 5, 10].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hedef="${k}">${t('{0} ayet', k)}</button>`).join(' ')}</p>
       </section>
+      <div class="bolumler" style="margin-top:12px"><button class="bolum" data-git="muezzin"><span class="ikon">🕌</span><span class="bad"><small>${(() => { const l = MZ().M, n = l.filter(x => mzDurum(x.id).tam).length; return t('Ezan, kamet, selâ, tesbihat · {0}/{1}', n, l.length); })()}</small>${t('Müezzinlik')}</span><span class="rozet">›</span></button></div>
       <h2 class="baslik">${t('Ezberlerim')}</h2>
       <div class="bolumler">${liste.length ? liste.map(satir).join('') : `<p class="soluk">${t('Henüz ezber listen boş. Aşağıdan sûre ekle.')}</p>`}</div>
       <button class="btn genis ikincil" data-git="ezberEkle" style="margin-top:10px">${t('➕ Sûre ekle')}</button>
@@ -1657,6 +1659,125 @@
       yer.querySelectorAll('[data-ekle]').forEach(b => b.onclick = () => { const n = +b.dataset.ekle; ezberEkle(n); ekranYigini.pop(); git('sure', n, '', 'ezber', (ezb(n).a || 0) + 1); });
       $('#sureAra').oninput = e => { const q = trSade(e.target.value.trim()); yer.querySelectorAll('[data-ara]').forEach(b => { b.hidden = q && !b.dataset.ara.includes(q); }); };
     });
+  };
+
+  // ------------------------------------------------------------ Müezzinlik: ezan, kamet, selâ, namaz sonrası tesbihat
+  // S.muezzin[id] = { tam, ilk, son, kutu, vade }
+  const MZ = () => window.MUEZZIN || { M: [], AKIS: [], KAYNAKLAR: [] };
+  const mzBul = id => MZ().M.find(x => x.id === id);
+  const MZ_ARALIK = [1, 3, 7, 15, 30];
+  const mzDurum = id => (S.muezzin || {})[id] || {};
+  const mzVadeli = d => !!(d && d.tam && simdi() >= (d.vade || 0));
+  function mzIsaretle(id) {
+    S.muezzin = S.muezzin || {}; const d = S.muezzin[id] || {};
+    const k = d.tam ? Math.min((d.kutu || 0) + 1, MZ_ARALIK.length - 1) : 0;
+    S.muezzin[id] = { tam: true, ilk: d.ilk || simdi(), son: simdi(), kutu: k, vade: simdi() + MZ_ARALIK[k] * GUN }; kaydet();
+  }
+  // Metnin satırları; Kur'an parçaları uygulamanın Kur'an verisinden (yüklenmemişse null)
+  function mzSatirlar(x) {
+    if (x.satir) return x.satir;
+    if (x.kuran.some(([s]) => !SURE(s))) return null;
+    const OKU = ((window.OKUNUS || {}).tr) || {};
+    return x.kuran.map(([s, a]) => { const r = `${s}:${a}`, m = MEAL['tr' + s];
+      return { ar: SURE(s).ayet[a - 1], ok: OKU[r] || '', tr: m ? m[a - 1] : '', n: 1, ses: ayetUrl(r), yedek: ayetUrl(r, KARILER[0].klasor), r }; });
+  }
+  function mzYukle(x, ekran) {
+    const l = [...new Set((x.kuran || []).map(([s]) => s))];
+    Promise.all(l.map(s => sureYukle(s).then(() => DIL === 'en' ? null : mealYukle(s).catch(() => null)))).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === ekran) ciz(); })
+      .catch(() => { const m = app.querySelector('main'); if (m) m.innerHTML = `<p class="hata">${t('Metin açılamadı. İnternet bağlantını kontrol et.')}</p>`; });
+  }
+  // seviye: 0 hiçbiri, 1 yarısı, 2 ilk kelime kalsın, 3 hepsi
+  function mzSatirHTML(s, i, sev) {
+    const gizli = wi => sev === 3 || (sev === 2 && wi > 0) || (sev === 1 && wi % 2 === 1);
+    const kel = s.ar.split(' ').map((w, wi) => `<span class="kelime${gizli(wi) ? ' gizli' : ''}">${esc(w)}</span>`).join(' ');
+    return `<article class="kart mz-kart" id="mz-${i}">
+      ${s.not ? `<p class="mz-not">ℹ️ ${esc(s.not)}</p>` : ''}
+      <div class="ayet" dir="rtl" lang="ar">${kel}</div>
+      ${s.ok ? `<p class="okunus${sev ? ' mz-ok-gizli' : ''}" ${sev ? `role="button" tabindex="0" aria-label="${t('Okunuşu göster')}"` : ''}>${esc(s.ok)}</p>` : ''}
+      ${s.tr && !sev ? `<p class="meal">${esc(s.tr)}</p>` : ''}
+      <div class="sesler">${s.n > 1 ? `<span class="rozet">${t('{0} kez söylenir', s.n)}</span>` : ''}${s.ses ? `<button class="sesbtn" data-ses="${s.ses}" data-yedek="${s.yedek}">${t('▶ Dinle')}</button>` : ''}</div>
+    </article>`;
+  }
+  function mzGizliBagla() {
+    app.querySelectorAll('.mz-kart .kelime.gizli').forEach(k => k.onclick = ev => { ev.stopPropagation(); k.classList.remove('gizli'); });
+    app.querySelectorAll('.mz-ok-gizli').forEach(p => { const ac = () => p.classList.remove('mz-ok-gizli'); p.onclick = ac; p.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ac(); } }; });
+  }
+  EKRAN.muezzin = function () {
+    const l = MZ().M, tamam = l.filter(x => mzDurum(x.id).tam).length;
+    const sonraki = l.find(x => !mzDurum(x.id).tam), vadeli = l.filter(x => mzVadeli(mzDurum(x.id)));
+    app.innerHTML = `${ust(t('🕌 Müezzinlik'))}<main>
+      <section class="kart">
+        <p>${t('Ezan, kamet, selâ ve namaz sonrası tesbihatı sırayla ezberle. Sıra bir öneridir; istediğin metne geçebilirsin.')}</p>
+        <div class="bar"><div class="iyi" style="width:${l.length ? Math.round(tamam / l.length * 100) : 0}%"></div></div>
+        <p class="soluk kucukyazi">${t('{0}/{1} metin ezberlendi', tamam, l.length)}</p>
+        ${vadeli.length ? `<p class="kucukyazi">🔁 <b>${t('Tekrar zamanı:')}</b> ${vadeli.map(x => esc(x.ad)).join(', ')}</p>` : ''}
+        <div class="satir sola">${vadeli.length ? `<button class="btn" data-git="muezzinMetin|${vadeli[0].id}">${t('Tekrar et')}</button>` : sonraki ? `<button class="btn" data-git="muezzinMetin|${sonraki.id}">${t('Sıradaki: {0}', esc(sonraki.ad))}</button>` : ''}
+          <button class="btn ikincil" data-git="muezzinProva|0">🎭 ${t('Namaz sonrası provası')}</button></div>
+      </section>
+      <div class="bolumler">${l.map((x, i) => { const d = mzDurum(x.id);
+        const durum = d.tam ? (mzVadeli(d) ? t('🔁 Tekrar zamanı') : t('✓ Ezberlendi')) : x.onay ? '' : t('Hoca onayı bekliyor');
+        return `<button class="bolum" data-git="muezzinMetin|${x.id}"><span class="ikon">${d.tam ? '✅' : x.ikon}</span><span class="bad"><small>${[`${i + 1}.${x.alt ? ' ' + esc(x.alt) : ''}`, durum].filter(Boolean).join(' · ')}</small>${esc(x.ad)}</span><span class="rozet">›</span></button>`; }).join('')}</div>
+      <p class="soluk kucukyazi" style="margin-top:12px">${t('Ezan, kamet ve selâ makamla okunur; makamı ve doğru okuyuşu bir hocadan öğren. Buradaki metinler sözleri ezberlemen içindir.')}</p>
+      <details class="kural-ara"><summary>${t('Kaynaklar')}</summary><ul class="kucukyazi">${MZ().KAYNAKLAR.map(([ad, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${esc(ad)}</a></li>`).join('')}</ul>
+        <p class="soluk kucukyazi">${t('Okunuşlar ve anlamlar bu uygulama için yazıldı. "Hoca onayı bekliyor" yazan metinler bir hoca tarafından kontrol edildikten sonra onaylanacak.')}</p></details>
+    </main>`;
+  };
+  EKRAN.muezzinMetin = function (id) {
+    const x = mzBul(id); if (!x) { ekranYigini.pop(); return ciz(); }
+    const satirlar = mzSatirlar(x);
+    if (!satirlar) { app.innerHTML = `${ust(esc(x.ad))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; mzYukle(x, 'muezzinMetin'); return; }
+    if (x.kuran && DIL !== 'en' && !MEAL['tr' + x.kuran[0][0]]) mzYukle(x, 'muezzinMetin');
+    const sev = S.ayar.mzGizle || 0, d = mzDurum(x.id), l = MZ().M, i = l.indexOf(x), sonraki = l[i + 1];
+    const sesler = satirlar.filter(s => s.ses).map(s => s.ses);
+    app.innerHTML = `${ust(esc(x.ad))}<main>
+      <section class="kart ezber-ust">
+        <p class="soluk kucukyazi">${i + 1}/${l.length}${x.alt ? ' · ' + esc(x.alt) : ''} ${x.onay ? '' : `· <span class="rozet uyari">${t('Hoca onayı bekliyor')}</span>`}</p>
+        ${x.not ? `<p class="mz-not">ℹ️ ${esc(x.not)}</p>` : ''}
+        <p class="kucukyazi" style="margin:8px 0 4px"><b>${t('Gizle:')}</b></p>
+        <div class="filtre">${[[0, t('Hiçbiri')], [1, t('Yarısı')], [2, t('İlk kelime kalsın')], [3, t('Hepsi')]].map(([v, ad]) => `<button class="${sev === v ? 'aktif' : ''}" data-mzgizle="${v}">${ad}</button>`).join('')}</div>
+        <p class="soluk kucukyazi">${t('Önce oku ve anlamına bak, sonra gizleyip ezberden söyle. Takıldığın kelimeye dokun.')}</p>
+        <div class="satir sola">${sesler.length ? `<button class="btn" id="mzHepsi">${t('▶ Tamamını dinle')}</button>` : `<span class="soluk kucukyazi">🎙️ ${t('Bu metnin müezzin kaydı henüz yok. Doğru okuyuşu hocandan dinle.')}</span>`}</div>
+        ${kayitHTML('mz-' + x.id, sesler[0] || '')}${sesler[0] ? `<span hidden data-yedek data-ses="${sesler[0]}"></span>` : ''}
+      </section>
+      ${satirlar.map((s, j) => mzSatirHTML(s, j, sev)).join('')}
+      <section class="kart">
+        <div class="satir sola"><button class="btn" id="mzEzber">${d.tam ? t('✓ Tekrar ettim') : t('✓ Ezberledim')}</button>
+          ${sonraki ? `<button class="btn ikincil" data-git="muezzinMetin|${sonraki.id}">${t('Sonraki: {0}', esc(sonraki.ad))} ›</button>` : ''}</div>
+        ${d.tam ? `<p class="soluk kucukyazi">${t('Ezberlendi. Sonraki tekrar: {0}', new Date(d.vade).toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR'))}</p>` : ''}
+        <p class="soluk kucukyazi">📚 ${esc(x.kaynak || '')}</p>
+      </section>
+    </main>`;
+    mzGizliBagla();
+    app.querySelectorAll('[data-mzgizle]').forEach(b => b.onclick = () => { S.ayar.mzGizle = +b.dataset.mzgizle; kaydet(); ciz(); });
+    const h = $('#mzHepsi'); if (h) h.onclick = () => arkaArka(sesler, h);
+    $('#mzEzber').onclick = () => { mzIsaretle(x.id); toast(d.tam ? t('Tekrar kaydedildi ✓') : t('Maşallah! "{0}" ezberlendi 🎉', x.ad)); if (!d.tam && sonraki) { ekranYigini[ekranYigini.length - 1] = ['muezzinMetin', [sonraki.id]]; } ciz(); };
+  };
+  // Namaz sonrası akışı: müezzinin farzdan sonra söyledikleri sırayla, ezberden
+  EKRAN.muezzinProva = function (adim) {
+    adim = +adim || 0; const A = MZ().AKIS, x = mzBul(A[adim]); if (!x) { ekranYigini.pop(); return ciz(); }
+    const satirlar = mzSatirlar(x);
+    if (!satirlar) { app.innerHTML = `${ust(t('🎭 Namaz sonrası provası'))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; mzYukle(x, 'muezzinProva'); return; }
+    const git_ = k => { ekranYigini[ekranYigini.length - 1] = ['muezzinProva', [k]]; sesDurdur(); ciz(); };
+    app.innerHTML = `${ust(t('🎭 Namaz sonrası provası'))}<main>
+      <div class="mz-adimlar">${A.map((k, j) => `<span class="${j < adim ? 'ok' : j === adim ? 'bugun' : ''}" title="${esc(mzBul(k).ad)}">${j + 1}</span>`).join('')}</div>
+      <section class="kart">
+        <h2>${adim + 1}. ${esc(x.ad)}</h2>
+        ${x.not ? `<p class="mz-not">ℹ️ ${esc(x.not)}</p>` : ''}
+        ${x.id === 'ayetelKursi' ? `<p class="mz-not">ℹ️ ${t('Cemaat sessizce okur; müezzin sesli de okuyabilir.')}</p>` : ''}
+        <p class="soluk kucukyazi">${t('Ezberden söyle. Takılırsan kelimeye dokun ya da hepsini göster.')}</p>
+        <button class="lejant-ac" id="mzGoster">👁️ ${t('Hepsini göster')}</button>
+      </section>
+      ${satirlar.map((s, j) => mzSatirHTML(s, j, 3)).join('')}
+      <div class="satir" style="justify-content:space-between;margin-top:12px">
+        ${adim > 0 ? `<button class="btn ikincil" id="mzOnceki">‹ ${t('Önceki')}</button>` : '<span></span>'}
+        ${adim < A.length - 1 ? `<button class="btn" id="mzSonraki">${t('Sonraki')} ›</button>` : `<button class="btn" id="mzBitti">${t('Prova bitti ✓')}</button>`}
+      </div>
+    </main>`;
+    mzGizliBagla();
+    $('#mzGoster').onclick = () => { app.querySelectorAll('.mz-kart .kelime.gizli').forEach(k => k.classList.remove('gizli')); app.querySelectorAll('.mz-ok-gizli').forEach(p => p.classList.remove('mz-ok-gizli')); };
+    const o = $('#mzOnceki'); if (o) o.onclick = () => git_(adim - 1);
+    const s = $('#mzSonraki'); if (s) s.onclick = () => git_(adim + 1);
+    const b = $('#mzBitti'); if (b) b.onclick = () => { toast(t('Allah kabul etsin! Prova tamamlandı 🤲')); geri(); };
   };
 
   // ---- hocaya ezber dinletme (Firestore'da sınıfın altında, en fazla ~2 dakika)

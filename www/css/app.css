@@ -766,3 +766,13 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-kelime-dinle { display: inline-flex; align-items: center; gap: 8px; }
 .c-kelime-dinle .ar { font-size: 1.5rem; line-height: 1.2; }
 .c-tanis .c-dinle { margin-left: 3px; margin-right: 3px; }
+
+/* Müezzinlik */
+.mz-not { margin: 0 0 8px; font-size: .88rem; color: var(--soluk); }
+.mz-kart .ayet { margin-bottom: 4px; }
+.mz-ok-gizli { filter: blur(5px); cursor: pointer; user-select: none; }
+.rozet.uyari { background: var(--altin-acik); color: inherit; }
+.mz-adimlar { display: flex; gap: 6px; justify-content: center; margin: 8px 0 12px; }
+.mz-adimlar span { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cizgi); display: grid; place-items: center; font-weight: 800; font-size: .85rem; color: var(--soluk); }
+.mz-adimlar .ok { background: var(--ana2); border-color: var(--ana2); color: #fff; }
+.mz-adimlar .bugun { border-color: var(--altin); color: var(--metin, inherit); outline: 2px solid var(--altin); outline-offset: 2px; }
