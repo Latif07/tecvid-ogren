@@ -1,0 +1,13 @@
+name: Deneme seslerini dala taşı
+on: workflow_dispatch
+permissions:
+  contents: write
+  actions: read
+jobs:
+  tasi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: hece-ornekleri, path: ornek, run-id: 43723549285, github-token: '${{ secrets.GITHUB_TOKEN }}' }
+      - run: |
+          cd ornek && git init -q -b ses-deneme && git add . && git -c user.name=bot -c user.email=bot@x commit -qm "SILMA TTS hece denemesi" && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ses-deneme
