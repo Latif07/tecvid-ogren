@@ -597,7 +597,7 @@
       let govde = '', balon = '';
       if (D.adim === 'tanis') {
         // Her derse besmeleyle başlanır
-        balon = d.tur === 'harf' ? t('Bismillâhirrahmânirrahîm. Bu harfle tanışalım!') : t('Bismillâhirrahmânirrahîm. Yeni bir şey öğreniyoruz!');
+        balon = d.tur === 'harf' ? t('Bismillâhir-rahmânir-rahîm. Bu harfle tanışalım!') : t('Bismillâhir-rahmânir-rahîm. Yeni bir şey öğreniyoruz!');
         govde = `<article class="kart c-kart"><p class="besmele" lang="ar" dir="rtl">${BESMELE}</p>${tanisHTML(d)}</article><button class="btn genis c-btn" id="cIleri">${d.tur === 'harf' ? t('Hadi çizelim ✏️') : d.tur === 'sure' ? t('Dinleyelim 🎧') : t('Hadi oynayalım 🎯')}</button>`;
       }
       else if (D.adim === 'dinle') {
