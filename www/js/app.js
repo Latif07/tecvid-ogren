@@ -1985,7 +1985,7 @@
         <p><b>${t('Tema')}</b></p>
         <div class="satir sola">${[['sistem', t('Telefona göre')], ['acik', t('☀️ Açık')], ['koyu', t('🌙 Koyu')]].map(([v, ad]) => `<button class="btn ${tema === v ? '' : 'ikincil'}" data-tema="${v}">${ad}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Renk')}</b></p>
-        <div class="renkler">${[['yesil', '#0f5a47', t('Yeşil')], ['lacivert', '#1d3f72', t('Lacivert')], ['bordo', '#7a1f2b', t('Bordo')], ['mor', '#4b2a7a', t('Mor')], ['sepya', '#6b4423', t('Sepya')]].map(([v, c, ad]) => `<button class="${(S.ayar.renk || 'yesil') === v ? 'aktif' : ''}" data-renk="${v}" style="background:${c}" title="${ad}" aria-label="${ad}">${(S.ayar.renk || 'yesil') === v ? '✓' : ''}</button>`).join('')}</div>
+        <div class="renkler">${[['yesil', '#0f5a47', t('Yeşil')], ['lacivert', '#1d3f72', t('Lacivert')], ['bordo', '#7a1f2b', t('Bordo')], ['mor', '#4b2a7a', t('Mor')], ['sepya', '#6b4423', t('Sepya')], ['kalem', 'linear-gradient(135deg,#f7f0e4 0 45%,#6e2a3a 45%)', t('Krem-bordo')]].map(([v, c, ad]) => `<button class="${(S.ayar.renk || 'yesil') === v ? 'aktif' : ''}" data-renk="${v}" style="background:${c}" title="${ad}" aria-label="${ad}">${(S.ayar.renk || 'yesil') === v ? '✓' : ''}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Yazı boyutu')}</b></p>
         <div class="satir sola">${[[0.9, 'A−'], [1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="btn ${(S.ayar.yazi || 1) === v ? '' : 'ikincil'}" data-yazi="${v}">${ad}</button>`).join('')}</div>
         <p style="margin-top:12px"><b>${t('Arapça yazı boyutu')}</b></p>
@@ -2012,7 +2012,7 @@
       <article class="kart"><h2>${t('🔊 Ses hızı')}</h2>
         <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div></article>
       <article class="kart"><h2>${t('💾 Yedek')}</h2><p>${t('İlerlemen ve geçmişin telefonda saklanır. Uygulamayı silmeden önce ya da yeni bir telefona geçerken yedeğini kopyalayıp bir yere (not, e-posta) kaydet.')}</p>
-        <textarea id="yedek" rows="4" readonly>${esc(yedek)}</textarea>
+        <textarea id="yedek" rows="4" readonly aria-label="${t('Yedek verisi')}">${esc(yedek)}</textarea>
         <div class="satir sola"><button class="btn" id="kopyala">${t('Yedeği kopyala')}</button></div>
         <p>${t('Yedeği geri yüklemek için aşağıya yapıştır:')}</p>
         <textarea id="yukle" rows="3" placeholder="${t('Yedeği buraya yapıştır')}"></textarea>
@@ -2020,7 +2020,7 @@
       <article class="kart"><h2>${t('📚 Kaynaklar')}</h2><ul class="kaynak">${KAYNAK.map(k => `<li>${esc(k)}</li>`).join('')}</ul>
         <p class="soluk">${t('Tecvid kulakla öğrenilen bir ilimdir. Bu uygulama bir hocadan ders almanın yerini tutmaz, onu destekler.')}</p></article>
       <article class="kart"><h2>${t('🐞 Hata kaydı')}</h2><p class="soluk">${t('Uygulamada bir sorun olursa burada görünür. Kopyalayıp bize gönderebilirsin.')}</p>
-        <textarea id="hataKaydi" rows="4" readonly>${esc((() => { try { return JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]').join('\n') || t('Kayıtlı hata yok.'); } catch (e) { return ''; } })())}</textarea>
+        <textarea id="hataKaydi" rows="4" readonly aria-label="${t('Hata kaydı')}">${esc((() => { try { return JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]').join('\n') || t('Kayıtlı hata yok.'); } catch (e) { return ''; } })())}</textarea>
         <p class="soluk kucukyazi">${esc(navigator.userAgent)}</p></article>
       <article class="kart"><h2>${t('⚠️ Sıfırla')}</h2><p>${t('Bütün ilerleme ve geçmiş silinir.')}</p><button class="btn tehlike" id="sifirla">${t('Her şeyi sıfırla')}</button></article>
     </main>`;
@@ -2774,14 +2774,15 @@
   // İlk kez açan yetişkine kısa tanıtım (kapatılabilir kart)
   function tanitimKarti() {
     if (S.ayar.tanitim) return '';
-    return `<section class="kart tanitim"><h2>${t('👋 Hızlı tanıtım')}</h2><ul>
-      <li>${t('<b>📅 Bugünkü dersim</b>: her gün buradan başla; tekrar, yeni ders ve alıştırma sırayla gelir.')}</li>
-      <li>${t('<b>📖 Tecvid</b>: bölümler sırayla açılır. Konuyu biliyorsan doğrudan testine girebilirsin.')}</li>
-      <li>${t('<b>🕌 Kur\'an</b>: renkli tecvid, kâri sesi ve okuma raporu (okuyuşundaki hataları gösterir).')}</li>
-      <li>${t('<b>🧠 Ezber</b> ve <b>📝 Testler</b>: ezber takibi, karma testler ve geçmişin. <b>👤 Profil</b>: ayarlar, sınıf, profiller.')}</li></ul>
+    const k = [['📅', t('Bugünkü dersim'), t('Her gün buradan başla: tekrar, yeni ders, alıştırma.'), 'gunluk'],
+      ['📖', t('Tecvid'), t('Bölümler sırayla açılır; biliyorsan doğrudan teste gir.'), 'mufredat'],
+      ['🕌', t('Kur\'an'), t('Renkli tecvid, kâri sesi ve yapay zekâ okuma kontrolü.'), 'sureler'],
+      ['🧭', t('Sûre sûre tecvid'), t('Ayet ayet: önce sen bul, sonra öğren.'), 'sureTecvidSec']];
+    return `<section class="kart tanitim"><h2>${t('👋 Hoş geldin! Uygulamada neler var?')}</h2>
+      <div class="tanitim-izgara">${k.map(([ik, ad, ac, g]) => `<button data-git="${g}"><span>${ik}</span><b>${ad}</b><small>${ac}</small></button>`).join('')}</div>
+      <p class="soluk kucukyazi">${t('Ezber, testler, ayarlar ve sınıf alttaki menüde.')}</p>
       <button class="btn kucuk" id="tanitimKapat">${t('Anladım')}</button></section>`;
   }
-
 
   function basla() {
     let secildi = false; try { secildi = sessionStorage.getItem('hk.secildi') === '1'; } catch (e) { }
