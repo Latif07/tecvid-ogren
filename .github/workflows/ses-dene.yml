@@ -1,0 +1,49 @@
+name: Hece sesi denemesi (SILMA TTS)
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  uret:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+      - run: pip install -q silma-tts==1.0.5 || pip install -q silma-tts
+      - name: Paket bilgisi
+        shell: python
+        run: |
+          import inspect, silma_tts, os
+          from silma_tts.api import SilmaTTS
+          print(inspect.signature(SilmaTTS.__init__)); print(inspect.signature(SilmaTTS.infer))
+          kok = os.path.dirname(silma_tts.__file__)
+          for r, d, f in os.walk(kok):
+              for x in f:
+                  if x.endswith(('.wav', '.mp3', '.flac', '.txt', '.toml', '.yaml')): print(os.path.join(r, x))
+      - name: Heceleri üret
+        shell: python
+        run: |
+          import os, glob, silma_tts, subprocess
+          from silma_tts.api import SilmaTTS
+          kok = os.path.dirname(silma_tts.__file__)
+          ref = sorted(glob.glob(kok + '/**/*.wav', recursive=True))
+          print('referans adayları:', ref)
+          tts = SilmaTTS()
+          os.makedirs('ornek', exist_ok=True)
+          H = {'ayin': 'ع', 'ha': 'ح', 'hi': 'خ', 'kaf': 'ق', 'sad': 'ص', 'dad': 'ض', 'ti': 'ط', 'zi': 'ظ', 'gayin': 'غ', 'se': 'ث', 'zel': 'ذ', 'vav': 'و', 'be': 'ب'}
+          V = {'ustun': 'َ', 'esre': 'ِ', 'otre': 'ُ'}
+          isler = []
+          for ad, h in H.items():
+              isler.append((f'{ad}_uclu', f'{h}{V["ustun"]} {h}{V["esre"]} {h}{V["otre"]}'))
+              for vad, v in V.items(): isler.append((f'{ad}_{vad}', h + v))
+          for ad, metin in isler:
+              try:
+                  kw = dict(gen_text=metin, file_wave=f'ornek/{ad}.wav', seed=7, speed=0.8)
+                  if ref: kw.update(ref_file=ref[0], ref_text=None)
+                  tts.infer(**kw)
+                  subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', f'ornek/{ad}.wav', '-b:a', '64k', f'ornek/{ad}.mp3'])
+                  os.remove(f'ornek/{ad}.wav'); print('tamam', ad, metin)
+              except Exception as e: print('HATA', ad, repr(e)[:300])
+      - uses: actions/upload-artifact@v4
+        with: { name: hece-ornekleri, path: ornek/, retention-days: 7 }
