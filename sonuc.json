@@ -1,0 +1,422 @@
+[
+ {
+  "ad": "ayin_ustun",
+  "metin": "عَ",
+  "beklenen": "a",
+  "f1": 852,
+  "f2": 1326,
+  "olculen": "a",
+  "fonem": "a a",
+  "uygun": true
+ },
+ {
+  "ad": "ayin_esre",
+  "metin": "عِ",
+  "beklenen": "i",
+  "f1": 648,
+  "f2": 1689,
+  "olculen": "a",
+  "fonem": "a aɪ",
+  "uygun": false
+ },
+ {
+  "ad": "ayin_otre",
+  "metin": "عُ",
+  "beklenen": "u",
+  "f1": 618,
+  "f2": 1140,
+  "olculen": "a",
+  "fonem": "a ɑ",
+  "uygun": false
+ },
+ {
+  "ad": "ha_ustun",
+  "metin": "حَ",
+  "beklenen": "a",
+  "f1": 961,
+  "f2": 1543,
+  "olculen": "a",
+  "fonem": "s. a5",
+  "uygun": true
+ },
+ {
+  "ad": "ha_esre",
+  "metin": "حِ",
+  "beklenen": "i",
+  "f1": 637,
+  "f2": 1491,
+  "olculen": "a",
+  "fonem": "x a",
+  "uygun": false
+ },
+ {
+  "ad": "ha_otre",
+  "metin": "حُ",
+  "beklenen": "u",
+  "f1": 623,
+  "f2": 1390,
+  "olculen": "a",
+  "fonem": "",
+  "uygun": false
+ },
+ {
+  "ad": "hi_ustun",
+  "metin": "خَ",
+  "beklenen": "a",
+  "f1": 748,
+  "f2": 1342,
+  "olculen": "a",
+  "fonem": "x ɑu5",
+  "uygun": true
+ },
+ {
+  "ad": "hi_esre",
+  "metin": "خِ",
+  "beklenen": "i",
+  "f1": 664,
+  "f2": 1449,
+  "olculen": "a",
+  "fonem": "x ɑ5",
+  "uygun": false
+ },
+ {
+  "ad": "hi_otre",
+  "metin": "خُ",
+  "beklenen": "u",
+  "f1": 592,
+  "f2": 1070,
+  "olculen": "a",
+  "fonem": "f",
+  "uygun": false
+ },
+ {
+  "ad": "kaf_ustun",
+  "metin": "قَ",
+  "beklenen": "a",
+  "f1": 721,
+  "f2": 1281,
+  "olculen": "a",
+  "fonem": "ɑu5",
+  "uygun": true
+ },
+ {
+  "ad": "kaf_esre",
+  "metin": "قِ",
+  "beklenen": "i",
+  "f1": 564,
+  "f2": 1625,
+  "olculen": "a",
+  "fonem": "iɜ",
+  "uygun": false
+ },
+ {
+  "ad": "kaf_otre",
+  "metin": "قُ",
+  "beklenen": "u",
+  "f1": 599,
+  "f2": 1183,
+  "olculen": "a",
+  "fonem": "ɑ",
+  "uygun": false
+ },
+ {
+  "ad": "sad_ustun",
+  "metin": "صَ",
+  "beklenen": "a",
+  "f1": 691,
+  "f2": 1264,
+  "olculen": "a",
+  "fonem": "s ɑu5",
+  "uygun": true
+ },
+ {
+  "ad": "sad_esre",
+  "metin": "صِ",
+  "beklenen": "i",
+  "f1": 673,
+  "f2": 1282,
+  "olculen": "a",
+  "fonem": "s a5",
+  "uygun": false
+ },
+ {
+  "ad": "sad_otre",
+  "metin": "صُ",
+  "beklenen": "u",
+  "f1": 488,
+  "f2": 1038,
+  "olculen": "u",
+  "fonem": "s u5",
+  "uygun": true
+ },
+ {
+  "ad": "dad_ustun",
+  "metin": "ضَ",
+  "beklenen": "a",
+  "f1": 677,
+  "f2": 1230,
+  "olculen": "a",
+  "fonem": "t ɑu5",
+  "uygun": true
+ },
+ {
+  "ad": "dad_esre",
+  "metin": "ضِ",
+  "beklenen": "i",
+  "f1": 548,
+  "f2": 1244,
+  "olculen": "a",
+  "fonem": "",
+  "uygun": false
+ },
+ {
+  "ad": "dad_otre",
+  "metin": "ضُ",
+  "beklenen": "u",
+  "f1": 536,
+  "f2": 1170,
+  "olculen": "a",
+  "fonem": "m ʉ p aː",
+  "uygun": false
+ },
+ {
+  "ad": "ti_ustun",
+  "metin": "طَ",
+  "beklenen": "a",
+  "f1": 703,
+  "f2": 1220,
+  "olculen": "a",
+  "fonem": "ɑu5",
+  "uygun": true
+ },
+ {
+  "ad": "ti_esre",
+  "metin": "طِ",
+  "beklenen": "i",
+  "f1": 550,
+  "f2": 1286,
+  "olculen": "a",
+  "fonem": "",
+  "uygun": false
+ },
+ {
+  "ad": "ti_otre",
+  "metin": "طُ",
+  "beklenen": "u",
+  "f1": 542,
+  "f2": 1046,
+  "olculen": "a",
+  "fonem": "",
+  "uygun": false
+ },
+ {
+  "ad": "zi_ustun",
+  "metin": "ظَ",
+  "beklenen": "a",
+  "f1": 693,
+  "f2": 1244,
+  "olculen": "a",
+  "fonem": "ts ɑu5",
+  "uygun": true
+ },
+ {
+  "ad": "zi_esre",
+  "metin": "ظِ",
+  "beklenen": "i",
+  "f1": 562,
+  "f2": 2060,
+  "olculen": "a",
+  "fonem": "ð ei5",
+  "uygun": false
+ },
+ {
+  "ad": "zi_otre",
+  "metin": "ظُ",
+  "beklenen": "u",
+  "f1": 534,
+  "f2": 1026,
+  "olculen": "a",
+  "fonem": "d uː",
+  "uygun": false
+ },
+ {
+  "ad": "gayin_ustun",
+  "metin": "غَ",
+  "beklenen": "a",
+  "f1": 730,
+  "f2": 1374,
+  "olculen": "a",
+  "fonem": "t ɑ5",
+  "uygun": true
+ },
+ {
+  "ad": "gayin_esre",
+  "metin": "غِ",
+  "beklenen": "i",
+  "f1": 650,
+  "f2": 1172,
+  "olculen": "a",
+  "fonem": "a",
+  "uygun": false
+ },
+ {
+  "ad": "gayin_otre",
+  "metin": "غُ",
+  "beklenen": "u",
+  "f1": 521,
+  "f2": 871,
+  "olculen": "a",
+  "fonem": "u5 k ɑu5",
+  "uygun": false
+ },
+ {
+  "ad": "se_ustun",
+  "metin": "ثَ",
+  "beklenen": "a",
+  "f1": 756,
+  "f2": 1629,
+  "olculen": "a",
+  "fonem": "a5",
+  "uygun": true
+ },
+ {
+  "ad": "se_esre",
+  "metin": "ثِ",
+  "beklenen": "i",
+  "f1": 387,
+  "f2": 2932,
+  "olculen": "i",
+  "fonem": "t i5",
+  "uygun": true
+ },
+ {
+  "ad": "se_otre",
+  "metin": "ثُ",
+  "beklenen": "u",
+  "f1": 533,
+  "f2": 1091,
+  "olculen": "a",
+  "fonem": "s ou5",
+  "uygun": false
+ },
+ {
+  "ad": "zel_ustun",
+  "metin": "ذَ",
+  "beklenen": "a",
+  "f1": 738,
+  "f2": 1580,
+  "olculen": "a",
+  "fonem": "t a5",
+  "uygun": true
+ },
+ {
+  "ad": "zel_esre",
+  "metin": "ذِ",
+  "beklenen": "i",
+  "f1": 386,
+  "f2": 2960,
+  "olculen": "i",
+  "fonem": "l i",
+  "uygun": true
+ },
+ {
+  "ad": "zel_otre",
+  "metin": "ذُ",
+  "beklenen": "u",
+  "f1": 532,
+  "f2": 1137,
+  "olculen": "a",
+  "fonem": "ð a",
+  "uygun": false
+ },
+ {
+  "ad": "vav_ustun",
+  "metin": "وَ",
+  "beklenen": "a",
+  "f1": 685,
+  "f2": 1297,
+  "olculen": "a",
+  "fonem": "w a5",
+  "uygun": true
+ },
+ {
+  "ad": "vav_esre",
+  "metin": "وِ",
+  "beklenen": "i",
+  "f1": 611,
+  "f2": 1532,
+  "olculen": "a",
+  "fonem": "w ei5",
+  "uygun": false
+ },
+ {
+  "ad": "vav_otre",
+  "metin": "وُ",
+  "beklenen": "u",
+  "f1": 551,
+  "f2": 793,
+  "olculen": "a",
+  "fonem": "aː",
+  "uygun": false
+ },
+ {
+  "ad": "be_ustun",
+  "metin": "بَ",
+  "beklenen": "a",
+  "f1": 749,
+  "f2": 1480,
+  "olculen": "a",
+  "fonem": "p a",
+  "uygun": true
+ },
+ {
+  "ad": "be_esre",
+  "metin": "بِ",
+  "beklenen": "i",
+  "f1": 344,
+  "f2": 2959,
+  "olculen": "i",
+  "fonem": "b i",
+  "uygun": true
+ },
+ {
+  "ad": "be_otre",
+  "metin": "بُ",
+  "beklenen": "u",
+  "f1": 426,
+  "f2": 1046,
+  "olculen": "u",
+  "fonem": "b ʉ b ʌ",
+  "uygun": true
+ },
+ {
+  "ad": "mim_ustun",
+  "metin": "مَ",
+  "beklenen": "a",
+  "f1": 753,
+  "f2": 1447,
+  "olculen": "a",
+  "fonem": "m a5",
+  "uygun": true
+ },
+ {
+  "ad": "mim_esre",
+  "metin": "مِ",
+  "beklenen": "i",
+  "f1": 361,
+  "f2": 2974,
+  "olculen": "i",
+  "fonem": "m i5",
+  "uygun": true
+ },
+ {
+  "ad": "mim_otre",
+  "metin": "مُ",
+  "beklenen": "u",
+  "f1": 314,
+  "f2": 1627,
+  "olculen": "?",
+  "fonem": "b ʌ",
+  "uygun": false
+ }
+]
