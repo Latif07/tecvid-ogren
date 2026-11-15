@@ -1086,7 +1086,8 @@
     const ez = {}; Object.entries(S.ezber || {}).forEach(([n, e]) => { ez[n] = [e.a, e.tam ? 1 : 0]; });
     const puanli = S.gecmis.filter(h => h.tur !== 'alistirma').slice(-20);
     const ok = S.okuma || [];
-    return { gizli: !!S.ayar.siralamaGizli, cocuk: cocukMu(), yildiz: cocukMu() && COCUK ? COCUK.toplamYildiz() : 0, ez, gecilen: U.filter(u => gecti(u.id)).length, toplam: U.length, b, son, seri: S.seri.gun || 0, seriSon: S.seri.son || '', test: S.gecmis.length, tekrar: vadesiGelenler().length,
+    const dk = {}; if (cocukMu() && S.cocuk && S.cocuk.d) Object.entries(S.cocuk.d).forEach(([id, v]) => { if (v && v.y) dk[id] = v.y; });
+    return { dk, gizli: !!S.ayar.siralamaGizli, cocuk: cocukMu(), yildiz: cocukMu() && COCUK ? COCUK.toplamYildiz() : 0, ez, gecilen: U.filter(u => gecti(u.id)).length, toplam: U.length, b, son, seri: S.seri.gun || 0, seriSon: S.seri.son || '', test: S.gecmis.length, tekrar: vadesiGelenler().length,
       ort: puanli.length ? Math.round(puanli.reduce((s, h) => s + h.yuzde, 0) / puanli.length) : null, ezAyet: Object.values(S.ezber || {}).reduce((s, e) => s + (e.a || 0), 0),
       ok: [ok.length, ok.filter(x => !x.j && !x.k).length], zaman: Date.now() };
   }
@@ -1104,6 +1105,12 @@
     } catch (e) { return c ? c.s : null; }
   }
   // Ana sayfadaki ödev kartları (her sınıf için)
+  // Çocuk profili: hocanın verdiği Harf Yolculuğu durağı ödevleri ('d:<durak>')
+  function cocukOdevleri() {
+    if (!girisli() || !ogrSiniflari().length) return Promise.resolve([]);
+    return Promise.all(ogrSiniflari().map(c => sinifBilgiGetir(c.kod))).then(l => l.filter(x => x && x.odev && String(x.odev.birim || '').startsWith('d:'))
+      .map(x => ({ sinif: x.ad || '', durak: x.odev.birim.slice(2), not: x.odev.not || '', son: x.odev.son || null, sonStr: x.odev.son ? odevSonStr(x.odev.son) : '' }))).catch(() => []);
+  }
   function odevKartiDoldur() {
     const yer = $('#odevYer'); if (!yer || !girisli() || !ogrSiniflari().length) return;
     Promise.all(ogrSiniflari().map(c => sinifBilgiGetir(c.kod))).then(l => {
@@ -1207,6 +1214,8 @@
       const yer = $('#ogrOdev'); if (!yer) return;
       if (!s) { yer.innerHTML = `<p class="soluk">${t('Sınıf bilgisi alınamadı (internet yok olabilir).')}</p>`; return; }
       const o = s.odev, u = o && unitById(o.birim);
+      const dOdev = o && String(o.birim || '').startsWith('d:');
+      if (dOdev) { const id = o.birim.slice(2), ok = !!(S.cocuk && S.cocuk.d && S.cocuk.d[id] && S.cocuk.d[id].y); yer.innerHTML = `<p>${t('📌 Ödev: ')}<b>${esc(odevAd(o.birim))}</b>${o.son ? ' · ' + t('son gün: {0}', odevSonStr(o.son)) : ''} ${ok ? '<span class="yesil">✓</span>' : ''}</p>${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}`; return; }
       yer.innerHTML = u ? `<p>${t('📌 Ödev: ')}<b>${u.ikon} ${esc(u.ad)}</b>${o.son ? ' · ' + t('son gün: {0}', odevSonStr(o.son)) : ''} ${gecti(u.id) ? '<span class="yesil">✓</span>' : ''}</p>${o.not ? `<p class="soluk">“${esc(o.not)}”</p>` : ''}` : `<p class="soluk">${t('Şu an verilmiş bir ödev yok.')}</p>`;
     });
     B().ogrenciler(kod).then(l => { const k = $('#sirala'); if (k) siralamaBagla(k, l, B().kullanici().uid); })
@@ -1222,6 +1231,34 @@
     };
   };
 
+  const ADA_AD = { harf: t('Harf Adası'), hareke: t('Hareke Adası'), okuma: t('Okuma Adası'), sure: t('Sûreler Adası') };
+  const durakEtiket = d => `${ADA_AD[d.ada] || ''} · ${d.ad}${d.tur === 'harf' ? ' (' + d.harf + ')' : ''}`;
+  const odevAd = birim => { if (String(birim).startsWith('d:')) { const d = COCUK && COCUK.DURAK.find(x => x.id === birim.slice(2)); return d ? '🧒 ' + durakEtiket(d) : birim; } const u = unitById(birim); return u ? u.ikon + ' ' + u.ad : birim; };
+  const odevTamam = (birim, z) => String(birim).startsWith('d:') ? !!(z.dk && z.dk[birim.slice(2)]) : !!(z.b && z.b[birim] && z.b[birim][1]);
+  // Yazdırılabilir sınıf raporu (tarayıcıda Yazdır/PDF; telefonda metin olarak paylaş)
+  EKRAN.sinifRapor = function (kod) {
+    if (!B() || !B().hazir || !girisli()) return girisIste(t('Sınıf'));
+    app.innerHTML = `${ust(t('Sınıf raporu'))}<main id="sr"><p class="soluk">${t('Yükleniyor…')}</p></main>`;
+    const yer = $('#sr');
+    Promise.all([B().sinifGetir(kod), B().ogrenciler(kod)]).then(([s, l]) => {
+      if (!document.body.contains(yer) || !s) return;
+      const o = s.odev || {}; l.sort((a, b) => String(a.ad).localeCompare(String(b.ad), 'tr'));
+      const satirlar = l.map(x => { const z = x.ozet || {}; return { ad: x.ad || '?', cocuk: !!z.cocuk, bolum: `${z.gecilen || 0}/${z.toplam || U.length}`, yildiz: z.cocuk ? z.yildiz || 0 : null, durak: Object.keys(z.dk || {}).length, seri: z.seri || 0, ort: z.ort, ez: z.ezAyet || 0, odev: o.birim ? odevTamam(o.birim, z) : null, son: x.guncelleme ? new Date(x.guncelleme).toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { day: '2-digit', month: '2-digit' }) : '—' }; });
+      const cocukVar = satirlar.some(x => x.cocuk), buyukVar = satirlar.some(x => !x.cocuk);
+      yer.innerHTML = `<article class="kart rapor"><h2>${esc(s.ad || '')} <small class="soluk">${esc(kod)}</small></h2>
+          <p class="soluk kucukyazi">${t('Rapor tarihi: {0} · {1} öğrenci', tarihStr(Date.now()), l.length)}${o.birim ? ' · ' + t('Ödev: {0}', esc(odevAd(o.birim))) : ''}</p>
+          <div class="rapor-kap"><table class="rapor-tablo"><thead><tr><th>${t('Öğrenci')}</th>${buyukVar ? `<th>${t('Bölüm')}</th><th>${t('Ort.')}</th><th>${t('Ezber')}</th>` : ''}${cocukVar ? `<th>★</th><th>${t('Durak')}</th>` : ''}<th>🔥</th>${o.birim ? `<th>${t('Ödev')}</th>` : ''}<th>${t('Son')}</th></tr></thead>
+          <tbody>${satirlar.map(x => `<tr><td>${esc(x.ad)}</td>${buyukVar ? `<td>${x.cocuk ? '—' : x.bolum}</td><td>${x.cocuk || x.ort == null ? '—' : yuzdeStr(x.ort)}</td><td>${x.cocuk ? '—' : x.ez}</td>` : ''}${cocukVar ? `<td>${x.cocuk ? x.yildiz : '—'}</td><td>${x.cocuk ? x.durak : '—'}</td>` : ''}<td>${x.seri}</td>${o.birim ? `<td>${x.odev ? '✓' : '·'}</td>` : ''}<td class="kucukyazi">${esc(x.son)}</td></tr>`).join('')}</tbody></table></div></article>
+        <div class="satir sola rapor-dugmeler"><button class="btn" id="raporYazdir">🖨️ ${t('Yazdır / PDF')}</button><button class="btn ikincil" id="raporPaylas">📤 ${t('Metin olarak paylaş')}</button></div>
+        <p class="soluk kucukyazi">${t('Telefonda yazdırma çalışmazsa “Metin olarak paylaş” ile WhatsApp ya da e-postayla gönderebilirsin.')}</p>`;
+      $('#raporYazdir').onclick = () => { try { window.print(); } catch (e) { toast(t('Bu cihazda yazdırma desteklenmiyor.')); } };
+      $('#raporPaylas').onclick = async () => {
+        const yazi = [`${s.ad || ''} (${kod}) — ${tarihStr(Date.now())}`, o.birim ? t('Ödev: {0}', odevAd(o.birim)) : '', ''].concat(satirlar.map(x => `• ${x.ad}: ${x.cocuk ? `★${x.yildiz}, ${t('{0} durak', x.durak)}` : `${t('{0} bölüm', x.bolum)}${x.ort != null ? ', ' + t('ort. {0}', yuzdeStr(x.ort)) : ''}`}, 🔥${x.seri}${o.birim ? ', ' + t('ödev') + ' ' + (x.odev ? '✓' : '✗') : ''}`)).filter((x, i) => x || i > 1).join('\n');
+        try { if (navigator.share) { await navigator.share({ text: yazi }); return; } } catch (e) { return; }
+        try { await navigator.clipboard.writeText(yazi); toast(t('Kopyalandı')); } catch (e) { toast(t('Paylaşılamadı')); }
+      };
+    }).catch(e => { if (document.body.contains(yer)) yer.innerHTML = `<p class="hata">${esc(e.message)}</p>`; });
+  };
   EKRAN.sinifDetay = function (kod) {
     if (!B() || !B().hazir || !girisli()) return girisIste(t('Sınıf'));
     app.innerHTML = `${ust(t('Sınıf'))}<main id="sd"><p class="soluk">${t('Yükleniyor…')}</p></main>`;
@@ -1233,7 +1270,7 @@
       ogrenciler.sort((a, b) => ((b.ozet || {}).gecilen || 0) - ((a.ozet || {}).gecilen || 0) || String(a.ad).localeCompare(String(b.ad)));
       const satir = x => {
         const z = x.ozet || {}, top = z.toplam || U.length;
-        const odevDurum = o.birim ? (z.b && z.b[o.birim] && z.b[o.birim][1] ? `<span class="rozet ok">${t('✓ ödev')}</span>` : `<span class="rozet kilit">${t('ödev bekliyor')}</span>`) : '';
+        const odevDurum = o.birim ? (odevTamam(o.birim, z) ? `<span class="rozet ok">${t('✓ ödev')}</span>` : `<span class="rozet kilit">${t('ödev bekliyor')}</span>`) : '';
         const p = Math.round((z.gecilen || 0) / top * 100);
         const bolumler = U.filter(u => z.b && z.b[u.id]).map(u => `<li>${u.ikon} ${esc(u.ad)}: <b class="${z.b[u.id][1] ? 'yesil' : 'kirmizi'}">${yuzdeStr(z.b[u.id][0])}</b></li>`).join('');
         const son = (z.son || []).map(h => `<li>${esc(h.k ? baslikBul({ kimlik: h.k, baslik: h.b }) : h.b)}: <b>${yuzdeStr(h.y)}</b> <small class="soluk">${tarihStr(h.t)}</small></li>`).join('');
@@ -1242,7 +1279,8 @@
           ${bolumler ? `<p style="margin-top:10px"><b>${t('Bölümler')}</b></p><ul class="kaynak">${bolumler}</ul>` : `<p class="soluk">${t('Henüz test çözmedi.')}</p>`}
           ${son ? `<p><b>${t('Son testler')}</b></p><ul class="kaynak">${son}</ul>` : ''}
           ${z.ez && Object.keys(z.ez).length ? `<p><b>${t('Ezber')}</b></p><ul class="kaynak">${Object.entries(z.ez).map(([n, v]) => `<li>${esc(sureNoAdi(+n))}: ${v[1] ? `<b class="yesil">✓</b>` : t('{0} ayet', v[0])}</li>`).join('')}</ul>` : ''}
-          <p class="soluk kucukyazi">${t('Toplam test: {0} · Bekleyen tekrar: {1}', z.test || 0, z.tekrar || 0)}</p>
+            ${z.cocuk ? `<p><b>${t('Harf Yolculuğu')}</b>: ★ ${z.yildiz || 0} · ${t('{0} durak', Object.keys(z.dk || {}).length)}</p>` : ''}
+        <p class="soluk kucukyazi">${t('Toplam test: {0} · Bekleyen tekrar: {1}', z.test || 0, z.tekrar || 0)}</p>
           <button class="btn ikincil tehlike-yazi" data-cikar="${esc(x.uid)}">${t('Sınıftan çıkar')}</button></details>`;
       };
       yer.innerHTML = `<article class="kart ortala"><h2>${esc(s.ad || '')}</h2>
@@ -1251,10 +1289,13 @@
           <div class="satir"><button class="btn" id="paylas">${t('📤 Kodu paylaş')}</button><button class="btn ikincil" id="yenile">${t('🔄 Yenile')}</button></div></article>
         <article class="kart form"><h2>${t('📌 Ödev ver')}</h2>
           <label>${t('Bölüm')}<select id="odevBirim" style="display:block;width:100%;margin-top:6px;padding:10px"><option value="">${t('— ödev yok —')}</option>
-            ${U.map(u => `<option value="${u.id}" ${o.birim === u.id ? 'selected' : ''}>${u.ikon} ${u.ara ? '' : dersler.indexOf(u) + '. '}${esc(u.ad)}</option>`).join('')}</select></label>
+            <optgroup label="${t('📘 Tecvid bölümleri')}">${U.map(u => `<option value="${u.id}" ${o.birim === u.id ? 'selected' : ''}>${u.ikon} ${u.ara ? '' : dersler.indexOf(u) + '. '}${esc(u.ad)}</option>`).join('')}</optgroup>
+            ${COCUK ? `<optgroup label="${t('🧒 Harf Yolculuğu (çocuk profilleri)')}">${COCUK.DURAK.map(d => `<option value="d:${d.id}" ${o.birim === 'd:' + d.id ? 'selected' : ''}>${esc(durakEtiket(d))}</option>`).join('')}</optgroup>` : ''}</select></label>
           <label>${t('Son gün (isteğe bağlı)')}<input id="odevSon" type="date" value="${esc(o.son || '')}"></label>
           <label>${t('Not (isteğe bağlı)')}<input id="odevNot" maxlength="200" value="${esc(o.not || '')}" placeholder="${t('ör. Örnekleri 3 kez dinleyin')}"></label>
+          <label class="anahtar-satir" id="topluSatir" hidden><input type="checkbox" id="odevToplu"> <span id="topluYazi"></span></label>
           <button class="btn genis" id="odevKaydet">${t('Ödevi kaydet')}</button></article>
+        <div class="satir sola"><button class="btn ikincil" data-git="sinifRapor|${esc(kod)}">🖨️ ${t('Sınıf raporu')}</button></div>
         <h2 class="baslik">${t('🏆 Sınıf sıralaması')}</h2><article class="kart" id="sirala"></article>
         <h2 class="baslik">${t('🎧 Ezber dinletmeleri')}</h2><div id="dinletmeler"><p class="soluk">${t('Yükleniyor…')}</p></div>
         <h2 class="baslik">${t('Öğrenciler ({0})', ogrenciler.length)}</h2>
@@ -1279,10 +1320,14 @@
         y.querySelectorAll('[data-puan]').forEach(b => b.onclick = async () => { try { await B().dinletmeDegerlendir(kod, b.dataset.id, b.dataset.puan, y.querySelector(`[data-not="${b.dataset.id}"]`).value); toast(t('Değerlendirme kaydedildi ✓')); ciz(); } catch (x) { toast(x.message); } });
         y.querySelectorAll('[data-dsil]').forEach(b => b.onclick = async () => { if (!confirm(t('Bu kayıt silinsin mi?'))) return; try { await B().dinletmeSil(kod, b.dataset.dsil); ciz(); } catch (x) { toast(x.message); } });
       }).catch(x => { const y = $('#dinletmeler'); if (y) y.innerHTML = `<p class="hata">${esc(x.message)}</p>`; });
+      // Birden çok sınıfı olan hoca aynı ödevi hepsine verebilir (yaz kursu)
+      let digerSiniflar = [];
+      B().siniflarim().then(l2 => { digerSiniflar = l2.filter(x => x.kod !== kod); if (digerSiniflar.length && $('#topluSatir')) { $('#topluSatir').hidden = false; $('#topluYazi').textContent = t('Aynı ödevi diğer {0} sınıfıma da ver', digerSiniflar.length); } }).catch(() => { });
       $('#odevKaydet').onclick = async e => {
         const birim = $('#odevBirim').value; const btn = e.currentTarget; btn.disabled = true;
         const odev = birim ? { birim, son: $('#odevSon').value || null, not: $('#odevNot').value.trim() || null, verildi: Date.now() } : null;
-        try { await B().odevVer(kod, odev); toast(odev ? t('Ödev verildi ✓') : t('Ödev kaldırıldı')); } catch (x) { toast(x.message); }
+        const kodlar = [kod].concat($('#odevToplu') && $('#odevToplu').checked ? digerSiniflar.map(x => x.kod) : []);
+        try { for (const k_ of kodlar) await B().odevVer(k_, odev); toast(odev ? (kodlar.length > 1 ? t('Ödev {0} sınıfa verildi ✓', kodlar.length) : t('Ödev verildi ✓')) : t('Ödev kaldırıldı')); } catch (x) { toast(x.message); }
         btn.disabled = false;
       };
       yer.querySelectorAll('[data-cikar]').forEach(b => b.onclick = async () => {
@@ -2249,7 +2294,7 @@
     d.onclick = kapat; setTimeout(kapat, kisa ? 1000 : 2600);
   }
   // Çocuk modu (cocuk.js) bağlanır
-  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), sureSes: n => sureSesDurum(n), ayetCal: (r, btn) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn) }) : null;
+  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), sureSes: n => sureSesDurum(n), ayetCal: (r, btn) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn), odevler: () => cocukOdevleri() }) : null;
   // ------------------------------------------------------------ MEŞK MODU (özel: Ayarlar'dan açılır)
   // Geleneksel meşk: hoca parça parça okur, öğrenci tekrar eder, hata düzeltilir; parça yeterince doğru
   // okununca sonrakine geçilir, sonunda ayetin tamamı birlikte okunur.

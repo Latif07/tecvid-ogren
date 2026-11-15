@@ -714,12 +714,20 @@
           <div class="c-hedef"><span>${bugunY ? '✅' : '🎯'}</span>${bugunY ? t('Bugünkü hedef tamam! Yarın görüşürüz.') : t('Bugünkü hedef: 1 durak')}</div></div></section>
         ${S().ayar.sesKontrol ? '' : `<section class="kart c-ses-kontrol"><h2>${t('🔊 Sesimi duyuyor musun?')}</h2><p>${t('Yönergeleri sesli okuyorum. Önce bir dene:')}</p>
           <div class="satir sola"><button class="btn ikincil" id="sesDene">${t('🔊 Dene')}</button><button class="btn" id="sesVar">${t('✓ Duyuyorum')}</button><button class="btn ikincil" id="sesYok">${t('✗ Duymuyorum')}</button></div><div id="sesYardim"></div></section>`}
+        <div id="cOdev"></div>
         ${s ? `<button class="btn genis c-btn" data-durak="${s.id}">${yarim ? t('▶ Kaldığın yerden devam et') : t('▶ Devam et')}</button>` : ''}
         ${(() => { const sd = DURAK.filter(d => d.ada === 'sure'), sir = sd.find(d => !yildiz(d.id)) || sd[0]; return sir && (!s || s.ada !== 'sure') ? `<button class="btn genis ikincil c-sure-kisa" data-durak="${sir.id}">📖 ${t('Sûreler Adası: {0}', esc(sir.ad))}</button>` : ''; })()}
         <div class="c-harita">${harita}</div>
         <p class="soluk ortala kucukyazi">${t('Kısa ve sık çalışmak en iyisi: her gün bir durak yeter.')}</p>
       </main>`;
       app.querySelectorAll('[data-durak]').forEach(b => b.onclick = () => durakBaslat(b.dataset.durak));
+      if (api.odevler) api.odevler().then(l => {
+        const yer = document.getElementById('cOdev'); if (!yer) return;
+        yer.innerHTML = l.filter(o => durakBul(o.durak)).map(o => { const d = durakBul(o.durak), y = yildiz(d.id);
+          return `<section class="kart c-odev ${y ? 'tamam' : ''}"><div class="c-odev-ikon">📌</div><div><b>${t('Hocanın ödevi')}</b><p>${esc(d.ad)}${o.sonStr ? ` · <small>${t('son gün: {0}', esc(o.sonStr))}</small>` : ''}</p>${o.not ? `<p class="soluk kucukyazi">“${esc(o.not)}”</p>` : ''}</div>
+            ${y ? `<span class="c-mini-yildiz">${'★'.repeat(y)}</span>` : `<button class="btn" data-odev="${d.id}">${t('Başla')}</button>`}</section>`; }).join('');
+        yer.querySelectorAll('[data-odev]').forEach(b => b.onclick = () => durakBaslat(b.dataset.odev));
+      });
       const sd = document.getElementById('sesDene'); if (sd) {
         sd.onclick = () => { Sesli.acik = true; Sesli.soyle(t('Selâmün aleyküm! Sesimi duyuyor musun?')); };
         document.getElementById('sesVar').onclick = () => { S().ayar.sesKontrol = 'var'; kaydet(); api.ciz(); };

@@ -722,3 +722,16 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .hafta-gun small { color: var(--soluk); font-size: .72rem; }
 .bu-hafta h3 { margin: 12px 0 6px; font-size: 1rem; }
 .bu-hafta .hk { width: 100%; }
+.c-odev { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; border: 2px solid #ffd24a; background: linear-gradient(120deg, #fffbe8, var(--kart)); }
+.c-odev > div:nth-child(2) { flex: 1; } .c-odev p { margin: 2px 0 0; } .c-odev-ikon { font-size: 1.8rem; }
+.c-odev.tamam { border-color: var(--iyi); background: var(--iyi-bg); }
+.rapor-kap { overflow-x: auto; }
+.rapor-tablo { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.rapor-tablo th, .rapor-tablo td { padding: 7px 4px; border-bottom: 1px solid var(--cizgi); text-align: left; white-space: nowrap; }
+.rapor-tablo th { font-size: .78rem; color: var(--soluk); }
+@media print {
+  .ust, .alt-menu, .rapor-dugmeler, .rapor-dugmeler + p, .toast { display: none !important; }
+  body, .kart { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  main { max-width: none; padding: 0; }
+  .rapor-tablo th, .rapor-tablo td { border-color: #999; color: #000; }
+}
