@@ -237,7 +237,7 @@
   }
   window.sesDurdur = () => sesDurdur();
   window.SesDugme = { caliyor: dugmeCaliyor, birak: dugmeBirak, calan: () => calanDugme };
-  function cal(url, btn, yedekUrl) {
+  function cal(url, btn, yedekUrl, bitince) {
     // Aynı düğmeye (ya da düğmesiz aynı sese) tekrar dokunulursa durdur
     if (btn && btn === calanDugme) { sesDurdur(); return; }
     if (!btn && ses && ses._url === url && !ses._bitti) { sesDurdur(); return; }
@@ -247,11 +247,12 @@
     const bitir = () => { if (ses === a) ses = null; if (btn) dugmeBirak(btn); };
     const hata = () => {
       if (a._iptal) return; bitir();
+      if (bitince) { bitince(); return; }   // ardından gelen konuşma yine olsun; çocuğa hata gösterme
       // Seçilen kârinin kaydı bulunamazsa Husarî (öğretim) ile çal
       if (yedekUrl && yedekUrl !== url && navigator.onLine !== false) { toast(t('Bu kârinin kaydı açılamadı; Husarî ile çalınıyor.')); cal(yedekUrl, btn); return; }
       toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.'));
     };
-    a.onended = () => { a._bitti = true; bitir(); };
+    a.onended = () => { a._bitti = true; bitir(); if (bitince) bitince(); };
     a.onerror = hata;
     a.play().catch(e => { if (a._iptal) return; if (e && e.name === 'NotAllowedError') { bitir(); return; } hata(); });
   }
@@ -2329,7 +2330,7 @@
     d.onclick = kapat; setTimeout(kapat, kisa ? 1000 : 2600);
   }
   // Çocuk modu (cocuk.js) bağlanır
-  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), sureSes: n => sureSesDurum(n), ayetCal: (r, btn) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn), odevler: () => cocukOdevleri() }) : null;
+  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), sureSes: n => sureSesDurum(n), ayetCal: (r, btn, bitince) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn, undefined, bitince), odevler: () => cocukOdevleri() }) : null;
   // ------------------------------------------------------------ MEŞK MODU (özel: Ayarlar'dan açılır)
   // Geleneksel meşk: hoca parça parça okur, öğrenci tekrar eder, hata düzeltilir; parça yeterince doğru
   // okununca sonrakine geçilir, sonunda ayetin tamamı birlikte okunur.

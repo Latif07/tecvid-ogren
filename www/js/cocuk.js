@@ -60,7 +60,9 @@
 
   // ------------------------------------------------------------ yumuşak "tık" sesi (müzik aleti yok)
   let AC = null;
+  let sonTik = 0;
   function tik(iyi) {
+    const n = Date.now(); if (n - sonTik < 90) return; sonTik = n;
     try {
       AC = AC || new (window.AudioContext || window.webkitAudioContext)();
       const o = AC.createOscillator(), g = AC.createGain(), s = AC.currentTime;
@@ -77,23 +79,31 @@
     acik: true,
     soyle(metin) {
       if (!this.acik || !metin) return;
-      metin = String(metin).replace(/<[^>]+>/g, '').replace(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+/g, '').replace(/[🙂✨🎉🎯✏️⭐▶›]/gu, '').replace(/\s+/g, ' ').trim();
+      metin = String(metin).replace(/<[^>]+>/g, '').replace(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+/g, '')
+        .replace(/\(s\.a\.v\.\)/g, EN ? '(peace be upon him)' : 'sallallahu aleyhi ve sellem')
+        .replace(/[\p{Extended_Pictographic}\uFE0F\u200D▶›★☆←→]/gu, '').replace(/[‘’ʿʾ“”"]/g, '');
+      // Türkçe konuşma motoru için harf adlarının okunuşu (yazıdaki ad değişmez)
+      if (!EN) metin = metin.replace(/(?<!\p{L})Ğayn(?!\p{L})/gu, 'Gayın').replace(/(?<!\p{L})Ayn(?!\p{L})/gu, 'Ayın');
+      metin = metin.replace(/\s+/g, ' ').trim();
       if (!metin) return;
+      // Konuşma başlarken çalan ayet/harf sesi durur (sesler üst üste binmesin)
+      if (window.sesDurdur && !this._sesDurdurma) window.sesDurdur(); if (window.HarfSes && HarfSes.dur) HarfSes.dur();
       const lang = EN ? 'en-GB' : 'tr-TR';
       const TTS = window.capEklenti && window.capEklenti('TextToSpeech');
       const no = ++this._no, bitti = () => { if (this._no === no) { this.konusuyor = false; this._dugme && this._dugme(); this._dugme = null; } };
       this.konusuyor = true;
-      if (TTS) { TTS.stop().catch(() => { }).then(() => TTS.speak({ text: metin, lang, rate: .95 })).then(bitti, bitti); return; }
+      // Flush: yeni konuşma öncekini keser; sıra numarası eski isteklerin sonradan başlamasını engeller
+      if (TTS) { TTS.speak({ text: metin, lang, rate: .95, queueStrategy: 0 }).then(bitti, bitti); return; }
       try { const ss = window.speechSynthesis; if (!ss) return bitti(); ss.cancel(); const u = new SpeechSynthesisUtterance(metin); u.lang = lang; u.rate = .95; u.onend = bitti; u.onerror = bitti; ss.speak(u); } catch (e) { bitti(); }
     },
     _no: 0, konusuyor: false, _dugme: null,
     // Düğmeli konuşma: konuşurken düğme ⏹ olur, tekrar dokununca susar
     dugmeyle(btn, metin) {
       if (this.konusuyor && this._btn === btn) { this.sus(); return; }
-      this.sus(); const D = window.SesDugme; if (window.sesDurdur) window.sesDurdur();
+      this.sus(); const D = window.SesDugme; if (window.sesDurdur) window.sesDurdur(); if (window.HarfSes && HarfSes.dur) HarfSes.dur();
       const a = this.acik; this.acik = true; this._btn = btn;
       if (btn && D) D.caliyor(btn); this._dugme = () => { if (btn && D) D.birak(btn); this._btn = null; };
-      this.soyle(metin); this.acik = a;
+      this._sesDurdurma = true; this.soyle(metin); this._sesDurdurma = false; this.acik = a;
     },
     sus() { const TTS = window.capEklenti && window.capEklenti('TextToSpeech'); if (TTS) TTS.stop().catch(() => { }); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { }
       this._no++; this.konusuyor = false; if (this._dugme) { const f = this._dugme; this._dugme = null; f(); } }
@@ -552,7 +562,18 @@
         <div class="c-sepet" aria-live="polite"><span class="c-sepet-ikon">🧺</span><span class="c-sepet-ic"></span><b>0 / 3</b></div></div>`;
       return `${q.ses ? `<div class="c-goster"><button class="c-dinle buyuk" data-hses="${q.ses}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.ayetSes ? `<div class="c-goster"><button class="c-dinle buyuk" data-ayet="${q.ayetSes}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.goster ? `<div class="c-goster">${q.goster}</div>` : ''}<div class="c-secenekler ${q.arSec ? 'ar-sec' : ''} ${q.uzun ? 'uzun' : ''} ${q.kelime ? 'kelime' : ''} n${q.secenek.length}">${q.secenek.map((s, i) => `<button class="c-secenek" data-i="${i}">${q.arSec ? ar(s) : esc(s)}</button>`).join('')}</div>`;
     }
-    function konus(m, sesli) { const b = document.querySelector('.c-balon-yazi'); if (b) { b.innerHTML = m; const k = b.parentNode; k.classList.remove('yeni'); void k.offsetWidth; k.classList.add('yeni'); } Sesli.soyle(sesli || m); }
+    function konus(m, sesli) { const b = document.querySelector('.c-balon-yazi'); if (b) { b.innerHTML = m; const k = b.parentNode; k.classList.remove('yeni'); void k.offsetWidth; k.classList.add('yeni'); } if (sesli !== false) Sesli.soyle(sesli || m); }
+    // Üst üste dokunmalar: yanlış cevaptan sonra kısa süre başka dokunuş alınmaz (ses ve hata sayısı birikmesin)
+    let kilitBit = 0;
+    const bekle = () => Date.now() < kilitBit;
+    // Besmeleyle başlayan yönerge: besmele gerçek tilavetten (Husarî) dinletilir, kalanı konuşma motoruyla
+    function balonSoyle(btn, metin) {
+      if (Sesli.konusuyor && Sesli._btn === btn) { Sesli.sus(); return; }
+      const m = /^(Bismill[^.!]*[.!])\s*/i.exec(metin || '');
+      if (!m || !api.ayetCal) return Sesli.dugmeyle(btn, metin);
+      const kalan = metin.slice(m[0].length);
+      Sesli.sus(); api.ayetCal('1:1', btn, () => { if (document.body.contains(btn)) Sesli.dugmeyle(btn, kalan); });
+    }
 
     EKRAN.cocukDurak = function (id) {
       const d = durakBul(id);
@@ -600,13 +621,13 @@
       const mj = D.adim === 'bitti' ? app.querySelector('[data-mujde]') : null;
       const sesliMetin = sq ? (sq.sesli || sq.soru) : balon + (mj && kucuk() ? ' ' + mj.dataset.mujde : '');
       if (mj) mj.onclick = () => Sesli.dugmeyle(mj, mj.dataset.mujde);
-      const hop = app.querySelector('.c-hoparlor'); hop.onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses, hop); else if (sq && sq.ayetSes) api.ayetCal(sq.ayetSes, hop); else Sesli.dugmeyle(hop, sesliMetin); };
+      const hop = app.querySelector('.c-hoparlor'); hop.onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses, hop); else if (sq && sq.ayetSes) api.ayetCal(sq.ayetSes, hop); else balonSoyle(hop, sesliMetin); };
       app.querySelectorAll('[data-ayet]').forEach(b => b.onclick = () => api.ayetCal(b.dataset.ayet, b));
       app.querySelectorAll('[data-oku]').forEach(b => b.onclick = () => { b.outerHTML = `<b class="oku-acik">${b.dataset.oku}</b>`; });
       app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { const i = +b.dataset.tekrar; D.tekrar[i] = !D.tekrar[i]; if (D.tekrar[i]) { tik(true); Konfeti.patlat(b, 14); } durakSakla(); b.classList.toggle('tamam', !!D.tekrar[i]); b.textContent = D.tekrar[i] ? '✓' : t('Tekrar ettim'); b.closest('.c-ayet').classList.toggle('tamam', !!D.tekrar[i]); });
       const si = document.getElementById('sureIndir'); if (si) si.onclick = () => { api.sureSes(d.n).indir(); si.disabled = true; si.textContent = t('İndiriliyor…'); };
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
-      if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) Sesli.dugmeyle(hop, sesliMetin); }, 200); }
+      if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
       app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses, b));
       app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => Sesli.dugmeyle(b, b.dataset.hadi));
       durakSakla();
@@ -628,6 +649,7 @@
       setTimeout(sonra, 950);
     }
     function yanlisCevap(el, ipucu, dogru, secilen) {
+      if (bekle()) return; kilitBit = Date.now() + 900;
       D.hata++;
       if (dogru && secilen && HARF.includes(dogru) && HARF.includes(secilen)) { const c = C(); c.hata = c.hata || {}; const k = dogru + '|' + secilen; c.hata[k] = (c.hata[k] || 0) + 1; kaydet(); } tik(false); el.classList.remove('salla'); void el.offsetWidth; el.classList.add('salla', 'soluk-sec');
       konus(t('Bir daha dene 🙂') + (ipucu ? ' ' + ipucu : ''));
@@ -640,12 +662,14 @@
       const q = D.sorular[D.i];
       if (q.tip === 'sec') {
         document.querySelectorAll('.c-secenek').forEach(b => b.onclick = () => {
+          if (bekle() || b.disabled) return;
           const s = q.secenek[+b.dataset.i];
           if (s === q.dogru) dogruCevap(b, () => sonrakiSoru(d)); else yanlisCevap(b, q.ipucu, q.dogru, s);
         });
       } else if (q.tip === 'dizi') {
         let n = 0; const vagon = document.querySelectorAll('.c-vagon');
         document.querySelectorAll('.c-kutu').forEach(b => b.onclick = () => {
+          if (bekle()) return;
           if (b.dataset.h !== q.dizi[n]) { yanlisCevap(b, t('Elif-Ba sırasını düşün.'), q.dizi[n], b.dataset.h); return; }
           vagon[n].innerHTML = ar(b.dataset.h); vagon[n].classList.add('dolu'); b.disabled = true; b.style.visibility = 'hidden'; n++; tik(true);
           if (n === q.dizi.length) dogruCevap(document.querySelector('.c-tren'), () => sonrakiSoru(d));
@@ -654,6 +678,7 @@
         let secili = null, n = 0;
         document.querySelectorAll('[data-eh]').forEach(b => b.onclick = () => { document.querySelectorAll('[data-eh]').forEach(x => x.classList.remove('secili')); secili = b; b.classList.add('secili'); });
         document.querySelectorAll('[data-ea]').forEach(b => b.onclick = () => {
+          if (bekle()) return;
           if (!secili) { konus(t('Önce bir harf seç, sonra adını seç.')); return; }
           if (b.dataset.ea !== secili.dataset.eh) { yanlisCevap(b, '', secili.dataset.eh, b.dataset.ea); return; }
           [b, secili].forEach(x => { x.classList.remove('secili', 'soluk-sec'); x.classList.add('eslesti'); x.disabled = true; }); Konfeti.patlat(b, 12); tik(true); secili = null; n++;
@@ -669,7 +694,7 @@
           if (q.kartlar[+x.dataset.hk] === q.kartlar[+y.dataset.hk]) {
             [x, y].forEach(z => { z.classList.add('eslesti'); z.disabled = true; }); Konfeti.patlat(y, 14); bulunan++;
             if (bulunan * 2 === q.kartlar.length) dogruCevap(document.querySelector('.c-hafiza'), () => sonrakiSoru(d));
-            else konus(t('Buldun! Devam et.'));
+            else konus(t('Buldun! Devam et.'), false);
           } else { kilit = true; setTimeout(() => { x.classList.remove('cevrildi'); y.classList.remove('cevrildi'); kilit = false; }, 850); }
         });
       } else if (q.tip === 'yagmur') {
@@ -683,11 +708,11 @@
           yeni(); if (!durgun) b.style.animationDelay = (-Math.random() * 5) + 's';
           b.addEventListener('animationiteration', yeni);
           b.onclick = () => {
-            if (bitti) return;
+            if (bitti || bekle()) return;
             if (b.dataset.h !== q.harf) { yanlisCevap(b, t('Bu {0} değil.', esc(adi(q.harf) || '')), q.harf, b.dataset.h); setTimeout(() => b.classList.remove('soluk-sec'), 600); return; }
             n++; tik(true); Konfeti.patlat(b, 12); say.textContent = n + ' / 3'; b.classList.add('patla');
             setTimeout(() => yeni(), 250);
-            if (n === 3) { bitti = true; dogruCevap(alan, () => sonrakiSoru(d)); } else konus(t('Güzel! {0} tane kaldı.', 3 - n));
+            if (n === 3) { bitti = true; dogruCevap(alan, () => sonrakiSoru(d)); } else konus(t('Güzel! {0} tane kaldı.', 3 - n), false);
           };
           alan.appendChild(b);
         };
@@ -696,6 +721,7 @@
       } else if (q.tip === 'sepet') {
         let n = 0; const sepet = document.querySelector('.c-sepet'), ic = sepet.querySelector('.c-sepet-ic'), say = sepet.querySelector('b');
         document.querySelectorAll('.c-kutu').forEach(b => b.onclick = () => {
+          if (bekle()) return;
           if (b.dataset.h !== q.harf) { yanlisCevap(b, t('Bu {0} değil.', esc(adi(q.harf) || '')), q.harf, b.dataset.h); return; }
           // harf özenle sepete taşınır
           const r1 = b.getBoundingClientRect(), r2 = sepet.getBoundingClientRect();
@@ -703,7 +729,7 @@
           b.classList.add('tasindi'); b.disabled = true; n++; tik(true);
           setTimeout(() => { ic.insertAdjacentHTML('beforeend', ar(q.harf)); say.textContent = n + ' / 3'; b.style.visibility = 'hidden'; }, 420);
           if (n === 3) setTimeout(() => dogruCevap(sepet, () => sonrakiSoru(d)), 460);
-          else konus(t('Güzel! {0} tane kaldı.', 3 - n));
+          else konus(t('Güzel! {0} tane kaldı.', 3 - n), false);
         });
       }
     }
