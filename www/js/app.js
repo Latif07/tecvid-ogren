@@ -635,7 +635,7 @@
     app.innerHTML = `${ust(t('Hüsn-i Kıraat'), false, `<button class="hesapbtn" data-git="hesap" aria-label="${t('Hesap')}">${k ? '👤' : t('Giriş')}</button>`)}
       <main>
         <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
-        ${tanitimKarti()}${gunlukKarti()}${yarimKarti()}
+        ${tanitimKarti()}${haftaOzetKarti()}${gunlukKarti()}${yarimKarti()}
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>${t('tamam')}</small></div>
           <div><p class="buyukyazi">${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</p>
@@ -655,6 +655,7 @@
         <button class="kart mufredat-kart" data-git="mufredat"><span class="mufredat-ikon">📚</span><span><b>${t('Müfredat')}</b><small>${t('{0}/{1} bölüm · bütün dersler ve sınavlar', gecilen, toplam)}</small></span><span class="gunluk-ok">›</span></button>
       </main>`;
     odevKartiDoldur(); yarimBagla(); gununSorusuBagla();
+    const hk_ = $('#haftaKapat'); if (hk_) hk_.onclick = () => { S.ayar.haftaKartKapali = Date.now(); kaydet(); ciz(); };
     const tk = $('#tanitimKapat'); if (tk) tk.onclick = () => { S.ayar.tanitim = 1; kaydet(); ciz(); };
     const ik = $('#iosKapat'); if (ik) ik.onclick = () => { try { localStorage.setItem('tecvid-ogren.ios', '1'); } catch (e) { } ciz(); };
     const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
@@ -2076,7 +2077,7 @@
     app.innerHTML = `${ust(t('Hoş geldin'), false)}<main class="hosgeldin">
       <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
       <h2>${PR.liste.length > 1 ? t('Bu profili kim kullanacak?') : t('Uygulamayı kim kullanacak?')}</h2>
-      <label class="alan"><span>${t('Adı (isteğe bağlı)')}</span><input id="pAd" maxlength="20" value="${esc(p.ad || '')}" placeholder="${t('Örn. Zeynep')}" autocomplete="off"></label>
+      <label class="alan"><span>${t('Adı (isteğe bağlı)')}</span><input id="pAd" maxlength="20" value="${esc(p.ad || '')}" placeholder="${t('Örn. Beyza')}" autocomplete="off"></label>
       <div class="yas-kartlar">${YAS_KART.map(([k, ik, ad, alt]) => `<button class="yas-kart y-${k}" data-yas="${k}"><span>${ik}</span><b>${ad}</b><small>${alt}</small></button>`).join('')}</div>
       <p class="soluk kucukyazi">${t('Yaş grubu yalnızca uygulamayı yaşa göre ayarlamak için kullanılır ve bir daha sorulmaz. Profil → Profiller bölümünden değiştirilebilir.')}</p></main>`;
     app.querySelectorAll('[data-yas]').forEach(b => b.onclick = () => {
@@ -2104,7 +2105,7 @@
   // ------------------------------------------------------------ profilleri yönet
   EKRAN.profiller = function (duzenle) {
     const form = (p, yeni) => `<div class="profil-form kart" data-form="${yeni ? 'yeni' : p.id}">
-      <label class="alan"><span>${t('Adı')}</span><input class="fAd" maxlength="20" value="${esc(p.ad || '')}" placeholder="${t('Örn. Zeynep')}" autocomplete="off"></label>
+      <label class="alan"><span>${t('Adı')}</span><input class="fAd" maxlength="20" value="${esc(p.ad || '')}" placeholder="${t('Örn. Beyza')}" autocomplete="off"></label>
       <div class="cipler yas-cip">${YAS_KART.map(([k, ik, ad]) => `<button class="${p.yas === k ? 'aktif' : ''}" data-fy="${k}">${ik} ${ad}</button>`).join('')}</div>
       <div class="satir">${!yeni && p.id !== 'p1' ? `<button class="btn ikincil tehlike" data-sil="${p.id}">${t('Sil')}</button>` : ''}<button class="btn" data-kaydet="${yeni ? 'yeni' : p.id}">${yeni ? t('Profil ekle') : t('Kaydet')}</button></div></div>`;
     app.innerHTML = `${ust(t('Profiller'))}<main>
@@ -2629,8 +2630,43 @@
     };
     app.innerHTML = `${ust(t('Çocuk özeti'))}<main>
       ${cocuklar.length ? cocuklar.map(kart).join('') : `<article class="kart"><p>${t('Henüz çocuk profili yok. Profiller bölümünden 4–6 ya da 7–12 yaş için profil ekleyebilirsin.')}</p><button class="btn" data-git="profiller">${t('Profiller')}</button></article>`}
+      ${cocuklar.length && COCUK && COCUK.HarfSesSayi && COCUK.HarfSesSayi() === 0 ? `<article class="kart hesap-uyari"><div><h2>${t('🎙️ Harf sesleri henüz kaydedilmedi')}</h2><p>${t('Çocuğunuz harfleri sizin ya da hocasının sesinden duyarsa çok daha iyi öğrenir. Her harfi bir kez kaydetmeniz yeterli; “dinle ve bul” oyunları da açılır.')}</p></div><button class="btn" data-git="harfSesleri">${t('Harf seslerini kaydet')}</button></article>` : ''}
+      ${cocuklar.length ? `<article class="kart"><h2>${t('📅 Haftalık hatırlatma')}</h2>${LN() ? `<p>${t('Her pazar akşamı bu özete birlikte bakmanız için telefonunuza bir bildirim gelsin.')}</p>
+        <label class="anahtar-satir"><input type="checkbox" id="haftaOzet" ${(S.ayar.haftaOzet || {}).acik ? 'checked' : ''}> ${t('Pazar akşamı hatırlat')}</label>
+        <input type="time" id="haftaSaat" value="${(S.ayar.haftaOzet || {}).saat || '19:00'}">` : `<p class="soluk">${t('Bildirim hatırlatması Android uygulamasında çalışır. Burada her pazar ve pazartesi ana sayfada bir kart görürsünüz.')}</p>`}</article>` : ''}
       <p class="soluk kucukyazi">${t('Özet bu telefondaki verilerden hazırlanır.')}</p></main>`;
+    const ho = $('#haftaOzet'), hs = $('#haftaSaat');
+    const kur = async () => { S.ayar.haftaOzet = { acik: ho.checked, saat: hs.value || '19:00' }; kaydet(); const ok = await haftaOzetKur(true); if (ho.checked && !ok) { ho.checked = false; S.ayar.haftaOzet.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); } else if (ho.checked) toast(t('Tamam, her pazar {0}\'de hatırlatacağım.', hs.value)); };
+    if (ho) { ho.onchange = kur; hs.onchange = () => { if (ho.checked) kur(); }; }
   };
+  // Haftalık çocuk özeti bildirimi: önümüzdeki 4 pazar, seçilen saatte (yalnız ayarı açan profilde kurulur/silinir)
+  const HAFTA_ID = [7200, 7201, 7202, 7203];
+  async function haftaOzetKur(izinIste) {
+    const ln = LN(), h = S.ayar.haftaOzet; if (!ln || !h) return false;
+    try {
+      await ln.cancel({ notifications: HAFTA_ID.map(id => ({ id })) });
+      if (!h.acik) return true;
+      let izin = await ln.checkPermissions();
+      if (izin.display !== 'granted' && izinIste) izin = await ln.requestPermissions();
+      if (izin.display !== 'granted') return false;
+      const [sa, dk] = (h.saat || '19:00').split(':').map(Number), l = [];
+      const at = new Date(); at.setHours(sa, dk, 0, 0); at.setDate(at.getDate() + ((7 - at.getDay()) % 7));
+      if (at.getTime() <= Date.now() + 60000) at.setDate(at.getDate() + 7);
+      for (let i = 0; i < 4; i++) { const z = new Date(at); z.setDate(z.getDate() + 7 * i); l.push({ id: HAFTA_ID[i], title: t('Hüsn-i Kıraat'), body: t('📊 Haftalık çocuk özeti hazır. Bu hafta neler öğrendiklerine birlikte bakın.'), schedule: { at: z, allowWhileIdle: true }, extra: { git: 'ebeveynOzet' } }); }
+      await ln.schedule({ notifications: l });
+      return true;
+    } catch (e) { console.warn('haftalık özet', e); return false; }
+  }
+  (() => { const ln = LN(); if (!ln || !ln.addListener) return;
+    try { Promise.resolve(ln.addListener('localNotificationActionPerformed', e => { const g = e && e.notification && e.notification.extra && e.notification.extra.git; if (g && !cocukMu()) git(g); })).catch(() => { }); } catch (e) { } })();
+  // Pazar ve pazartesi: çocuk profili olan büyüklere ana sayfada haftalık özet kartı
+  function haftaOzetKarti() {
+    const g = new Date().getDay(); if (g !== 0 && g !== 1) return '';
+    if (!PR.liste.some(p => p.yas === 'kucuk' || p.yas === 'cocuk')) return '';
+    if (S.ayar.haftaKartKapali && Date.now() - S.ayar.haftaKartKapali < 3 * GUN) return '';
+    return `<section class="kart hafta-ozet-kart"><div><h2>${t('📊 Haftalık çocuk özeti hazır')}</h2><p>${t('Bu hafta neler öğrendiklerine birlikte bakın.')}</p></div>
+      <div class="satir sola"><button class="btn" data-git="ebeveynOzet">${t('Özete bak')}</button><button class="btn ikincil" id="haftaKapat">${t('Sonra')}</button></div></section>`;
+  }
 
   // Çocuk sûreleri: Husarî (öğretim) sesleri telefona indirilir (yalnız Android uygulamasında)
   function sureSesDurum(n) {

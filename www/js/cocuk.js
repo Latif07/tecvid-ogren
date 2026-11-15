@@ -172,6 +172,7 @@
     'ك': [0, '', 0, 'k', 'k'], 'ل': [0, '', 0, 'l', 'l'], 'م': [0, '', 0, 'm', 'm'], 'ن': [1, 'ust', 0, 'n', 'n'], 'و': [0, '', 0, 'v', 'w'],
     'ه': [0, '', 0, 'h', 'h'], 'لا': [0, '', 0, '', ''], 'ي': [2, 'alt', 0, 'y', 'y']
   };
+  const azHareket = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const BITISMEZ = new Set(['ا', 'د', 'ذ', 'ر', 'ز', 'و']);
   const BENZER = [['ب', 'ت', 'ث', 'ن', 'ي'], ['ج', 'ح', 'خ'], ['د', 'ذ'], ['ر', 'ز'], ['س', 'ش'], ['ص', 'ض'], ['ط', 'ظ'], ['ع', 'غ'], ['ف', 'ق'], ['ك', 'ل'], ['م', 'ه', 'و'], ['ا', 'لا']];
   const HAREKE = ['َ', 'ِ', 'ُ'], TENVIN = ['ً', 'ٍ', 'ٌ'], MED = ['ا', 'ي', 'و'], CEZM = 'ْ', SEDDE = 'ّ';
@@ -260,6 +261,31 @@
         return { tip: 'dizi', soru: t('Harf treni: Elif-Ba sırasıyla dokun!'), dizi, kutular: karistir(dizi) };
       }
     }
+    // Hafıza kartları: kapalı kartları çevir, aynı iki harfi bul (hata sayılmaz)
+    function hafizaSorusu(h, havuz, cift) {
+      const l = [h, ...karistir(havuz.filter(x => x !== h)).slice(0, cift - 1)];
+      return { tip: 'hafiza', soru: t('Hafıza oyunu: aynı iki harfi bul!'), kartlar: karistir(l.concat(l)) };
+    }
+    // Harf yağmuru: yukarıdan düşen harflerden doğrusuna 3 kez dokun
+    function yagmurSorusu(h, havuz) {
+      const diger = benzerleri(h, 5).concat(havuz.filter(x => x !== h)).slice(0, 5);
+      return { tip: 'yagmur', soru: t('Harf yağmuru! {0} harfine 3 kez dokun.', `<span class="ar">${h}</span>`), sesli: t('Harf yağmuru! {0} harfine üç kez dokun.', adi(h)), harf: h, diger };
+    }
+    // Kelimede harf bul: kısa sûrelerden kelimeler (harekeleri ve işaretleri ayıklanarak harf aranır)
+    let KELIMELER = null;
+    const harfIskelet = w => w.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[ٱأإآ]/g, 'ا');
+    function kelimeler() {
+      if (KELIMELER) return KELIMELER;
+      const l = new Set(); (window.SURELER || []).forEach(x => x.ayet.forEach(a => a.split(' ').forEach(w => { const i = harfIskelet(w); if (i.length >= 3 && i.length <= 6 && !/[ةىءئؤ]/.test(i)) l.add(w); })));
+      return (KELIMELER = [...l]);
+    }
+    function kelimedeSorusu(h) {
+      if (h === 'ا' || h === 'لا') return null;
+      const L = kelimeler(), var_ = L.filter(w => harfIskelet(w).includes(h)), yok = L.filter(w => !harfIskelet(w).includes(h));
+      if (!var_.length || yok.length < 2) return null;
+      const dogru = sec1(var_);
+      return secenekli({ soru: t('Hangi kelimede {0} var?', `<span class="ar">${h}</span>`), sesli: t('Hangi kelimede {0} harfi var?', adi(h)), goster: ar(h, 'dev'), dogru, secenek: karistir([dogru, ...karistir(yok).slice(0, 2)]), arSec: true, uzun: true, kelime: true, ipucu: t('Harf kelimenin içinde başka şekle girer; noktalarına bak.') });
+    }
     // Eşleştirme: harf ↔ adı (havuzdan 3 harf)
     function eslestirSorusu(h, havuz) {
       const l = [h, ...karistir(havuz.filter(x => x !== h)).slice(0, 2)];
@@ -332,16 +358,18 @@
     }
     function sorularHazirla(d) {
       const kk = kucuk(); let q = [];
+      const uret = (x, h, havuz) => x === 'eslestir' ? eslestirSorusu(h, havuz) : x === 'hafiza' ? hafizaSorusu(h, havuz, kk ? 2 : 3)
+        : x === 'yagmur' ? yagmurSorusu(h, havuz) : x === 'kelime' ? (kelimedeSorusu(h) || harfSorusu('golge', h)) : harfSorusu(h === 'لا' && x === 'sekil' ? 'ayni' : x, h);
       if (d.tur === 'harf') {
         const hi = HARF.indexOf(d.harf), havuz = HARF.slice(0, hi + 1);
         // son oyun duraktan durağa değişir: eşleştirme, gölge, harf treni
-        const son = hi < 2 ? 'golge' : ['eslestir', 'golge', 'dizi'][hi % 3];
-        const turler = kk ? ['ayni', 'nokta', 'sepet', hi % 2 ? 'golge' : 'ayni'] : ['ad', 'ayni', 'sepet', 'nokta', 'sekil', son];
-        q = turler.map(x => x === 'eslestir' ? eslestirSorusu(d.harf, havuz) : harfSorusu(d.harf === 'لا' && x === 'sekil' ? 'ayni' : x, d.harf));
+        const son = hi < 2 ? 'golge' : ['eslestir', 'golge', 'dizi', 'kelime'][hi % 4];
+        const turler = kk ? ['ayni', 'nokta', hi % 2 ? 'sepet' : 'yagmur', hi % 2 ? 'golge' : 'ayni'] : ['ad', 'ayni', hi % 2 ? 'sepet' : 'yagmur', 'nokta', 'sekil', son];
+        q = turler.map(x => uret(x, d.harf, havuz));
       } else if (d.tur === 'tekrar') {
         const havuz = HARF.slice(0, d.son + 1), yeni = havuz.slice(-8);
-        const turler = kk ? ['ayni', 'sepet', 'golge', 'nokta', 'ayni'] : ['ad', 'sekil', 'sepet', 'eslestir', 'dizi', 'golge', 'ad'];
-        q = turler.map((x, i) => { const h = sec1(i % 3 === 2 ? havuz : yeni); return x === 'eslestir' ? eslestirSorusu(h, havuz) : harfSorusu(h === 'لا' && x === 'sekil' ? 'ayni' : x, h); });
+        const turler = kk ? ['ayni', 'hafiza', 'golge', 'yagmur', 'ayni'] : ['ad', 'sekil', 'hafiza', 'eslestir', 'dizi', 'kelime', 'yagmur'];
+        q = turler.map((x, i) => uret(x, sec1(i % 3 === 2 ? havuz : yeni), havuz));
       } else if (d.tur === 'hareke') {
         const i = () => d.h >= 0 ? d.h : rnd(3);
         const turler = kk ? ['yer', 'yer', 'yer', 'yer'] : (d.h >= 0 ? ['yer', 'oku', 'bul', 'oku', 'bul', 'yer'] : ['okuV', 'bulV', 'okuV', 'yer', 'bulV', 'okuV']);
@@ -383,7 +411,7 @@
         // (besmele satırı EKRAN.cocukDurak içinde eklenir)
         const nokta = h === 'لا' ? t('Lam ile elif birleşince lamelif olur.') : b[0] === 0 ? t('Hiç noktası yok.') : t('{0} noktası var, harfin {1}.', b[0], b[1] === 'alt' ? t('altında') : t('üstünde'));
         const sekiller = h === 'لا' || h === 'ا' ? '' : `<div class="c-sekiller"><div>${ar(h)}<small>${t('Tek')}</small></div><div>${ar(h + (BITISMEZ.has(h) ? '' : 'ـ'))}<small>${t('Başta')}</small></div><div>${ar((BITISMEZ.has(h) ? 'ـ' + h : 'ـ' + h + 'ـ'))}<small>${t('Ortada')}</small></div><div>${ar('ـ' + h)}<small>${t('Sonda')}</small></div></div>`;
-        return `<div class="c-tanis"><div class="c-dev-harf">${ar(h)}</div><h2>${esc(adi(h))}</h2>${HarfSes.var('h:' + h) ? `<button class="c-dinle" data-hses="h:${h}">🔊 ${t('Dinle')}</button>` : ''}<p>${nokta}</p>${kucuk() ? '' : sekiller}</div>`;
+        return `<div class="c-tanis"><div class="c-dev-harf">${ar(h)}</div><h2>${esc(adi(h))}</h2>${HarfSes.var('h:' + h) ? `<button class="c-dinle" data-hses="h:${h}">🔊 ${t('Dinle')}</button>` : `<button class="c-dinle ikincil" data-hadi="${esc(adi(h))}">🗣️ ${t('Adını duy')}</button>`}<p>${nokta}</p>${kucuk() ? '' : sekiller}</div>`;
       }
       if (d.tur === 'hareke') {
         const i = d.h, ornek = ['ب', 'ت', 'ق'];
@@ -481,12 +509,14 @@
     }
 
     function soruHTML(q) {
+      if (q.tip === 'hafiza') return `<div class="c-hafiza n${q.kartlar.length}">${q.kartlar.map((h, i) => `<button class="c-kutu c-kart-kapali" data-hk="${i}" aria-label="${t('Kart {0}', i + 1)}"><span class="on">⭐</span><span class="arka">${ar(h)}</span></button>`).join('')}</div>`;
+      if (q.tip === 'yagmur') return `<div class="c-yagmur ${azHareket() ? 'durgun' : ''}" aria-live="polite"><div class="c-yagmur-say"><b>0 / 3</b></div></div>`;
       if (q.tip === 'dizi') return `<p class="soluk ortala">${t('Elif-Ba\'daki sırayla: önce gelen harfe önce dokun.')}</p><div class="c-tren">${q.dizi.map(() => '<span class="c-vagon"></span>').join('')}<span class="c-lokomotif">🚂</span></div>
         <div class="c-kutular">${q.kutular.map((h, i) => `<button class="c-kutu" data-k="${i}" data-h="${h}">${ar(h)}</button>`).join('')}</div>`;
       if (q.tip === 'eslestir') return `<div class="c-eslestir"><div>${q.harfler.map(h => `<button class="c-kutu" data-eh="${h}">${ar(h)}</button>`).join('')}</div><div>${q.adlar.map(h => `<button class="c-kutu c-ad" data-ea="${h}">${esc(adi(h))}</button>`).join('')}</div></div>`;
       if (q.tip === 'sepet') return `<div class="c-sepet-alan"><div class="c-kutular">${q.kutular.map((h, i) => `<button class="c-kutu" data-k="${i}" data-h="${h}">${ar(h)}</button>`).join('')}</div>
         <div class="c-sepet" aria-live="polite"><span class="c-sepet-ikon">🧺</span><span class="c-sepet-ic"></span><b>0 / 3</b></div></div>`;
-      return `${q.ses ? `<div class="c-goster"><button class="c-dinle buyuk" data-hses="${q.ses}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.ayetSes ? `<div class="c-goster"><button class="c-dinle buyuk" data-ayet="${q.ayetSes}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.goster ? `<div class="c-goster">${q.goster}</div>` : ''}<div class="c-secenekler ${q.arSec ? 'ar-sec' : ''} ${q.uzun ? 'uzun' : ''} n${q.secenek.length}">${q.secenek.map((s, i) => `<button class="c-secenek" data-i="${i}">${q.arSec ? ar(s) : esc(s)}</button>`).join('')}</div>`;
+      return `${q.ses ? `<div class="c-goster"><button class="c-dinle buyuk" data-hses="${q.ses}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.ayetSes ? `<div class="c-goster"><button class="c-dinle buyuk" data-ayet="${q.ayetSes}">🔊 ${t('Tekrar dinle')}</button></div>` : ''}${q.goster ? `<div class="c-goster">${q.goster}</div>` : ''}<div class="c-secenekler ${q.arSec ? 'ar-sec' : ''} ${q.uzun ? 'uzun' : ''} ${q.kelime ? 'kelime' : ''} n${q.secenek.length}">${q.secenek.map((s, i) => `<button class="c-secenek" data-i="${i}">${q.arSec ? ar(s) : esc(s)}</button>`).join('')}</div>`;
     }
     function konus(m, sesli) { const b = document.querySelector('.c-balon-yazi'); if (b) { b.innerHTML = m; const k = b.parentNode; k.classList.remove('yeni'); void k.offsetWidth; k.classList.add('yeni'); } Sesli.soyle(sesli || m); }
 
@@ -542,6 +572,7 @@
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
       if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => Sesli.soyle(sesliMetin), 200); }
       app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses));
+      app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => { const a_ = Sesli.acik; Sesli.acik = true; Sesli.soyle(b.dataset.hadi); Sesli.acik = a_; });
       durakSakla();
       const gec = document.getElementById('cBuyuge'); if (gec) gec.onclick = () => api.buyugeGec();
       const ileri = document.getElementById('cIleri'); if (ileri) ileri.onclick = () => { D.adim = adimlar[adimlar.indexOf('tanis') + 1]; api.ciz(); window.scrollTo(0, 0); };
@@ -592,6 +623,40 @@
           [b, secili].forEach(x => { x.classList.remove('secili', 'soluk-sec'); x.classList.add('eslesti'); x.disabled = true; }); Konfeti.patlat(b, 12); tik(true); secili = null; n++;
           if (n === q.harfler.length) dogruCevap(document.querySelector('.c-eslestir'), () => sonrakiSoru(d));
         });
+      } else if (q.tip === 'hafiza') {
+        let acik = [], bulunan = 0, kilit = false;
+        document.querySelectorAll('[data-hk]').forEach(b => b.onclick = () => {
+          if (kilit || b.classList.contains('cevrildi')) return;
+          b.classList.add('cevrildi'); tik(true); acik.push(b);
+          if (acik.length < 2) return;
+          const [x, y] = acik; acik = [];
+          if (q.kartlar[+x.dataset.hk] === q.kartlar[+y.dataset.hk]) {
+            [x, y].forEach(z => { z.classList.add('eslesti'); z.disabled = true; }); Konfeti.patlat(y, 14); bulunan++;
+            if (bulunan * 2 === q.kartlar.length) dogruCevap(document.querySelector('.c-hafiza'), () => sonrakiSoru(d));
+            else konus(t('Buldun! Devam et.'));
+          } else { kilit = true; setTimeout(() => { x.classList.remove('cevrildi'); y.classList.remove('cevrildi'); kilit = false; }, 850); }
+        });
+      } else if (q.tip === 'yagmur') {
+        const alan = document.querySelector('.c-yagmur'), say = alan.querySelector('b'); let n = 0, bitti = false;
+        const durgun = alan.classList.contains('durgun');
+        const harfSec = () => Math.random() < .4 ? q.harf : sec1(q.diger);
+        const damla = (i) => {
+          const b = document.createElement('button'); b.className = 'c-kutu c-damla';
+          const yeni = () => { const h = harfSec(); b.dataset.h = h; b.innerHTML = ar(h); b.classList.remove('soluk-sec', 'salla', 'patla');
+            if (!durgun) { b.style.left = (4 + ((i * 23 + rnd(14)) % 78)) + '%'; b.style.animationDuration = (4.2 + Math.random() * 2.4) + 's'; } };
+          yeni(); if (!durgun) b.style.animationDelay = (-Math.random() * 5) + 's';
+          b.addEventListener('animationiteration', yeni);
+          b.onclick = () => {
+            if (bitti) return;
+            if (b.dataset.h !== q.harf) { yanlisCevap(b, t('Bu {0} değil.', esc(adi(q.harf) || '')), q.harf, b.dataset.h); setTimeout(() => b.classList.remove('soluk-sec'), 600); return; }
+            n++; tik(true); Konfeti.patlat(b, 12); say.textContent = n + ' / 3'; b.classList.add('patla');
+            setTimeout(() => yeni(), 250);
+            if (n === 3) { bitti = true; dogruCevap(alan, () => sonrakiSoru(d)); } else konus(t('Güzel! {0} tane kaldı.', 3 - n));
+          };
+          alan.appendChild(b);
+        };
+        for (let i = 0; i < (durgun ? 6 : 5); i++) damla(i);
+        if (durgun) alan.querySelectorAll('.c-damla').forEach(b => b.addEventListener('click', () => setTimeout(() => { alan.querySelectorAll('.c-damla').forEach(x => { if (!x.classList.contains('patla')) { const h = harfSec(); x.dataset.h = h; x.innerHTML = ar(h); } }); }, 300)));
       } else if (q.tip === 'sepet') {
         let n = 0; const sepet = document.querySelector('.c-sepet'), ic = sepet.querySelector('.c-sepet-ic'), say = sepet.querySelector('b');
         document.querySelectorAll('.c-kutu').forEach(b => b.onclick = () => {
@@ -691,10 +756,14 @@
         <h2 class="baslik">${t('Yıldızımın rengi')}</h2>
         <div class="c-renkler">${Object.entries(MASKOT_RENK).map(([k, r]) => { const ac = top >= r[4]; return `<button class="c-renk ${C().renk === k || (!C().renk && k === 'altin') ? 'secili' : ''}" data-mrenk="${k}" ${ac ? '' : 'disabled'} aria-label="${k}">${MASKOT(44, '', k)}${ac ? '' : `<small>🔒 ${r[4]}★</small>`}</button>`; }).join('')}</div>
         <h2 class="baslik">${t('Çıkartma albümüm')}</h2>
-        <div class="c-album">${CIKARTMA.map((e, i) => `<div class="${i < cikSay ? 'acik' : ''}">${i < cikSay ? e : '?'}</div>`).join('')}</div>
+        <div class="c-album">${CIKARTMA.map((e, i) => i < cikSay ? `<button class="acik" data-cik="${e}" aria-label="${t('Çıkartma {0}', i + 1)}">${e}</button>` : `<div><span>?</span><small>${(i + 1) * CIKARTMA_ADIM}★</small></div>`).join('')}</div>
         <p class="soluk ortala kucukyazi">${t('Her {0} yıldızda yeni bir çıkartma açılır.', CIKARTMA_ADIM)}</p>
       </main>`;
       app.querySelectorAll('[data-mrenk]').forEach(b => b.onclick = () => { C().renk = b.dataset.mrenk; kaydet(); Konfeti.patlat(b, 20); api.ciz(); });
+      app.querySelectorAll('[data-cik]').forEach(b => b.onclick = () => {
+        const d = document.createElement('div'); d.className = 'modal-arka'; d.innerHTML = `<div class="c-cik-buyuk" role="dialog">${b.dataset.cik}</div>`;
+        document.body.appendChild(d); tik(true); Konfeti.patlat(d.firstChild, 30); d.onclick = () => d.remove(); setTimeout(() => d.remove(), 2200);
+      });
     };
 
     // ---------------------------------------------------------- hoca için: harf seslerini kaydetme
@@ -733,7 +802,7 @@
       });
     };
 
-    return { DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
+    return { HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
   window.MASKOT = MASKOT;

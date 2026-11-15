@@ -246,7 +246,7 @@
  "Bu profili kim kullanacak?": "Who will use this profile?",
  "Uygulamayı kim kullanacak?": "Who will use the app?",
  "Adı (isteğe bağlı)": "Name (optional)",
- "Örn. Zeynep": "e.g. Zainab",
+ "Örn. Beyza": "e.g. Beyza",
  "Yaş grubu yalnızca uygulamayı yaşa göre ayarlamak için kullanılır ve bir daha sorulmaz. Profil → Profiller bölümünden değiştirilebilir.": "The age group is only used to adapt the app to the user's age and is not asked again. It can be changed under Profile → Profiles.",
  "Kim çalışıyor?": "Who is studying?",
  "Profil {0}": "Profile {0}",

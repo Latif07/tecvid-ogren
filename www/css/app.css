@@ -672,3 +672,40 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .hk-alt .btn { flex: 0 0 64px; font-size: 1.3rem; }
 .stc-okunmaz { margin: 0 0 14px; }
 .stc-okunmaz summary { cursor: pointer; font-weight: 700; padding: 10px 2px; color: var(--soluk); }
+
+/* çocuk: hafıza oyunu */
+.c-hafiza { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.c-hafiza.n4 { grid-template-columns: repeat(2, 1fr); }
+.c-kart-kapali { min-height: 92px; perspective: 600px; display: grid; place-items: center; }
+.c-kart-kapali .on { font-size: 2rem; }
+.c-kart-kapali .arka { display: none; }
+.c-kart-kapali.cevrildi { background: var(--altin-acik); border-color: var(--altin); animation: cevir .3s ease; }
+.c-kart-kapali.cevrildi .on { display: none; } .c-kart-kapali.cevrildi .arka { display: block; }
+.c-kart-kapali.eslesti { background: var(--iyi-bg); border-color: var(--iyi); }
+@keyframes cevir { from { transform: rotateY(90deg); } to { transform: none; } }
+
+/* çocuk: harf yağmuru */
+.c-yagmur { position: relative; height: 340px; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #e3f2ff, var(--kart)); border: 2px solid var(--cizgi); }
+@media (prefers-color-scheme: dark) { :root:not([data-tema="acik"]) .c-yagmur { background: linear-gradient(180deg, #14283a, var(--kart)); } }
+:root[data-tema="koyu"] .c-yagmur { background: linear-gradient(180deg, #14283a, var(--kart)); }
+.c-yagmur-say { position: absolute; top: 8px; right: 10px; z-index: 2; background: var(--kart); border-radius: 99px; padding: 2px 12px; box-shadow: var(--golge); }
+.c-damla { position: absolute; top: -90px; width: 72px; min-height: 72px; animation: dus linear infinite; }
+.c-damla .ar { font-size: 2.3rem !important; }
+.c-damla.patla { transform: scale(1.25); opacity: 0; transition: transform .2s, opacity .2s; }
+@keyframes dus { from { transform: translateY(0); } to { transform: translateY(440px); } }
+.c-yagmur.durgun { height: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 44px 10px 10px; }
+.c-yagmur.durgun .c-damla { position: static; width: auto; animation: none; }
+.c-yagmur.durgun .c-damla.patla { opacity: 1; transform: none; }
+.c-dinle.ikincil { background: var(--kart); border-color: var(--cizgi); color: var(--metin); }
+.c-damla.salla { animation: dus linear infinite; outline: 3px solid var(--kotu); }
+.anahtar-satir { display: flex; align-items: center; gap: 10px; font-weight: 650; margin: 6px 0 10px; }
+.anahtar-satir input { width: 22px; height: 22px; accent-color: var(--ana); }
+.hafta-ozet-kart { margin-bottom: 14px; border: 1.5px solid var(--altin); background: linear-gradient(120deg, var(--altin-acik), var(--kart)); }
+.c-album > button.acik { aspect-ratio: 1; display: grid; place-items: center; border-radius: 16px; border: 2px solid #ffd24a; font-size: 1.8rem; background: linear-gradient(180deg, #fffbe8, var(--kart)); padding: 0; }
+.c-album > div { grid-template-rows: 1fr auto; padding: 4px 0; }
+.c-album > div small { font-size: .62rem; font-weight: 700; }
+.c-cik-buyuk { font-size: 7rem; background: var(--kart); border-radius: 32px; padding: 20px 34px; box-shadow: 0 20px 50px rgba(0,0,0,.25); animation: sevin .5s ease; }
+.c-secenekler.kelime .ar { font-size: 2.3rem; line-height: 1.7; }
+.c-album { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.c-album > div small { font-size: .58rem; white-space: nowrap; }
+@media (max-width: 380px) { .c-album { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
