@@ -757,3 +757,9 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-sessiz { margin-left: auto; flex: none; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,.18); color: #fff; font-size: 1.15rem; line-height: 1; }
 .c-sessiz.kapali { background: rgba(255,255,255,.38); }
 .c-sessiz + .c-ust-yildiz { margin-left: 8px; }
+.c-ada-atla { display: flex; justify-content: center; margin: -4px 0 10px; }
+.c-ada-atla .btn { border-color: var(--ada, var(--ana2)); }
+.c-atlandi { position: absolute; bottom: -6px; right: -4px; background: var(--iyi); color: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; font-size: .75rem; font-weight: 800; }
+.c-yoklama-sayac { display: flex; justify-content: space-between; color: var(--soluk); margin: 0 0 8px; }
+.c-yoklama-sonuc { display: flex; align-items: center; gap: 12px; text-align: left; }
+.c-yoklama-sonuc h2 { margin: 0 0 4px; }

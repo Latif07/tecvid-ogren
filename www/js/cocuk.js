@@ -267,9 +267,12 @@
     const C = () => { const s = S(); s.cocuk = s.cocuk || { d: {}, gun: {} }; s.cocuk.d = s.cocuk.d || {}; s.cocuk.gun = s.cocuk.gun || {}; return s.cocuk; };
     const yildiz = id => (C().d[id] && C().d[id].y) || 0;
     // Sûreler Adası baştan açıktır (kısa sûreleri bilen çocuk harf yolculuğunu beklemez)
-    const acik = d => { const i = DURAK.indexOf(d); return i === 0 || d.ada === 'sure' || yildiz(DURAK[i - 1].id) > 0 || yildiz(d.id) > 0; };
+    // Yoklamayla geçilen adalar: C().gec = { harf: ts, hareke: ts, okuma: ts }. Duraklar açılır, yıldız verilmez.
+    const gecildi = ada => !!(C().gec && C().gec[ada]);
+    const tamam = d => yildiz(d.id) > 0 || gecildi(d.ada);
+    const acik = d => { const i = DURAK.indexOf(d); return i === 0 || d.ada === 'sure' || tamam(DURAK[i - 1]) || tamam(d); };
     const toplamYildiz = () => DURAK.reduce((a, d) => a + yildiz(d.id), 0);
-    const siradaki = () => DURAK.find(d => !yildiz(d.id)) || null;
+    const siradaki = () => DURAK.find(d => !yildiz(d.id) && !gecildi(d.ada)) || null;
     const CIKARTMA = ['⭐', '🌙', '🌸', '🌷', '🌻', '🍀', '🌈', '☀️', '🕌', '📖', '🏮', '💎', '🌴', '🍎', '🍇', '🍊', '⛰️', '🌊', '❄️', '🔭', '🎈', '🧭', '🪁', '🏆'];
     const CIKARTMA_ADIM = 5;   // her 5 yıldızda bir çıkartma
 
@@ -761,6 +764,77 @@
       return `<section class="mujde cocuk"><button class="c-hoparlor mujde-ses" data-mujde="${esc(EN ? m.en : m.tr)}" aria-label="${t('Sesli oku')}">🔊</button><p class="mujde-baslik">${m.tur === 'ayet' ? t('📖 Allah Teâlâ buyuruyor:') : t('🌹 Peygamberimiz (s.a.v.) buyuruyor:')}</p><p class="ar" dir="rtl" lang="ar">${m.ar}</p><p class="mujde-metin">“${esc(EN ? m.en : m.tr)}”</p><p class="mujde-kaynak">${esc(EN ? m.ken : m.ktr)}</p></section>`;
     }
 
+    // ---------------------------------------------------------- yoklama: bilen çocuk adayı atlayabilir
+    // 8 kısa soru, her soruya tek deneme; 6 doğru yeterli. Geçen ada ve öncekiler açılır (yıldız verilmez).
+    const YOKLAMA_ADA = ['harf', 'hareke', 'okuma'], YOKLAMA_SORU = 8, YOKLAMA_GEC = 6;
+    let Y = null;
+    function yoklamaSorulari(ada) {
+      const l = [];
+      if (ada === 'harf') { const h = karistir(HARF.filter(x => x !== 'لا')).slice(0, YOKLAMA_SORU); h.forEach((x, i) => l.push(kucuk() || i % 3 !== 2 ? harfSorusu('ad', x) : harfSorusu('sekil', x))); }
+      else if (ada === 'hareke') for (let i = 0; i < YOKLAMA_SORU; i++) l.push(harekeSorusu(i % 2 ? 'okuV' : 'bulV', rnd(3)));
+      else { const k = ['hece', 'cezm', 'tenvin', 'med', 'sedde']; for (let i = 0; i < YOKLAMA_SORU; i++) l.push(i === YOKLAMA_SORU - 1 ? isaretSorusu(sec1(['cezm', 'med', 'dik'])) : okumaSorusu(k[i % k.length], i % 2 ? 'oku' : 'bul')); }
+      return l.filter(Boolean).map(q => Object.assign(q, { sesli: q.sesli || (q.soru || '').replace(/<[^>]+>/g, '') }));
+    }
+    function yoklamaBaslat(ada) { Y = { ada, sorular: yoklamaSorulari(ada), i: 0, dogru: 0, bitti: false }; git('cocukYoklama', ada); }
+    api.yoklamaBaslat = yoklamaBaslat;
+    const ADA_AD_ = id => (ADALAR.find(a => a.id === id) || {}).ad || '';
+    EKRAN.cocukYoklama = function (ada) {
+      if (!Y || Y.ada !== ada) Y = { ada, sorular: yoklamaSorulari(ada), i: 0, dogru: 0, bitti: false };
+      sesAyarla();
+      const app = document.getElementById('app'), n = Y.sorular.length;
+      let balon, govde;
+      if (Y.bitti) {
+        const gecti = Y.dogru >= YOKLAMA_GEC, a = ADALAR.find(x => x.id === ada);
+        balon = gecti ? t('Maşallah, bunları biliyorsun!') : t('Sorun değil! Birlikte tekrar edelim.');
+        const okur = gecti && ada === 'okuma' && !kucuk();
+        govde = `<article class="kart c-kart c-bitti"><div class="c-yoklama-sonuc">${MASKOT(80, gecti ? 'don' : 'zipla')}<div><h2>${gecti ? t('{0} açıldı!', esc(a.ad)) : esc(a.ad)}</h2>
+            <p>${gecti ? t('{0} sorudan {1} tanesini bildin. Bu adayı geçtin; istersen yine de oynayıp yıldız toplayabilirsin.', n, Y.dogru) : t('{0} sorudan {1} tanesini bildin. Bu adayı baştan, oynayarak öğrenelim; çok kolay olacak!', n, Y.dogru)}</p></div></div></article>
+          ${okur ? `<article class="kart c-kart"><h2>${t('📖 Kur\'an okuyabiliyorsun!')}</h2><p>${t('Sûreler Adası seni bekliyor. İstersen bir büyüğünle birlikte tecvid derslerine de geçebilirsin.')}</p>
+            <div class="satir"><button class="btn" data-git-durak="s1">${t('📖 Sûreler Adası')}</button><button class="btn ikincil" id="yTecvid">${t('📘 Tecvid derslerine geç')}</button></div></article>` : ''}
+          <div class="satir"><button class="btn ${okur ? 'ikincil' : ''}" data-git="ana">${t('Haritaya dön')}</button>${!gecti ? (() => { const ilk = DURAK.find(d => d.ada === ada && !yildiz(d.id)) || DURAK.find(d => d.ada === ada), hedef = acik(ilk) ? ilk : siradaki(); return hedef ? `<button class="btn" data-git-durak="${hedef.id}">${t('▶ Başlayalım')}</button>` : ''; })() : ''}</div>`;
+      } else {
+        const q = Y.sorular[Y.i]; balon = q.soru;
+        govde = `<p class="c-yoklama-sayac">${t('Yoklama · {0}', esc(ADA_AD_(ada)))} <b>${Y.i + 1} / ${n}</b></p><article class="kart c-kart c-soru" data-tip="sec">${soruHTML(q)}</article>`;
+      }
+      app.innerHTML = `${ust(t('Biliyor muyum?'), true, sessizDugme())}<div class="ilerleme c-ilerleme"><div style="width:${Math.round((Y.bitti ? n : Y.i) / n * 100)}%"></div></div>
+        <main class="cocuk-ekran"><div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${balon}</span><button class="c-hoparlor" aria-label="${t('Sesli oku')}">🔊</button></div></div>${govde}</main>`;
+      const hop = app.querySelector('.c-hoparlor'), sq = Y.bitti ? null : Y.sorular[Y.i];
+      hop.onclick = () => Sesli.dugmeyle(hop, sq ? sq.sesli : balon);
+      if (!sessiz()) setTimeout(() => { if (document.body.contains(hop) && Sesli.acik) Sesli.dugmeyle(hop, sq ? sq.sesli : balon.replace(/<[^>]+>/g, '')); }, 200);
+      app.querySelectorAll('[data-git-durak]').forEach(b => b.onclick = () => { const id = b.dataset.gitDurak; Y = null; D = yeniD(durakBul(id)); api.ekranDegistir('cocukDurak', id); });
+      const yt = document.getElementById('yTecvid'); if (yt) yt.onclick = () => api.buyugeGec('okur');
+      if (Y.bitti) { if (Y.dogru >= YOKLAMA_GEC) setTimeout(() => Konfeti.kutla(), 150); return; }
+      let cevaplandi = false;
+      app.querySelectorAll('.c-secenek').forEach(b => b.onclick = () => {
+        if (cevaplandi) return; cevaplandi = true;
+        const dogru = sq.secenek[+b.dataset.i] === sq.dogru;
+        app.querySelectorAll('.c-secenek').forEach(x => { x.disabled = true; if (sq.secenek[+x.dataset.i] === sq.dogru) x.classList.add('dogru'); });
+        if (dogru) { Y.dogru++; tik(true); Konfeti.patlat(b, 14); } else b.classList.add('soluk-sec');
+        konus(dogru ? esc(OVGU()) : t('Doğrusu bu, devam!'), false);
+        setTimeout(() => {
+          if (Y.i + 1 < n) { Y.i++; api.ciz(); return; }
+          Y.bitti = true;
+          if (Y.dogru >= YOKLAMA_GEC) { const c = C(); c.gec = c.gec || {}; for (const x of YOKLAMA_ADA) { c.gec[x] = c.gec[x] || Date.now(); if (x === ada) break; } kaydet(); }
+          api.ciz(); window.scrollTo(0, 0);
+        }, 900);
+      });
+    };
+    // İlk açılış (çocuk profili): ne kadar biliyor?
+    EKRAN.cocukSeviye = function () {
+      const app = document.getElementById('app'), p = profil();
+      const sec = [['yeni', '🌱', t('Yeni başlıyor'), t('Elif\'ten başlarız')], ['harf', '🔤', t('Harfleri biliyor'), t('Kısa bir harf yoklaması')], ['hareke', '✏️', t('Harekeli okuyabiliyor'), t('Kısa bir hareke yoklaması')], ['okuma', '📖', t('Kur\'an okuyabiliyor'), t('Kısa bir okuma yoklaması')]];
+      app.innerHTML = `${ust(t('Nereden başlayalım?'), false)}<main class="cocuk-ekran">
+        <div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${p.ad ? t('{0} ne kadar biliyor?', esc(p.ad)) : t('Ne kadar biliyorsun?')}</span></div></div>
+        <div class="yas-kartlar">${sec.map(([k, ik, ad, alt]) => `<button class="yas-kart" data-cseviye="${k}"><span>${ik}</span><b>${ad}</b><small>${alt}</small></button>`).join('')}</div>
+        <p class="soluk kucukyazi">${t('Yoklama 8 kısa sorudur, puan verilmez. Bilen çocuk her şeyi baştan yapmak zorunda kalmaz. Sonradan da haritadaki “⚡ Biliyorum” düğmesiyle yapılabilir.')}</p></main>`;
+      app.querySelectorAll('[data-cseviye]').forEach(b => b.onclick = () => {
+        C().seviye = b.dataset.cseviye; kaydet();
+        if (b.dataset.cseviye === 'yeni') return anaSayfa();
+        Y = { ada: b.dataset.cseviye, sorular: yoklamaSorulari(b.dataset.cseviye), i: 0, dogru: 0, bitti: false };
+        api.ekranDegistir('cocukYoklama', b.dataset.cseviye);
+      });
+    };
+
     // ---------------------------------------------------------- ana ekran: Harf Yolculuğu haritası
     const KAYMA = [0, 58, 86, 58, 0, -58, -86, -58];
     EKRAN.cocuk = function () {
@@ -769,13 +843,15 @@
       let harita = '', k = 0;
       ADALAR.forEach(a => {
         const l = DURAK.filter(d => d.ada === a.id), bitti = l.filter(d => yildiz(d.id)).length;
-        harita += `<div class="c-ada" style="--ada:${a.renk}"><span>${a.ikon}</span><b>${a.ad}</b><small>${bitti}/${l.length}</small></div>`;
+        const gec = gecildi(a.id), yoklamaVar = YOKLAMA_ADA.includes(a.id) && !gec && bitti < l.length;
+        harita += `<div class="c-ada" style="--ada:${a.renk}"><span>${a.ikon}</span><b>${a.ad}</b><small>${gec ? t('✓ geçti') : bitti + '/' + l.length}</small></div>
+          ${yoklamaVar ? `<div class="c-ada-atla"><button class="btn ikincil kucuk" data-yoklama="${a.id}">⚡ ${t('Biliyorum, yoklamaya gir')}</button></div>` : ''}`;
         l.forEach(d => {
           const y = yildiz(d.id), ac = acik(d), simdi = s && s.id === d.id;
           harita += `<div class="c-durak-satir"><div class="c-durak-yer" style="--x:${KAYMA[k++ % KAYMA.length]}px">
             <button class="c-durak ${y ? 'tamam' : ac ? 'acik' : 'kilit'} ${simdi ? 'simdi' : ''}" data-durak="${d.id}" ${ac ? '' : 'disabled'} aria-label="${esc(d.ad)}" style="--ada:${a.renk}">
               <span class="c-durak-ic">${/[؀-ۿ]/.test(d.ikon) ? ar(d.ikon, d.ikon.length > 4 ? 'uzun-ikon' : '') : d.ikon}</span>
-              ${y ? `<span class="c-mini-yildiz">${'★'.repeat(y)}${'☆'.repeat(3 - y)}</span>` : ac ? '' : '<span class="c-kilit">🔒</span>'}
+              ${y ? `<span class="c-mini-yildiz">${'★'.repeat(y)}${'☆'.repeat(3 - y)}</span>` : gecildi(d.ada) ? '<span class="c-atlandi">✓</span>' : ac ? '' : '<span class="c-kilit">🔒</span>'}
             </button>${simdi ? `<div class="c-burada">${MASKOT(40, 'zipla')}</div>` : ''}</div></div>`;
         });
       });
@@ -794,6 +870,7 @@
         <p class="soluk ortala kucukyazi">${t('Kısa ve sık çalışmak en iyisi: her gün bir durak yeter.')}</p>
       </main>`;
       app.querySelectorAll('[data-durak]').forEach(b => b.onclick = () => durakBaslat(b.dataset.durak));
+      app.querySelectorAll('[data-yoklama]').forEach(b => b.onclick = () => yoklamaBaslat(b.dataset.yoklama));
       if (api.odevler) api.odevler().then(l => {
         const yer = document.getElementById('cOdev'); if (!yer) return;
         yer.innerHTML = l.filter(o => durakBul(o.durak)).map(o => { const d = durakBul(o.durak), y = yildiz(d.id);
@@ -824,7 +901,7 @@
       const sonraki = CIKARTMA_ADIM - top % CIKARTMA_ADIM;
       const gunler = [...Array(7)].map((_, i) => { const g = new Date(Date.now() - (6 - i) * 86400000); const k = g.toISOString().slice(0, 10); return { k, ad: g.toLocaleDateString(EN ? 'en-GB' : 'tr-TR', { weekday: 'short' }), y: c.gun[k] || 0 }; });
       const adalar = ADALAR.map(a => { const l = DURAK.filter(d => d.ada === a.id); const b = l.filter(d => yildiz(d.id)).length; const y = l.reduce((x, d) => x + yildiz(d.id), 0); return { a, b, n: l.length, y, max: l.length * 3 }; });
-      const ogrenilen = HARF.filter((h, i) => yildiz('h' + i)).length;
+      const ogrenilen = gecildi('harf') ? HARF.length : HARF.filter((h, i) => yildiz('h' + i)).length;
       const app = document.getElementById('app');
       app.innerHTML = `${ust(t('Yıldızlarım'), false, sessizDugme())}<main class="cocuk-ekran">
         <section class="c-yildiz-kahraman">${MASKOT(110, 'don')}<div><b class="c-dev-sayi">${top}</b><span>${t('yıldız')}</span></div>
@@ -883,7 +960,7 @@
       });
     };
 
-    return { molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
+    return { Y: () => Y, gecildi, yoklamaBaslat, molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
   window.MASKOT = MASKOT;

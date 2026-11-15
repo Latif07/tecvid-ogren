@@ -2168,6 +2168,7 @@
       if (p.yas !== 'buyuk') S.ayar.seviye = 'cocuk';
       kaydet();
       if (seviyeSorulmali()) { ekranYigini = [['hosgeldin', ['seviye']]]; ciz(); }
+      else if (cocukMu() && COCUK && EKRAN.cocukSeviye && !(S.cocuk && (S.cocuk.seviye || Object.keys(S.cocuk.d || {}).length))) { ekranYigini = [['cocukSeviye', []]]; ciz(); }
       else anaSayfa();
     });
   };
@@ -2330,7 +2331,7 @@
     d.onclick = kapat; setTimeout(kapat, kisa ? 1000 : 2600);
   }
   // Çocuk modu (cocuk.js) bağlanır
-  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), sureSes: n => sureSesDurum(n), ayetCal: (r, btn, bitince) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn, undefined, bitince), odevler: () => cocukOdevleri() }) : null;
+  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: s_ => buyugeGec(s_), sureSes: n => sureSesDurum(n), ayetCal: (r, btn, bitince) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn, undefined, bitince), odevler: () => cocukOdevleri() }) : null;
   // ------------------------------------------------------------ MEŞK MODU (özel: Ayarlar'dan açılır)
   // Geleneksel meşk: hoca parça parça okur, öğrenci tekrar eder, hata düzeltilir; parça yeterince doğru
   // okununca sonrakine geçilir, sonunda ayetin tamamı birlikte okunur.
@@ -2775,7 +2776,7 @@
       const buHaftaGun = Object.keys(gun).filter(k => new Date(k).getTime() >= hafta - GUN);
       const yildizHafta = buHaftaGun.reduce((a, k) => a + gun[k], 0);
       const durakHafta = Object.values(d).filter(x => x.t >= hafta).length;
-      const harf = DURAK.filter(x => x.tur === 'harf' && d[x.id] && d[x.id].y).length, harfTop = DURAK.filter(x => x.tur === 'harf').length;
+      const harfTop = DURAK.filter(x => x.tur === 'harf').length, harf = c.gec && c.gec.harf ? harfTop : DURAK.filter(x => x.tur === 'harf' && d[x.id] && d[x.id].y).length;
       const sira = DURAK.find(x => !(d[x.id] && d[x.id].y));
       const karisan = Object.entries(c.hata || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
       const dkHafta = Math.round(Object.entries(c.sure || {}).filter(([k]) => new Date(k).getTime() >= hafta - GUN).reduce((a, [, v]) => a + v, 0));
@@ -2837,11 +2838,11 @@
     return { var: indirilenSay(l), toplam: l.length, indir: () => indirBaslat(l, '').then(() => { yerelKaydet(); if (ekranYigini[ekranYigini.length - 1][0] === 'cocukDurak') ciz(); }) };
   }
   // Çocuk profili harf yolculuğunu bitirince: ebeveyn onayıyla tecvid derslerine geçiş
-  async function buyugeGec() {
+  async function buyugeGec(seviye) {
     if (!(await window.ebeveynKilidi())) return;
     const p = AKTIF(); p.yas = 'buyuk'; p.d = simdi(); profilKaydet(); profilleriEsitle();
-    if (!gecti('e1')) S.ilerleme.e1 = { en: 0, deneme: 0, gecti: true, atla: true };
-    S.ayar.seviye = 'harf'; kaydet(); toast(t('Tecvid derslerine geçtin. Bârekallah!')); anaSayfa();
+    (seviye === 'okur' ? ['e1', 'u0'] : ['e1']).forEach(id => { if (!gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true }; });
+    S.ayar.seviye = seviye === 'okur' ? 'okur' : 'harf'; kaydet(); toast(t('Tecvid derslerine geçtin. Bârekallah!')); anaSayfa();
   }
 
   // İlk kez açan yetişkine kısa tanıtım (kapatılabilir kart)
