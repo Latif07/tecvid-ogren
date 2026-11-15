@@ -23,6 +23,11 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Yazılana uyan harfe dokun!": "Tap the letter that matches what's written!",
+ "Bu nasıl okunur?": "How is this read?",
+ "“{0}” hangisi?": "Which one is “{0}”?",
+ "Bu nasıl okunur? (sağdan sola)": "How is this read? (right to left)",
+ "Bu nasıl okunur? Sağdan sola oku.": "How is this read? Read from right to left.",
  "Önce oku ve anlamına bak, sonra gizleyip ezberden söyle. Takıldığın kelimeye dokun.": "First read it and its meaning, then hide it and say it from memory. Tap a word if you get stuck.",
  "Bu metnin müezzin kaydı henüz yok. Doğru okuyuşu hocandan dinle.": "There is no muezzin recording for this text yet. Learn the correct recitation from your teacher.",
  "Kaynaklar": "Sources",

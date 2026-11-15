@@ -221,7 +221,10 @@
   const ar = (s, cls = '') => `<span class="ar ${cls}" lang="ar">${s}</span>`;
   const BESMELE = 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ';
   // Konuşma motoru Arapça sesleri (ع ح ق ص…) doğru çıkaramaz; okunuşu yazıda gösterilen sorularda yalnız yönerge söylenir
-  const SESLI_OKUNUS = () => t('Yukarıda yazan okunuşa uyanı bul!');
+  const SESLI_OKUNUS = () => t('Yazılana uyan harfe dokun!');
+  // Yönerge yalnızca ilk kez sesli söylenir (oturum boyunca); sonra soru sessiz açılır, 🔊 ile tekrar dinlenir
+  const soylenenYonerge = new Set();
+  const IKON_OKU = '👀 ', IKON_BUL = '🔎 ';
   // Harfin Kur'an'dan bir kelimede gerçek tilaveti (kelime kelime ses): [sûre:ayet, kelime sırası, kelime]
   const KELIME_ORNEK = { 'ا': ['1:5', 1, 'إِيَّاكَ'], 'ب': ['1:1', 1, 'بِسۡمِ'], 'ت': ['105:1', 2, 'تَرَ'], 'ث': ['101:6', 3, 'ثَقُلَتۡ'], 'ج': ['106:4', 4, 'جُوعٖ'], 'ح': ['111:4', 2, 'حَمَّالَةَ'],
     'خ': ['106:4', 7, 'خَوۡفِۭ'], 'د': ['109:6', 2, 'دِينُكُمۡ'], 'ذ': ['111:3', 3, 'ذَاتَ'], 'ر': ['1:2', 3, 'رَبِّ'], 'ز': ['102:2', 2, 'زُرۡتُمُ'], 'س': ['105:4', 4, 'سِجِّيلٖ'], 'ش': ['108:3', 2, 'شَانِئَكَ'],
@@ -292,7 +295,7 @@
     const secenekli = (o) => Object.assign({ tip: 'sec' }, o);
     function harfSorusu(tur, h) {
       const b = BILGI[h];
-      if (tur === 'ayni') return secenekli({ soru: t('Aynısını bul!'), goster: ar(h, 'dev'), dogru: h, secenek: karistir([h, ...benzerleri(h, 2)]), arSec: true });
+      if (tur === 'ayni') return secenekli({ yk: 'ayni', soru: t('Aynısını bul!'), goster: ar(h, 'dev'), dogru: h, secenek: karistir([h, ...benzerleri(h, 2)]), arSec: true });
       if (tur === 'ad') return secenekli({ soru: t('{0} harfi hangisi?', `<b>${esc(adi(h))}</b>`), dogru: h, secenek: karistir([h, ...benzerleri(h, 2)]), arSec: true });
       if (tur === 'nokta') return secenekli({ soru: h === 'لا' ? t('Lamelifin kaç noktası var?') : t('Bu harfin kaç noktası var?'), goster: ar(h, 'dev'), dogru: String(b[0]), secenek: ['0', '1', '2', '3'], ipucu: b[0] ? (b[1] === 'alt' ? t('Noktalar harfin altında.') : t('Noktalar harfin üstünde.')) : t('Dikkatli bak: hiç nokta var mı?') });
       if (tur === 'sekil') {
@@ -342,14 +345,14 @@
     }
     function harekeSorusu(tur, i, h) {
       h = h || sec1(HAREKE_HARF);
-      if (tur === 'yer') return secenekli({ soru: t('{0} hangisinde?', `<b>${HAREKE_AD[i]}</b>`), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true, ipucu: [t('Üstün harfin üstünde eğik bir çizgidir.'), t('Esre harfin altında eğik bir çizgidir.'), t('Ötre harfin üstünde küçük bir vav gibidir.')][i] });
+      if (tur === 'yer') return secenekli({ yk: 'yer' + i, soru: t('{0} hangisinde?', `<b>${HAREKE_AD[i]}</b>`), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true, ipucu: [t('Üstün harfin üstünde eğik bir çizgidir.'), t('Esre harfin altında eğik bir çizgidir.'), t('Ötre harfin üstünde küçük bir vav gibidir.')][i] });
       // aynı harekeli 3 farklı harf (okunuşları birbirinden farklı olmalı)
       const harfler = [h]; for (const x of karistir(HAREKE_HARF)) { if (harfler.length >= 3) break; if (!harfler.some(y => hece(y, i) === hece(x, i))) harfler.push(x); }
-      if (tur === 'oku') return secenekli({ soru: t('Nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir(harfler.map(x => hece(x, i))) });
-      if (tur === 'bul') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), sesli: SESLI_OKUNUS(), dogru: h + HAREKE[i], secenek: karistir(harfler.map(x => x + HAREKE[i])), arSec: true });
-      if (tur === 'okuV') return secenekli({ soru: t('Nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir([0, 1, 2].map(j => hece(h, j))) });
+      if (tur === 'oku') return secenekli({ yk: 'oku', soru: IKON_OKU + t('Bu nasıl okunur?'), sesli: t('Bu nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir(harfler.map(x => hece(x, i))) });
+      if (tur === 'bul') return secenekli({ yk: 'bul', soru: IKON_BUL + t('“{0}” hangisi?', hece(h, i)), sesli: SESLI_OKUNUS(), dogru: h + HAREKE[i], secenek: karistir(harfler.map(x => x + HAREKE[i])), arSec: true });
+      if (tur === 'okuV') return secenekli({ yk: 'oku', soru: IKON_OKU + t('Bu nasıl okunur?'), sesli: t('Bu nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir([0, 1, 2].map(j => hece(h, j))) });
       if (tur === 'dinleV') return secenekli({ soru: t('Dinle: hangisini duydun?'), ses: 'hr:' + h + ':' + i, dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
-      if (tur === 'bulV') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), sesli: SESLI_OKUNUS(), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
+      if (tur === 'bulV') return secenekli({ yk: 'bul', soru: IKON_BUL + t('“{0}” hangisi?', hece(h, i)), sesli: SESLI_OKUNUS(), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
     }
     // Okuma Adası: yalnız ince harflerle hece/kelime parçaları (okunuşlar kesin)
     function okumaParcasi(k) {
@@ -379,9 +382,9 @@
       let v = okumaParcasi(k);
       const goruldu = new Set(); v = v.filter(x => !goruldu.has(x.oku) && goruldu.add(x.oku)).slice(0, 3);
       const d = v[0];
-      if (tur === 'ayni') return secenekli({ soru: t('Aynısını bul!'), goster: ar(d.ar, 'dev'), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
-      if (tur === 'oku') return secenekli({ soru: t('Nasıl okunur? (sağdan sola)'), goster: ar(d.ar, 'dev'), dogru: d.oku, secenek: karistir(v.map(x => x.oku)) });
-      return secenekli({ soru: t('Hangisi “{0}” okunur?', d.oku), sesli: SESLI_OKUNUS(), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
+      if (tur === 'ayni') return secenekli({ yk: 'ayni', soru: t('Aynısını bul!'), goster: ar(d.ar, 'dev'), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
+      if (tur === 'oku') return secenekli({ yk: 'okuS', soru: IKON_OKU + t('Bu nasıl okunur? (sağdan sola)'), sesli: t('Bu nasıl okunur? Sağdan sola oku.'), goster: ar(d.ar, 'dev'), dogru: d.oku, secenek: karistir(v.map(x => x.oku)) });
+      return secenekli({ yk: 'bul', soru: IKON_BUL + t('“{0}” hangisi?', d.oku), sesli: SESLI_OKUNUS(), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
     }
     // Medine mushafındaki işaretler: cezm (ۡ), med işareti (ٓ), dik üstün (ٰ)
     const ISARET = { cezm: '\u06E1', med: '\u0653', dik: '\u0670' };
@@ -421,7 +424,7 @@
         q = turler.map((x, i) => uret(x, sec1(i % 3 === 2 ? havuz : yeni), havuz));
       } else if (d.tur === 'hareke') {
         const i = () => d.h >= 0 ? d.h : rnd(3);
-        const turler = kk ? ['yer', 'yer', 'yer', 'yer'] : (d.h >= 0 ? ['yer', 'oku', 'bul', 'oku', 'bul', 'yer'] : ['okuV', 'bulV', 'okuV', 'yer', 'bulV', 'okuV']);
+        const turler = kk ? ['yer', 'yer', 'yer', 'yer'] : (d.h >= 0 ? ['yer', 'yer', 'oku', 'oku', 'bul', 'bul'] : ['yer', 'okuV', 'okuV', 'okuV', 'bulV', 'bulV']);
         q = turler.map(x => harekeSorusu(x, i()));
       } else if (d.tur === 'sure') {
         const turler = kk ? ['dinleA', 'dinleA', 'dinleA'] : ['sira', 'eksik', 'dinleA', 'sira', 'eksik', 'dinleA'];
@@ -429,7 +432,7 @@
       } else if (d.k === 'isaret') {
         q = (kk ? ['cezm', 'med', 'dik', 'cezm'] : ['cezm', 'med', 'dik', 'cezm', 'med', 'dik']).map(isaretSorusu);
       } else {
-        const turler = kk ? ['ayni', 'ayni', 'ayni', 'ayni'] : ['oku', 'bul', 'oku', 'bul', 'oku', 'bul'];
+        const turler = kk ? ['ayni', 'ayni', 'ayni', 'ayni'] : ['oku', 'oku', 'oku', 'bul', 'bul', 'bul'];
         q = turler.map(x => okumaSorusu(d.k, x));
       }
       q = q.filter(Boolean);
@@ -648,7 +651,7 @@
       app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { const i = +b.dataset.tekrar; D.tekrar[i] = !D.tekrar[i]; if (D.tekrar[i]) { tik(true); Konfeti.patlat(b, 14); } durakSakla(); b.classList.toggle('tamam', !!D.tekrar[i]); b.textContent = D.tekrar[i] ? '✓' : t('Tekrar ettim'); b.closest('.c-ayet').classList.toggle('tamam', !!D.tekrar[i]); });
       const si = document.getElementById('sureIndir'); if (si) si.onclick = () => { api.sureSes(d.n).indir(); si.disabled = true; si.textContent = t('İndiriliyor…'); };
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
-      if (sessiz()) { /* kendiliğinden ses yok */ } else if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
+      if (sessiz()) { /* kendiliğinden ses yok */ } else if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim && !(sq && sq.yk && soylenenYonerge.has(sq.yk))) { D.sonSoylenen = suan + D.adim; if (sq && sq.yk) soylenenYonerge.add(sq.yk); setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
       app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses, b));
       app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => Sesli.dugmeyle(b, b.dataset.hadi));
       app.querySelectorAll('[data-kelime]').forEach(b => b.onclick = () => { const [r, w] = b.dataset.kelime.split('|'); Sesli.sus(); HarfSes.dur(); api.kelimeCal(r, +w, b); });
@@ -674,7 +677,9 @@
       if (bekle()) return; kilitBit = Date.now() + 900;
       D.hata++;
       if (dogru && secilen && HARF.includes(dogru) && HARF.includes(secilen)) { const c = C(); c.hata = c.hata || {}; const k = dogru + '|' + secilen; c.hata[k] = (c.hata[k] || 0) + 1; kaydet(); } tik(false); el.classList.remove('salla'); void el.offsetWidth; el.classList.add('salla', 'soluk-sec');
-      konus(t('Bir daha dene 🙂') + (ipucu ? ' ' + ipucu : ''));
+      // İpucu yazıda hep görünür; sesle yalnızca o sorudaki ilk yanlışta söylenir
+      const ilk = D.yanlisSoru !== D.i; D.yanlisSoru = D.i;
+      konus(t('Bir daha dene 🙂') + (ipucu ? ' ' + ipucu : ''), ilk ? undefined : false);
     }
     function sonrakiSoru(d) {
       if (D.i + 1 < D.sorular.length) { D.i++; durakSakla(); api.ciz(); return; }
@@ -808,7 +813,7 @@
         <main class="cocuk-ekran"><div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${balon}</span><button class="c-hoparlor" aria-label="${t('Sesli oku')}">🔊</button></div></div>${govde}</main>`;
       const hop = app.querySelector('.c-hoparlor'), sq = Y.bitti ? null : Y.sorular[Y.i];
       hop.onclick = () => Sesli.dugmeyle(hop, sq ? sq.sesli : balon);
-      if (!sessiz()) setTimeout(() => { if (document.body.contains(hop) && Sesli.acik) Sesli.dugmeyle(hop, sq ? sq.sesli : balon.replace(/<[^>]+>/g, '')); }, 200);
+      if (!sessiz() && !(sq && sq.yk && soylenenYonerge.has(sq.yk))) { if (sq && sq.yk) soylenenYonerge.add(sq.yk); setTimeout(() => { if (document.body.contains(hop) && Sesli.acik) Sesli.dugmeyle(hop, sq ? sq.sesli : balon.replace(/<[^>]+>/g, '')); }, 200); }
       app.querySelectorAll('[data-git-durak]').forEach(b => b.onclick = () => { const id = b.dataset.gitDurak; Y = null; D = yeniD(durakBul(id)); api.ekranDegistir('cocukDurak', id); });
       const yt = document.getElementById('yTecvid'); if (yt) yt.onclick = () => api.buyugeGec('okur');
       if (Y.bitti) { if (Y.dogru >= YOKLAMA_GEC) setTimeout(() => Konfeti.kutla(), 150); return; }
