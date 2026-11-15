@@ -6,21 +6,23 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - name: Diyanet Kur'an portalı yapısı (yalnız adresler, içerik indirilmez)
+      - name: Diyanet Kur'an portalı API uçları (yalnız adresler)
         shell: bash
         run: |
+          set +e
           UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
-          for u in https://kuran.diyanet.gov.tr/ https://kuran.diyanet.gov.tr/mushaf https://mobiluygulama.diyanet.gov.tr/ https://elifba.diyanet.gov.tr/ ; do
-            code=$(curl -sL -m 30 -A "$UA" -o p.html -w '%{http_code} %{url_effective}' "$u"); echo "== $u -> $code $(stat -c%s p.html)"
-            grep -oE '(src|href)="[^"]+\.(js|json)[^"]*"' p.html | head -20
-            grep -oE 'https?://[a-zA-Z0-9./_-]*(api|audio|ses|mp3|cdn|media)[a-zA-Z0-9./_-]*' p.html | sort -u | head -20
-            grep -oiE '<title>[^<]*' p.html | head -2
+          curl -sL -m 30 -A "$UA" https://kuran.diyanet.gov.tr/ -o m.html
+          for js in $(grep -oE '/assets/[^"]+\.js' m.html | sort -u); do
+            curl -sL -m 30 -A "$UA" "https://kuran.diyanet.gov.tr$js" -o b.js; echo "-- $js $(stat -c%s b.js)"
+            grep -oE '/assets/[A-Za-z0-9_.-]+\.js' b.js | sort -u | head -60 > alt.txt; wc -l < alt.txt
+            grep -oE '"https?://[^"]{4,140}"' b.js | sort -u | head -40
+            grep -oE '["`][^"`]{0,40}/(api|v[0-9])/[^"`]{1,90}["`]' b.js | sort -u | head -60
+            grep -oE '[a-zA-Z]*(Url|URL|Endpoint|BASE)[a-zA-Z]*:?"[^"]{4,120}"' b.js | sort -u | head -30
           done
-          # ana JS paketlerinde API uçları
-          curl -sL -m 30 -A "$UA" https://kuran.diyanet.gov.tr/mushaf -o m.html
-          for js in $(grep -oE 'src="[^"]+\.js[^"]*"' m.html | sed 's/src="//;s/"$//' | head -12); do
-            case "$js" in http*) url="$js";; /*) url="https://kuran.diyanet.gov.tr$js";; *) url="https://kuran.diyanet.gov.tr/$js";; esac
-            curl -sL -m 30 -A "$UA" "$url" -o b.js; echo "-- $url $(stat -c%s b.js)"
-            grep -oE '"(https?:)?//[^"]{4,120}"|`(https?:)?//[^`]{4,120}`' b.js | grep -iE 'api|audio|ses|mp3|sound|cdn|meal|mushaf|sure|ayet' | sort -u | head -25
-            grep -oE '"/api/[^"]{2,80}"|/api/[a-zA-Z/{}]{2,60}' b.js | sort -u | head -25
+          # alt parçalardan API ve ses adresleri
+          for js in $(cat alt.txt | head -60); do
+            curl -sL -m 30 -A "$UA" "https://kuran.diyanet.gov.tr$js" -o c.js
+            r=$(grep -oE '["`][^"`]{0,60}(/api/|\.mp3|audio|Audio|recit|kari|hafiz|meal|Meal|mushaf|elifba)[^"`]{0,90}["`]' c.js | sort -u | head -15)
+            [ -n "$r" ] && echo "-- $js" && echo "$r"
           done
+          echo "== mobiluygulama"; curl -sIL -m 20 -A "$UA" https://mobiluygulama.diyanet.gov.tr/ | head -5
