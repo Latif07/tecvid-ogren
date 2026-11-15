@@ -117,6 +117,7 @@
     }
     const ha = a.hatim, hb = b.hatim; r.hatim = !ha ? hb || null : !hb ? ha : (ha.bas > hb.bas ? ha : hb.bas > ha.bas ? hb : (ha.sayfa >= hb.sayfa ? ha : hb));
     r.sonSayfa = a.sonSayfa || b.sonSayfa;
+    if (a.mesk || b.mesk) { r.mesk = Object.assign({}, b.mesk || {}, a.mesk || {}); for (const k of Object.keys(r.mesk)) { const x = (a.mesk || {})[k] || {}, y = (b.mesk || {})[k] || {}; r.mesk[k] = { p: Math.max(x.p || 0, y.p || 0), tamam: !!(x.tamam || y.tamam), t: Math.max(x.t || 0, y.t || 0) }; } }
     if (a.cocuk || b.cocuk) {   // çocuk modu: durak başına en iyi yıldız, gün başına en çok yıldız
       const ca = a.cocuk || {}, cb = b.cocuk || {}; r.cocuk = { d: {}, gun: {} };
       for (const k of new Set([...Object.keys(ca.d || {}), ...Object.keys(cb.d || {})])) { const x = (ca.d || {})[k] || {}, y = (cb.d || {})[k] || {}; r.cocuk.d[k] = { y: Math.max(x.y || 0, y.y || 0), n: Math.max(x.n || 0, y.n || 0), t: Math.max(x.t || 0, y.t || 0) }; }
@@ -553,6 +554,7 @@
     if (sureCalma && anahtar !== ciz.son) { sureCalma.iptal = true; sureCalma = null; if (ses) { ses.pause(); ses = null; } }
     if (anahtar !== ciz.son && window.Konfeti) window.Konfeti.durdur();
     if (anahtar !== ciz.son && window.Sesli) window.Sesli.sus();
+    if (anahtar !== ciz.son && MESK.kayit) { const r_ = MESK.kayit; MESK.kayit = null; r_.onstop = () => { try { r_.stream.getTracks().forEach(x => x.stop()); } catch (e) { } }; r_.state !== 'inactive' && r_.stop(); }
     if (anahtar !== ciz.son) document.querySelectorAll('.sozluk-pencere').forEach(x => x.remove());   // sözlük penceresi ekranla birlikte kapanır
     ciz.son = anahtar;
     EKRAN[ad](...arg);
@@ -739,6 +741,7 @@
       <main>${icerik}</main>`;
     app.querySelectorAll('[data-sekme]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['ders', [id, b.dataset.sekme]]; ciz(); window.scrollTo(0, 0); });
     if (sekme === 'ders') { const sy = app.querySelector('.kart.sayfa'); if (sy) sozlukBagla(sy); }
+    if (sekme === 'ornek') app.querySelectorAll('.kart.ornek').forEach(k => sozlukBagla(k));
     if (sekme === 'ders') {
       const hk = EKRAN.ders._hk && EKRAN.ders._hk.q;
       app.querySelectorAll('[data-hk]').forEach(b => b.onclick = () => {
@@ -746,6 +749,7 @@
         app.querySelectorAll('[data-hk]').forEach(x => { x.disabled = true; const v = hk.secenek[+x.dataset.hk]; if (v === hk.dogru) x.classList.add('dogru'); else if (x === b) x.classList.add('yanlis'); });
         srsGuncelle(hk.anahtar, d); kaydet();
         $('#hkSonuc').innerHTML = `<div class="geribildirim ${d ? 'iyi' : 'kotu'}"><b>${d ? t('✓ Doğru!') : t('✗ Yanlış.')}</b> ${d ? '' : t('Doğru cevap: ') + metin(hk.dogru)}${hk.aciklama ? `<p>${hk.aciklama}</p>` : ''}</div>`;
+        sozlukBagla($('#hkSonuc'));
         if (d && window.Konfeti) window.Konfeti.patlat(b, 18);
       });
     }
@@ -845,7 +849,7 @@
       o.cevaplar[o.i] = { secilen: s, dogru: d };
       srsGuncelle(q.anahtar, d); kaydet(); oturumSakla();
       ciz();
-      const g = $('.geribildirim'); g && g.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const g = $('.geribildirim'); if (g) { sozlukBagla(g); g.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     });
     const ileri = $('#ileri');
     if (ileri) ileri.onclick = () => {
@@ -1776,6 +1780,7 @@
         <div class="sesler"><button class="sesbtn" data-ayet-cal="${i + 1}">${t('▶ Dinle')}</button>
           ${ezberModu ? `<button class="sesbtn ikincil" data-dtg="${i + 1}">${t('🔁 Dinle, tekrar et, gizle')}</button>${ezberli ? `<span class="rozet ok">✓ ${t('ezberde')}</span>` : `<button class="sesbtn" data-ezberledim="${i + 1}">${t('✓ Ezberledim')}</button>`}` : ''}
           <button class="sesbtn ikincil" data-oku="${i + 1}">🎤 ${t('Oku, kontrol et')}</button>
+          ${S.ayar.mesk ? `<button class="sesbtn ikincil" data-git="mesk|${n}|${i + 1}">🎓 ${t('Meşk')}</button>` : ''}
           ${bz ? `<button class="lejant-ac" data-benzer="${i + 1}">🔁 ${t('{0} benzer ayet', bz.length)}</button>` : ''}</div>
         <div class="rapor-kutu" id="rapor-${i + 1}" hidden></div>
         <div class="benzer-kutu" id="benzer-${i + 1}" hidden></div>
@@ -1903,6 +1908,7 @@
         ${satir('profiller', '👥', t('Profiller'), t('{0} profil · şu an: {1}', PR.liste.length, esc(AKTIF().ad || t('Profil 1')) + ' (' + (YAS_AD[AKTIF().yas] || '—') + ')'))}
         ${cocukMu() ? '' : satir('ilerleme', '📊', t('İlerleme tablosu'), t('Bölümler, etkinlik, güçlü ve zayıf konular'))}
         ${PR.liste.some(p => p.yas === 'kucuk' || p.yas === 'cocuk') ? satir('ebeveynOzet', '👨‍👩‍👧', t('Çocuk özeti'), t('Haftalık çalışma, yıldızlar, karıştırılan harfler')) : ''}
+        ${S.ayar.mesk ? satir('meskSec', '🎓', t('Meşk'), t('Hoca okur, sen tekrar edersin')) : ''}
         ${satir('harfSesleri', '🎙️', t('Harf seslerini kaydet'), t('Hoca sesiyle çocuk modundaki “Dinle” oyunları'))}
         ${satir('hesap', '☁️', k ? t('Hesabım') : t('Giriş yap / Hesap aç'), k ? esc(k.email || '') : t('İlerlemen kaybolmasın'))}
         ${satir('okumaRaporu', '🎤', t('Okuma raporu'), t('Okuyuşundaki hatalar ve gelişimin'))}
@@ -1938,6 +1944,10 @@
         <p class="soluk">${t('Her gün seçtiğin saatte telefonuna bir hatırlatma gelir. O gün zaten çalıştıysan gelmez.')}</p>
         ${LN() ? `<div class="satir sola"><button class="btn ${hat.acik ? '' : 'ikincil'}" data-hatir="1">${t('Açık')}</button><button class="btn ${hat.acik ? 'ikincil' : ''}" data-hatir="0">${t('Kapalı')}</button>
           <label>${t('Saat:')} <input type="time" id="hatirSaat" value="${esc(hat.saat || '20:00')}" style="font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)"></label></div>` : `<p class="soluk kucukyazi">${t('Günlük hatırlatma şimdilik yalnızca Android uygulamasında çalışır.')}</p>`}</article>
+      <article class="kart"><h2>${t('🎓 Meşk modu (özel)')}</h2>
+        <p class="soluk">${t('Geleneksel meşk usulü: kâri ayeti parça parça okur, sen tekrar edersin, okuyuşun incelenir. Açınca Kur\'an sekmesindeki ayetlerde ve Profil\'de görünür.')}</p>
+        <div class="satir sola"><button class="btn ${S.ayar.mesk ? '' : 'ikincil'}" data-mesk="1">${t('Açık')}</button><button class="btn ${S.ayar.mesk ? 'ikincil' : ''}" data-mesk="0">${t('Kapalı')}</button></div>
+        ${S.ayar.mesk ? `<p style="margin-top:12px"><b>${t('Her parça kaç kez doğru okunsun?')}</b></p><div class="satir sola">${[1, 3, 5].map(v => `<button class="btn ${(S.ayar.meskTekrar || 3) === v ? '' : 'ikincil'}" data-mtekrar="${v}">${v}</button>`).join('')}</div>` : ''}</article>
       <article class="kart"><h2>${t('🧒 Çocuk modu')}</h2>
         <p><b>${t('Sesli yönerge')}</b></p><p class="soluk">${t('Çocuk modunda yönergeler telefonun sesiyle okunur (okumayı bilmeyen küçükler için).')}</p>
         <div class="satir sola"><button class="btn ${S.ayar.sesliYonerge !== false ? '' : 'ikincil'}" data-sesli="1">${t('Açık')}</button><button class="btn ${S.ayar.sesliYonerge !== false ? 'ikincil' : ''}" data-sesli="0">${t('Kapalı')}</button>
@@ -1974,6 +1984,8 @@
     };
     app.querySelectorAll('[data-hatir]').forEach(b => b.onclick = () => hatirAyarla(b.dataset.hatir === '1', $('#hatirSaat').value || '20:00'));
     if ($('#hatirSaat')) $('#hatirSaat').onchange = e => { if (e.target.value) hatirAyarla(!!(S.ayar.hatirlat || {}).acik, e.target.value); };
+    app.querySelectorAll('[data-mesk]').forEach(b => b.onclick = () => { S.ayar.mesk = b.dataset.mesk === '1'; kaydet(); ciz(); });
+    app.querySelectorAll('[data-mtekrar]').forEach(b => b.onclick = () => { S.ayar.meskTekrar = +b.dataset.mtekrar; kaydet(); ciz(); });
     app.querySelectorAll('[data-sesli]').forEach(b => b.onclick = () => { S.ayar.sesliYonerge = b.dataset.sesli === '1'; kaydet(); if (S.ayar.sesliYonerge && window.Sesli) { window.Sesli.acik = true; window.Sesli.soyle(t('Sesli yönerge açık.')); } ciz(); });
     app.querySelectorAll('[data-hiz]').forEach(b => b.onclick = () => { S.ayar.hiz = +b.dataset.hiz; kaydet(); ciz(); });
     $('#kopyala').onclick = async () => { try { await navigator.clipboard.writeText(yedek); toast(t('Kopyalandı')); } catch (e) { const x = $('#yedek'); x.select(); document.execCommand('copy'); toast(t('Kopyalandı')); } };
@@ -2206,7 +2218,96 @@
     d.onclick = kapat; setTimeout(kapat, kisa ? 1000 : 2600);
   }
   // Çocuk modu (cocuk.js) bağlanır
-  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), ayetCal: (r, btn) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn) }) : null;
+  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: () => buyugeGec(), sureSes: n => sureSesDurum(n), ayetCal: (r, btn) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn) }) : null;
+  // ------------------------------------------------------------ MEŞK MODU (özel: Ayarlar'dan açılır)
+  // Geleneksel meşk: hoca parça parça okur, öğrenci tekrar eder, hata düzeltilir; parça yeterince doğru
+  // okununca sonrakine geçilir, sonunda ayetin tamamı birlikte okunur.
+  const MESK = { n: 0, a: 0, p: 0, dogru: 0, kayit: null, sonuc: null, bekliyor: false };
+  function meskParcalar(n, a) {
+    const w = SURE(n).ayet[a - 1].split(' '), l = [];
+    const boy = w.length <= 4 ? w.length : 3;
+    for (let i = 0; i < w.length; i += boy) l.push([i, Math.min(w.length, i + boy) - 1]);
+    if (l.length > 1 && l[l.length - 1][1] - l[l.length - 1][0] < 1) { const s = l.pop(); l[l.length - 1][1] = s[1]; }   // tek kelime kalmasın
+    if (l.length > 1) l.push([0, w.length - 1]);   // en sonda ayetin tamamı
+    return l;
+  }
+  // Fonetik referansın bir kelime aralığı (parçayı ayrı değerlendirmek için)
+  function altRef(ref, i, j) {
+    const P = Array.from(ref.p), o = ref.sp[i][0], z = ref.sp[j][1];
+    return { p: P.slice(o, z).join(''), sp: ref.sp.slice(i, j + 1).map(([x, y]) => [x - o, y - o]), u: ref.u.filter(x => x[3] >= i && x[3] <= j).map(x => [x[0] - o, x[1] - o, x[2], x[3] - i, ...x.slice(4)]) };
+  }
+  EKRAN.mesk = function (n, a) {
+    n = +n; a = +a;
+    if (!SURE(n)) { app.innerHTML = `${ust(t('Meşk'))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; sureYukle(n).then(() => ciz()).catch(() => toast(t('Sûre açılamadı.'))); return; }
+    if (MESK.n !== n || MESK.a !== a) Object.assign(MESK, { n, a, p: 0, dogru: 0, sonuc: null });
+    const x = SURE(n), w = x.ayet[a - 1].split(' '), P = meskParcalar(n, a), [i, j] = P[MESK.p] || P[0];
+    const hedef = S.ayar.meskTekrar || 3, tam = P.length > 1 && MESK.p === P.length - 1, bitti = MESK.p >= P.length;
+    const r = `${n}:${a}`;
+    const kelimeler = w.map((k, q) => `<span class="${!bitti && q >= i && q <= j ? 'mesk-simdi' : (bitti || P.slice(0, MESK.p).some(([s, e]) => q >= s && q <= e && !(s === 0 && e === w.length - 1)) ? 'mesk-tamam' : '')}">${esc(k)}</span>`).join(' ');
+    app.innerHTML = `${ust(t('Meşk · {0} {1}', esc(sureAdi(x)), a))}<main>
+      <div class="mesk-adimlar">${P.map((_, q) => `<span class="${q < MESK.p || bitti ? 'tamam' : q === MESK.p ? 'simdi' : ''}">${q === P.length - 1 && P.length > 1 ? '★' : q + 1}</span>`).join('')}</div>
+      <article class="kart"><div class="ayet mesk-ayet" dir="rtl" lang="ar">${kelimeler} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div></article>
+      ${bitti ? `<article class="kart mesk-bitti"><h2>${t('🎉 Bu ayetin meşkini tamamladın!')}</h2><p>${t('Bârekallah. Yarın bu ayeti bir kez daha oku; tekrar, ezberi ve okuyuşu sağlamlaştırır.')}</p>
+          <div class="satir">${a < x.ayet.length ? `<button class="btn" id="meskSonraki">${t('Sonraki ayet ›')}</button>` : ''}<button class="btn ikincil" id="meskBastan">${t('Baştan')}</button></div></article>`
+        : `<article class="kart mesk-kart">
+          <p class="mesk-baslik">${tam ? t('Şimdi ayetin tamamı') : t('Parça {0}/{1}', MESK.p + 1, P.length > 1 ? P.length - 1 : 1)}</p>
+          <ol class="mesk-sira"><li class="${MESK.dinlendi ? 'tamam' : ''}"><button class="sesbtn" id="meskDinle">${t('▶ Hocadan dinle')}</button></li>
+            <li><button class="sesbtn ${MESK.kayit ? 'kirmizi-btn kaydediyor' : 'ikincil'}" id="meskOku">${MESK.kayit ? t('⏹ Bitir') : t('🎤 Şimdi sen oku')}</button></li></ol>
+          <div class="mesk-sayac">${[...Array(hedef)].map((_, q) => `<span class="${q < MESK.dogru ? 'dolu' : ''}">✓</span>`).join('')}<small>${t('{0}/{1} doğru okuyuş', MESK.dogru, hedef)}</small></div>
+          <div id="meskSonuc">${MESK.bekliyor ? `<p class="soluk">${t('⏳ Okuyuşun inceleniyor…')} <span id="modelYuzde"></span></p>` : MESK.sonuc || ''}</div></article>`}
+      <p class="soluk kucukyazi">${t('Meşk: hoca okur, sen tekrar edersin. Her parçayı {0} kez doğru okuyunca sonrakine geçilir. Yapay zekâ yanılabilir; son söz hocanındır.', hedef)}</p>
+    </main>`;
+    const d = $('#meskDinle'); if (d) d.onclick = () => { MESK.dinlendi = true; d.closest('li').classList.add('tamam'); tam ? cal(ayetUrl(r, 'Husary_Muallim_128kbps'), d) : arkaArka(w.slice(i, j + 1).map((_, q) => kelimeUrl(r, i + q + 1)), d); };
+    const sn = $('#meskSonraki'); if (sn) sn.onclick = () => ekranDegistir('mesk', n, a + 1);
+    const bb = $('#meskBastan'); if (bb) bb.onclick = () => { Object.assign(MESK, { p: 0, dogru: 0, sonuc: null, dinlendi: false }); ciz(); };
+    const ok = $('#meskOku'); if (!ok) return;
+    ok.onclick = async () => {
+      if (MESK.kayit) { MESK.kayit.state !== 'inactive' && MESK.kayit.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+      let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+      if (ses) { ses.pause(); ses = null; }
+      const parca = [], rec = new MediaRecorder(akis); MESK.kayit = rec;
+      O.modelAc(p => { const e = document.getElementById('modelYuzde'); if (e) e.textContent = t('(yapay zekâ modeli ilk kez hazırlanıyor: {0})', yuzdeStr(Math.round(p * 100))); }).catch(() => { });
+      rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+      rec.onstop = async () => {
+        akis.getTracks().forEach(z => z.stop()); clearTimeout(MESK.z); MESK.kayit = null; MESK.bekliyor = true; ciz();
+        try {
+          const ses_ = await O.sesCoz(new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
+          if (ses_.length / 16000 < 0.5) throw new Error(t('Kayıt çok kısa.'));
+          const ref = (await O.fonetik(n))[a - 1], alt = altRef(ref, i, j), dd = await O.dinle(ses_);
+          let K = O.listen(alt, dd.heard, dd.probs, dd.times);
+          // Parçanın başında/sonunda durup başlamak okunuşu biraz değiştirir (hemze-i vasl, vakf): bu kenar notları sayılmaz
+          if (!tam) K = K.map((k, q) => Object.assign({}, k, { notes: k.notes.filter(z => !((q === 0 && i > 0 && /^(added|letter|vowel)$/.test(z.rule)) || (q === K.length - 1 && j < w.length - 1 && /^(dropped|vowel)$/.test(z.rule)))) }));
+          const jali = K.reduce((s, k) => s + k.notes.filter(z => z.severity === 'jali').length, 0), khafi = K.reduce((s, k) => s + k.notes.filter(z => z.severity !== 'jali').length, 0);
+          const satir = K.filter(k => k.notes.length).map(k => `<li><b class="ar">${esc(w[i + k.index])}</b> <button class="sesbtn ikincil mini" data-ses="${kelimeUrl(r, i + k.index + 1)}">🔊</button> ${k.notes.map(z => `<span class="${z.severity === 'jali' ? 'kirmizi' : 'turuncu'}">${z.severity === 'jali' ? '' : t('kontrol et: ')}${metin(z.msg)}</span>`).join(' · ')}</li>`).join('');
+          MESK.bekliyor = false;
+          if (!jali) {
+            MESK.dogru++;
+            MESK.sonuc = `<div class="rapor iyi"><p><b>${khafi ? t('✓ Doğru. Küçük bir yeri kontrol et:') : t('✓ Güzel okudun!')}</b></p>${satir ? `<ul class="rapor-not">${satir}</ul>` : ''}</div>`;
+            if (MESK.dogru >= (S.ayar.meskTekrar || 3)) {
+              S.mesk = S.mesk || {}; const kk = r; S.mesk[kk] = Object.assign(S.mesk[kk] || {}, { p: MESK.p + 1, t: simdi() });
+              MESK.p++; MESK.dogru = 0; MESK.dinlendi = false; MESK.sonuc = `<div class="rapor iyi"><p><b>${t('Parça tamam! Sıradaki parçaya geçtik.')}</b></p></div>`;
+              if (MESK.p >= P.length) { S.mesk[kk].tamam = true; S.mesk[kk].p = P.length; }
+              seriGuncelle(); kaydet(); if (window.Konfeti) setTimeout(() => window.Konfeti.patlat($('.mesk-ayet'), MESK.p >= P.length ? 80 : 30), 100);
+            }
+          } else MESK.sonuc = `<div class="rapor kotu"><p><b>${t('Bir daha dinle ve tekrar oku.')}</b></p><ul class="rapor-not">${satir}</ul></div>`;
+        } catch (e) { MESK.bekliyor = false; MESK.sonuc = `<p class="hata">${esc(e.message || String(e))}</p>`; }
+        if (ekranYigini[ekranYigini.length - 1][0] === 'mesk') ciz();
+      };
+      rec.start(); MESK.z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), tam ? 28000 : 12000); ciz();
+    };
+  };
+  // Meşk için sûre/ayet seçimi
+  EKRAN.meskSec = function () {
+    const l = (window.SURELER || []);
+    app.innerHTML = `${ust(t('🎓 Meşk'))}<main>
+      <article class="kart"><p>${t('Hoca (kâri) ayeti parça parça okur, sen tekrar edersin; okuyuşun incelenir. Her parçayı birkaç kez doğru okuyunca sonrakine geçilir.')}</p>
+        <p class="soluk kucukyazi">${t('Herhangi bir sûrede meşk yapmak için Kur\'an sekmesinde ayetin altındaki “🎓 Meşk” düğmesine dokun.')}</p></article>
+      <div class="bolumler">${l.map(x => { const tamam = x.ayet.filter((_, i) => (S.mesk || {})[x.n + ':' + (i + 1)] && S.mesk[x.n + ':' + (i + 1)].tamam).length; return `<button class="bolum" data-git="mesk|${x.n}|${Math.min(x.ayet.length, tamam + 1)}"><span class="ikon ar">${esc(x.ar)}</span><span class="bad"><small>${t('{0}/{1} ayet', tamam, x.ayet.length)}</small>${esc(sureAdi(x))}</span><span class="rozet">›</span></button>`; }).join('')}</div>
+    </main>`;
+  };
+
   // ------------------------------------------------------------ yarım kalan test (kaldığın yerden devam)
   const OKEY = 'tecvid-ogren.oturum.' + PR.aktif;
   function oturumSakla() {
@@ -2336,6 +2437,12 @@
       <p class="soluk kucukyazi">${t('Özet bu telefondaki verilerden hazırlanır.')}</p></main>`;
   };
 
+  // Çocuk sûreleri: Husarî (öğretim) sesleri telefona indirilir (yalnız Android uygulamasında)
+  function sureSesDurum(n) {
+    if (!FS()) return null;
+    const l = indirListesi('Husary_Muallim_128kbps', n).concat(n !== 1 ? [ayetUrl('1:1', 'Husary_Muallim_128kbps')] : []);
+    return { var: indirilenSay(l), toplam: l.length, indir: () => indirBaslat(l, '').then(() => { yerelKaydet(); if (ekranYigini[ekranYigini.length - 1][0] === 'cocukDurak') ciz(); }) };
+  }
   // Çocuk profili harf yolculuğunu bitirince: ebeveyn onayıyla tecvid derslerine geçiş
   async function buyugeGec() {
     if (!(await window.ebeveynKilidi())) return;

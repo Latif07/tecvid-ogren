@@ -226,7 +226,8 @@
     const durakBul = id => DURAK.find(d => d.id === id);
     const C = () => { const s = S(); s.cocuk = s.cocuk || { d: {}, gun: {} }; s.cocuk.d = s.cocuk.d || {}; s.cocuk.gun = s.cocuk.gun || {}; return s.cocuk; };
     const yildiz = id => (C().d[id] && C().d[id].y) || 0;
-    const acik = d => { const i = DURAK.indexOf(d); return i === 0 || yildiz(DURAK[i - 1].id) > 0 || yildiz(d.id) > 0; };
+    // Sûreler Adası baştan açıktır (kısa sûreleri bilen çocuk harf yolculuğunu beklemez)
+    const acik = d => { const i = DURAK.indexOf(d); return i === 0 || d.ada === 'sure' || yildiz(DURAK[i - 1].id) > 0 || yildiz(d.id) > 0; };
     const toplamYildiz = () => DURAK.reduce((a, d) => a + yildiz(d.id), 0);
     const siradaki = () => DURAK.find(d => !yildiz(d.id)) || null;
     const CIKARTMA = ['⭐', '🌙', '🌸', '🌷', '🌻', '🍀', '🌈', '☀️', '🕌', '📖', '🏮', '💎', '🌴', '🍎', '🍇', '🍊', '⛰️', '🌊', '❄️', '🔭', '🎈', '🧭', '🪁', '🏆'];
@@ -315,11 +316,14 @@
     }
     // Sûre oyunları: sıradaki ayet, eksik kelime, dinle-bul
     function sureSorusu(n, tur, kac) {
-      const x = SR(n), A = x.ayet, k = rnd(A.length - 1);
+      const x = SR(n), A0 = x.ayet, k = rnd(A0.length - 1);
+      // seçeneklerde uzun ayetlerin yalnız başı gösterilir (okumayı yeni öğrenen çocuk için)
+      const kisa = y => { const w = y.split(' '); return w.length > 4 ? w.slice(0, 3).join(' ') + ' …' : y; };
+      const A = new Set(A0.map(kisa)).size === A0.length ? A0.map(kisa) : A0;
       const baska = (haric, m) => karistir(A.map((_, i) => i).filter(i => !haric.includes(i))).slice(0, m);
-      if (tur === 'sira') return secenekli({ soru: t('Bu ayetten sonra hangisi gelir?'), goster: ar(A[k], 'ayet-k'), dogru: A[k + 1], secenek: karistir([A[k + 1], ...baska([k, k + 1], kac - 1).map(i => A[i])]), arSec: true, uzun: true });
+      if (tur === 'sira') return secenekli({ soru: t('Bu ayetten sonra hangisi gelir?'), goster: ar(A0[k], 'ayet-k'), dogru: A[k + 1], secenek: karistir([A[k + 1], ...baska([k, k + 1], kac - 1).map(i => A[i])]), arSec: true, uzun: true });
       if (tur === 'eksik') {
-        const w = A[k].split(' '), j = rnd(w.length), tum = [...new Set(A.join(' ').split(' '))].filter(y => y !== w[j]);
+        const w = A0[k].split(' '), j = rnd(w.length), tum = [...new Set(A0.join(' ').split(' '))].filter(y => y !== w[j]);
         const gosterilen = w.map((y, i) => i === j ? '<span class="bosluk">ـــــ</span>' : y).join(' ');
         return secenekli({ soru: t('Eksik kelime hangisi?'), goster: ar(gosterilen, 'ayet-k'), dogru: w[j], secenek: karistir([w[j], ...karistir(tum).slice(0, kac - 1)]), arSec: true });
       }
@@ -388,7 +392,9 @@
       }
       if (d.tur === 'sure') {
         const x = SR(d.n), giris = { 1: t('Kur\'an\'ın ilk sûresidir; adı “açılış” demektir. Namazda okunur.'), 112: t('Allah\'ın bir olduğunu ve hiçbir şeye muhtaç olmadığını anlatır.'), 113: t('Sabahın Rabbine, her türlü kötülükten sığınmayı öğretir.'), 114: t('İnsanların Rabbine, kalbe kötü düşünce fısıldayandan sığınmayı öğretir.') }[d.n];
-        return `<div class="c-tanis"><div class="c-sure-ad">${ar(x.ar)}</div><h2>${esc(d.ad)}</h2><p>${giris}</p><p class="soluk">${t('{0} ayet', x.ayet.length)}</p><p>${t('Önce dinleyeceğiz, sonra her ayeti sen tekrar edeceksin.')}</p></div>`;
+        const ind = api.sureSes ? api.sureSes(d.n) : null;
+        return `<div class="c-tanis"><div class="c-sure-ad">${ar(x.ar)}</div><h2>${esc(d.ad)}</h2><p>${giris}</p><p class="soluk">${t('{0} ayet', x.ayet.length)}</p><p>${t('Önce dinleyeceğiz, sonra her ayeti sen tekrar edeceksin.')}</p>
+          ${ind ? (ind.var >= ind.toplam ? `<p class="yesil kucukyazi">${t('✓ Sesler telefonda; internetsiz de çalar.')}</p>` : `<button class="btn ikincil" id="sureIndir">${t('📥 İnternetsiz dinlemek için indir')} (${ind.var}/${ind.toplam})</button>`) : ''}</div>`;
       }
       if (d.k === 'isaret') {
         return `<div class="c-tanis"><h2>${esc(d.ad)}</h2><p>${t('Kur\'an\'da (Medine mushafında) bazı işaretler kitaptakinden biraz farklı görünür:')}</p>
@@ -525,11 +531,14 @@
         <main class="cocuk-ekran"><div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${balon}</span><button class="c-hoparlor" aria-label="${t('Sesli oku')}">🔊</button></div></div>${govde}</main>`;
       Sesli.acik = S().ayar.sesliYonerge !== false;
       const sq = D.adim === 'oyun' ? D.sorular[D.i] : null;
-      const sesliMetin = sq ? (sq.sesli || sq.soru) : balon;
+      const mj = D.adim === 'bitti' ? app.querySelector('[data-mujde]') : null;
+      const sesliMetin = sq ? (sq.sesli || sq.soru) : balon + (mj && kucuk() ? ' ' + mj.dataset.mujde : '');
+      if (mj) mj.onclick = () => Sesli.soyle(mj.dataset.mujde);
       app.querySelector('.c-hoparlor').onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses); else if (sq && sq.ayetSes) api.ayetCal(sq.ayetSes); else Sesli.soyle(sesliMetin); };
       app.querySelectorAll('[data-ayet]').forEach(b => b.onclick = () => api.ayetCal(b.dataset.ayet, b));
       app.querySelectorAll('[data-oku]').forEach(b => b.onclick = () => { b.outerHTML = `<b class="oku-acik">${b.dataset.oku}</b>`; });
       app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { const i = +b.dataset.tekrar; D.tekrar[i] = !D.tekrar[i]; if (D.tekrar[i]) { tik(true); Konfeti.patlat(b, 14); } durakSakla(); b.classList.toggle('tamam', !!D.tekrar[i]); b.textContent = D.tekrar[i] ? '✓' : t('Tekrar ettim'); b.closest('.c-ayet').classList.toggle('tamam', !!D.tekrar[i]); });
+      const si = document.getElementById('sureIndir'); if (si) si.onclick = () => { api.sureSes(d.n).indir(); si.disabled = true; si.textContent = t('İndiriliyor…'); };
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
       if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => Sesli.soyle(sesliMetin), 200); }
       app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses));
@@ -611,7 +620,7 @@
     function mujde(n) {
       const l = (window.MUJDE && window.MUJDE.cocuk) || []; if (!l.length) return '';
       const m = l[n % l.length];
-      return `<section class="mujde cocuk"><p class="mujde-baslik">${m.tur === 'ayet' ? t('📖 Allah Teâlâ buyuruyor:') : t('🌹 Peygamberimiz (s.a.v.) buyuruyor:')}</p><p class="ar" dir="rtl" lang="ar">${m.ar}</p><p class="mujde-metin">“${esc(EN ? m.en : m.tr)}”</p><p class="mujde-kaynak">${esc(EN ? m.ken : m.ktr)}</p></section>`;
+      return `<section class="mujde cocuk"><button class="c-hoparlor mujde-ses" data-mujde="${esc(EN ? m.en : m.tr)}" aria-label="${t('Sesli oku')}">🔊</button><p class="mujde-baslik">${m.tur === 'ayet' ? t('📖 Allah Teâlâ buyuruyor:') : t('🌹 Peygamberimiz (s.a.v.) buyuruyor:')}</p><p class="ar" dir="rtl" lang="ar">${m.ar}</p><p class="mujde-metin">“${esc(EN ? m.en : m.tr)}”</p><p class="mujde-kaynak">${esc(EN ? m.ken : m.ktr)}</p></section>`;
     }
 
     // ---------------------------------------------------------- ana ekran: Harf Yolculuğu haritası
@@ -641,6 +650,7 @@
         ${S().ayar.sesKontrol ? '' : `<section class="kart c-ses-kontrol"><h2>${t('🔊 Sesimi duyuyor musun?')}</h2><p>${t('Yönergeleri sesli okuyorum. Önce bir dene:')}</p>
           <div class="satir sola"><button class="btn ikincil" id="sesDene">${t('🔊 Dene')}</button><button class="btn" id="sesVar">${t('✓ Duyuyorum')}</button><button class="btn ikincil" id="sesYok">${t('✗ Duymuyorum')}</button></div><div id="sesYardim"></div></section>`}
         ${s ? `<button class="btn genis c-btn" data-durak="${s.id}">${yarim ? t('▶ Kaldığın yerden devam et') : t('▶ Devam et')}</button>` : ''}
+        ${(() => { const sd = DURAK.filter(d => d.ada === 'sure'), sir = sd.find(d => !yildiz(d.id)) || sd[0]; return sir && (!s || s.ada !== 'sure') ? `<button class="btn genis ikincil c-sure-kisa" data-durak="${sir.id}">📖 ${t('Sûreler Adası: {0}', esc(sir.ad))}</button>` : ''; })()}
         <div class="c-harita">${harita}</div>
         <p class="soluk ortala kucukyazi">${t('Kısa ve sık çalışmak en iyisi: her gün bir durak yeter.')}</p>
       </main>`;

@@ -598,3 +598,21 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-goster { overflow: hidden; padding: 4px 0; }
 .c-goster .ar.dev { display: block; line-height: 1.5; padding-bottom: .1em; }
 .ar.golge { -webkit-text-stroke-width: 2.5px; text-shadow: 3px 3px 0 color-mix(in srgb, var(--soluk) 30%, transparent); }
+
+/* ---------------------------------------------------------------- meşk modu */
+.mesk-adimlar { display: flex; gap: 6px; justify-content: center; margin: 4px 0 12px; flex-wrap: wrap; }
+.mesk-adimlar span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--cizgi); font-weight: 800; font-size: .85rem; color: var(--soluk); }
+.mesk-adimlar span.simdi { background: var(--altin); color: #fff; } .mesk-adimlar span.tamam { background: var(--iyi); color: #fff; }
+.mesk-ayet span { transition: color .2s, background .2s; border-radius: 6px; padding: 0 2px; }
+.mesk-ayet .mesk-simdi { background: var(--isaret); color: var(--metin); }
+.mesk-ayet .mesk-tamam { color: var(--iyi); }
+.mesk-baslik { margin: 0 0 8px; font-weight: 800; color: var(--ana); }
+.mesk-sira { list-style: none; padding: 0; margin: 0 0 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+.mesk-sira li.tamam .sesbtn { box-shadow: 0 0 0 3px color-mix(in srgb, var(--iyi) 35%, transparent); }
+.mesk-sayac { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px; }
+.mesk-sayac span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--cizgi); color: var(--cizgi); font-weight: 800; }
+.mesk-sayac span.dolu { background: var(--iyi); border-color: var(--iyi); color: #fff; animation: sevin .4s ease; }
+.mesk-sayac small { color: var(--soluk); margin-left: 4px; }
+.mesk-bitti { text-align: center; border-color: var(--iyi); }
+.mujde-ses { position: absolute; top: 8px; right: 8px; }
+.c-sure-kisa { margin-top: 0; border-color: #a77bf3 !important; color: #7a4fd0 !important; }
