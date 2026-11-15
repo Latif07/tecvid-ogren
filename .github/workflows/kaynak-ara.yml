@@ -6,7 +6,7 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - name: Diyanet portalı uç şablonları ve erişim başlıkları (içerik yazdırılmaz)
+      - name: Diyanet ses ve meal adres şablonları (içerik yazdırılmaz)
         shell: bash
         run: |
           set +e
@@ -15,11 +15,15 @@ jobs:
           for i in 1 2 3; do curl "${H[@]}" https://kuran.diyanet.gov.tr/ -o m.html && [ -s m.html ] && break; sleep 3; done
           js=$(grep -oE '/assets/index-[^"]+\.js' m.html | head -1); curl "${H[@]}" "https://kuran.diyanet.gov.tr$js" -o hepsi.js
           for p in $(grep -oE '/assets/[A-Za-z0-9_.-]+\.js' hepsi.js | sort -u); do curl "${H[@]}" "https://kuran.diyanet.gov.tr$p" >> hepsi.js; done
-          echo "== bağlam"
-          for k in 'kuranikerim/Sound' '/ses/tilavet' 'meal_1.json' '/meal/sayfa/' 'sync/manifest' 'qurandm' '/api/v2' 'dil_id'; do
-            grep -boE ".{0,160}${k//\//\\/}.{0,200}" hepsi.js | head -3 | cut -c1-420; echo
+          for k in 'I1' 'P1' 'tb,' 'wordTrack' '\.mp3' 'padStart(3' ; do echo "== $k"; grep -oE ".{0,200}${k}.{0,260}" hepsi.js | head -4 | cut -c1-470; done
+          echo "== Ft tanımı"; grep -oE "async function Ft\(.{0,400}" hepsi.js | head -2
+          echo "== API yanıt türleri ve CORS"
+          for u in '/api/v2/ses/tilavet?dil_id=1' '/api/v2/meal/kaynaklar' '/api/v2/meal/sayfa/1/1' '/api/v2/sure/1/ceviriler'; do
+            echo "-- $u"; curl -s -m 30 -A "$UA" -H 'Origin: https://latif07.github.io' -D h.txt "https://kuran.diyanet.gov.tr$u" -o r.json; grep -iE '^(HTTP|content-type|access-control-allow-origin)' h.txt
+            python3 -c "import json;d=json.load(open('r.json'));x=d.get('data',d) if isinstance(d,dict) else d;print('yapı:',type(x).__name__, (len(x) if hasattr(x,'__len__') else ''), (sorted(x[0].keys()) if isinstance(x,list) and x and isinstance(x[0],dict) else (sorted(x.keys())[:15] if isinstance(x,dict) else '')))" 2>&1 | tail -1
           done
-          echo "== başlıklar (CORS ve tür)"
-          for u in 'https://kuran.diyanet.gov.tr/mushaf/qurandm/pagedata?id=1' 'https://kuran.diyanet.gov.tr/api/v2/sync/manifest' 'https://kuran.diyanet.gov.tr/ses/tilavet?dil_id=1' 'https://webdosya.diyanet.gov.tr/kuran/kuranikerim/Sound/'; do
-            echo "-- $u"; curl -sI -m 30 -A "$UA" -H 'Origin: https://latif07.github.io' "$u" | grep -iE '^(HTTP|content-type|content-length|access-control)' 
-          done
+          python3 -c "
+          import json;d=json.load(open('r.json'))
+          " 2>/dev/null
+          curl -s -m 30 -A "$UA" 'https://kuran.diyanet.gov.tr/api/v2/ses/tilavet?dil_id=1' -o t.json; python3 -c "import json;d=json.load(open('t.json'));x=d.get('data',d);[print({k:(v if k in ('id','adi','ad','kod','klasor','dosya_yolu','yol','path','name','okuyucu','url') else '...') for k,v in e.items()}) for e in (x if isinstance(x,list) else [])][:20]" 2>&1 | head -20
+          curl -s -m 30 -A "$UA" 'https://kuran.diyanet.gov.tr/api/v2/meal/kaynaklar' -o k.json; python3 -c "import json;d=json.load(open('k.json'));x=d.get('data',d);[print({k:v for k,v in e.items() if not isinstance(v,(dict,list)) and len(str(v))<80}) for e in (x if isinstance(x,list) else [])][:30]" 2>&1 | head -30
