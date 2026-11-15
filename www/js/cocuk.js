@@ -391,6 +391,22 @@
       return q;
     }
 
+    // ---------------------------------------------------------- çalışma süresi ve mola önerisi
+    // Ekran açıkken çocuk modunda geçen dakikalar sayılır (veli özeti için günlük toplam).
+    // 4–6 yaş: aynı oturumda 15 dakika dolunca durak sonunda nazik bir mola önerilir (kilit değil).
+    let oturumDk = 0, gizlendi = 0, molaGosterildi = false;
+    setInterval(() => {
+      if (document.visibilityState !== 'visible' || !document.body.classList.contains('cocuk-modu')) return;
+      oturumDk += .5; const c = C(); c.sure = c.sure || {}; c.sure[bugun()] = (c.sure[bugun()] || 0) + .5;
+      if (Number.isInteger(oturumDk) && oturumDk % 2 === 0) kaydet();
+    }, 30000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') gizlendi = Date.now();
+      else if (gizlendi && Date.now() - gizlendi > 10 * 60000) { oturumDk = 0; molaGosterildi = false; }
+    });
+    const molaZamani = () => kucuk() && oturumDk >= 15 && !molaGosterildi;
+    api.molaTest = dk => { oturumDk = dk; molaGosterildi = false; };
+
     // ---------------------------------------------------------- durak oturumu
     let D = null;
     const DKEY = () => 'tecvid-ogren.durak.' + profil().id;
@@ -551,9 +567,11 @@
         const y = D.yildiz; const kalan = DURAK.indexOf(d) + 1 < DURAK.length ? DURAK[DURAK.indexOf(d) + 1] : null;
         const m = mujde(DURAK.indexOf(d));
         balon = y === 3 ? t('Mükemmel! Üç yıldız!') : y === 2 ? t('Çok güzel! İki yıldız!') : t('Bitirdin! Tekrar oynarsan daha çok yıldız kazanırsın.');
+        const mola = molaZamani(); if (mola) { molaGosterildi = true; balon = t('Bugünlük çok güzel çalıştın! Biraz dinlenelim mi?'); }
         govde = `<article class="kart c-kart c-bitti"><div class="c-yildizlar buyuk">${[1, 2, 3].map(n => `<span class="${n <= y ? 'dolu' : ''}" style="--g:${n * .18}s">★</span>`).join('')}</div>
           <h2>${esc(OVGU())}</h2>${D.yeniCikartma ? `<p class="c-yeni-cikartma">${t('Yeni çıkartma kazandın:')} <span>${D.yeniCikartma}</span></p>` : ''}</article>
           ${m}
+          ${mola ? `<article class="kart c-mola">${MASKOT(56, 'don')}<div><b>${t('Mola zamanı 🌿')}</b><p>${t('Gözlerini dinlendir, biraz su iç. İstersen yarın kaldığın yerden devam ederiz.')}</p></div></article>` : ''}
           <div class="satir">${kalan ? `<button class="btn ikincil" data-git="ana">${t('Haritaya dön')}</button><button class="btn" id="cSonraki">${t('Sonraki durak ›')}</button>` : `<button class="btn" data-git="ana">${t('Haritaya dön')}</button>`}</div>
           ${!kalan ? `<article class="kart c-kart"><h2>${t('🎓 Harf yolculuğunu bitirdin!')}</h2><p>${t('Artık tecvid derslerine hazırsın. Bir büyüğünle birlikte derslere geçebilirsin.')}</p><button class="btn genis" id="cBuyuge">${t('📘 Tecvid derslerine geç')}</button></article>` : ''}`;
       }
@@ -810,7 +828,7 @@
       });
     };
 
-    return { HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
+    return { molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
   window.MASKOT = MASKOT;

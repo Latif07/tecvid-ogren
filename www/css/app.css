@@ -744,3 +744,12 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .tanitim-izgara span { font-size: 1.4rem; } .tanitim-izgara b { font-size: .92rem; } .tanitim-izgara small { color: var(--soluk); font-size: .78rem; line-height: 1.35; }
 @media (prefers-color-scheme: dark) { :root:not([data-tema="acik"]) .sayfa-ayrac { color: var(--altin); } }
 :root[data-tema="koyu"] .sayfa-ayrac { color: var(--altin); }
+.kucuk-gs { margin-bottom: 14px; padding-top: 12px; padding-bottom: 12px; }
+.gs-satir { display: flex; align-items: center; gap: 10px; }
+.gs-satir > div { flex: 1; } .gs-satir b, .gs-satir small { display: block; } .gs-satir small { color: var(--soluk); }
+.gs-ikon { font-size: 1.5rem; }
+.gs-kapat { border: 0; background: var(--bg); width: 34px; height: 34px; border-radius: 50%; flex: none; }
+.gs-detay { margin: 8px 0; } .gs-detay summary { cursor: pointer; color: var(--ana); font-weight: 650; padding: 4px 0; }
+.kucuk-gs .btn.kucuk { margin-top: 4px; }
+.c-mola { display: flex; align-items: center; gap: 12px; border: 2px solid var(--ana2); background: var(--iyi-bg); }
+.c-mola p { margin: 2px 0 0; }

@@ -2207,7 +2207,9 @@
       ['💯', t('Tam puan'), t('Bir testten 100 al'), g.some(h => h.yuzde === 100)],
       ['🧠', t('Hâfıza'), t('Bir sûreyi ezberle'), ezb >= 1],
       ['🎯', t('Azimli'), t('50 test çöz'), g.length >= 50],
-      ['🏆', t('Tecvid tamam'), t('Büyük finali geç'), gecti('x4') && !(S.ilerleme.x4 || {}).atla]
+      ['🏆', t('Tecvid tamam'), t('Büyük finali geç'), gecti('x4') && !(S.ilerleme.x4 || {}).atla],
+      ['🗓️', t('Soru haftası'), t('7 gün günün sorusunu cevapla'), ((S.gs || {}).gun || 0) >= 7],
+      ['🌟', t('Soru ayı'), t('30 gün günün sorusunu cevapla'), ((S.gs || {}).gun || 0) >= 30]
     ];
   }
   // Bu hafta: gün hedefi (pazartesi–pazar) ve en çok zorlanılan 3 kural
@@ -2226,6 +2228,7 @@
       <div class="satir-bilgi"><b>${t('{0}/{1} gün çalıştın', yapilan, hedef)}</b>${yapilan >= hedef ? `<span class="rozet ok">${t('Hedef tamam ✓')}</span>` : ''}</div>
       <div class="hafta-gun">${hafta.map(x => `<span class="${x.v ? 'dolu' : ''} ${x.bugun ? 'bugun' : ''}"><i>${x.v ? '✓' : ''}</i><small>${esc(x.ad)}</small></span>`).join('')}</div>
       <p class="soluk kucukyazi">${t('Haftalık hedef:')} ${[3, 5, 7].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hhedef="${k}">${t('{0} gün', k)}</button>`).join(' ')}</p>
+      ${(S.gs || {}).gun ? `<p class="kucukyazi">🎯 ${t('Günün sorusu: {0} gün cevapladın, {1} doğru.', S.gs.gun, S.gs.dogru || 0)}</p>` : ''}
       ${zor.length ? `<h3>${t('🎯 En çok zorlandığın kurallar')}</h3>${zor.map(x => `<button class="hk" data-git="ders|${x.u}"><span>${esc(x.ad)}</span><b class="kirmizi">${yuzdeStr(x.oran)}</b></button>`).join('')}` : ''}
     </article>`;
   }
@@ -2493,32 +2496,66 @@
   };
 
   // ------------------------------------------------------------ günün sorusu ("cevap sende")
-  function gununSorusuAnahtar() {
+  function gununSorusuHavuz() {
     const havuz = [];
     acikDersler().forEach(u => (u.sorular || []).forEach((_, j) => havuz.push(`c:${u.id}:${j}`)));
     [1, 112, 113, 114].forEach(n => { const x = SURE(n); if (!x) return; x.ayet.forEach((_, i) => (RENK[`${n}:${i + 1}`] || []).forEach(([, , k], j) => { if (k !== 's') havuz.push(`k:${n}:${i + 1}:${j}`); })); });
-    if (!havuz.length) return null;
+    return havuz;
+  }
+  function gununSorusuAnahtar() {
+    const havuz = gununSorusuHavuz(); if (!havuz.length) return null;
     const tohum = [...(bugun() + AKTIF)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
     return havuz[tohum % havuz.length];
   }
+  // Günün sorusu: günde bir soru sayılır (doğru ya da yanlış fark etmez, toplam gün tutulur);
+  // cevaptan sonra kart küçülür, kapatılabilir; en fazla 3 ek pratik sorusu (sayılmaz).
+  const GS_EK = 3;
+  const gsSoru = k => { const c = gununSorusuKarti._c = gununSorusuKarti._c || {}; return c[k] || (c[k] = soruUret(k)); };
+  const gsGeri = (q, sec, d) => `<div class="geribildirim ${d ? 'iyi' : 'kotu'}"><b>${d ? t('✓ Doğru!') : t('✗ Yanlış.')}</b> ${d ? '' : t('Doğru cevap: ') + metin(q.dogru)}${q.aciklama ? `<p>${q.aciklama}</p>` : ''}</div>`;
+  const gsSecenek = (q, sec, kilit, ek) => `<div class="secenekler">${q.secenek.map((x, j) => `<button class="secenek ${kilit ? (x === q.dogru ? 'dogru' : sec === j ? 'yanlis' : '') : ''}" ${ek ? 'data-gse' : 'data-gs'}="${j}" ${kilit ? 'disabled' : ''}>${metin(x)}</button>`).join('')}</div>`;
   function gununSorusuKarti() {
     const g = S.gununSorusu && S.gununSorusu.g === bugun() ? S.gununSorusu : null;
+    if (g && g.kapali) return '';
     const anahtar = (g && g.a) || gununSorusuAnahtar(); if (!anahtar) return '';
-    const q = gununSorusuKarti._q && gununSorusuKarti._q.anahtar === anahtar ? gununSorusuKarti._q : (gununSorusuKarti._q = soruUret(anahtar));
-    if (!q) return '';
-    return `<section class="kart cevap-sende gunun-sorusu" id="gununSorusu"><p class="cs-baslik">${t('🎯 Günün sorusu · cevap sende')}</p>
-      ${g ? q.ustRenkli || '' : q.ust || ''}<p><b>${q.soru}</b></p>
-      <div class="secenekler">${q.secenek.map((s, j) => `<button class="secenek ${g ? (s === q.dogru ? 'dogru' : g.sec === j ? 'yanlis' : '') : ''}" data-gs="${j}" ${g ? 'disabled' : ''}>${metin(s)}</button>`).join('')}</div>
-      ${g ? `<div class="geribildirim ${g.d ? 'iyi' : 'kotu'}"><b>${g.d ? t('✓ Doğru!') : t('✗ Yanlış.')}</b> ${g.d ? '' : t('Doğru cevap: ') + metin(q.dogru)}${q.aciklama ? `<p>${q.aciklama}</p>` : ''}<p class="soluk kucukyazi">${t('Yarın yeni soru gelecek.')}</p></div>` : ''}</section>`;
+    const q = gsSoru(anahtar); if (!q) return '';
+    const gs = S.gs || { gun: 0, dogru: 0 };
+    if (!g) return `<section class="kart cevap-sende gunun-sorusu" id="gununSorusu"><p class="cs-baslik">${t('🎯 Günün sorusu · cevap sende')}</p>
+      ${q.ust || ''}<p><b>${q.soru}</b></p>${gsSecenek(q)}</section>`;
+    // ek pratik sorusu açıksa
+    if (g.ekA) {
+      const e = gsSoru(g.ekA); if (e) return `<section class="kart cevap-sende gunun-sorusu" id="gununSorusu"><p class="cs-baslik">${t('➕ Pratik sorusu {0}/{1}', g.ek || 1, GS_EK)}</p>
+        ${g.ekSec != null ? e.ustRenkli || '' : e.ust || ''}<p><b>${e.soru}</b></p>${gsSecenek(e, g.ekSec, g.ekSec != null, true)}
+        ${g.ekSec != null ? gsGeri(e, g.ekSec, g.ekD) + `<div class="satir sola">${(g.ek || 0) < GS_EK ? `<button class="btn ikincil" id="gsEk">${t('Bir soru daha')}</button>` : ''}<button class="btn" id="gsTamam">${t('Tamam')}</button></div>` : ''}</section>`;
+    }
+    return `<section class="kart gunun-sorusu kucuk-gs" id="gununSorusu">
+      <div class="gs-satir"><span class="gs-ikon">${g.d ? '✅' : '📘'}</span><div><b>${t('Günün sorusu tamam')}</b><small>${g.d ? t('Doğru cevapladın.') : t('Açıklamayı okudun, bu da kazanç.')} · 📅 ${t('{0} gün', gs.gun || 1)}</small></div>
+        <button class="gs-kapat" id="gsKapat" aria-label="${t('Kapat')}">✕</button></div>
+      <details class="gs-detay"><summary>${t('Soruyu ve açıklamayı gör')}</summary>${q.ustRenkli || ''}<p><b>${q.soru}</b></p>${gsSecenek(q, g.sec, true)}${gsGeri(q, g.sec, g.d)}</details>
+      ${(g.ek || 0) < GS_EK ? `<button class="btn ikincil kucuk" id="gsEk">${t('➕ Bir soru daha ({0} kaldı)', GS_EK - (g.ek || 0))}</button>` : `<p class="soluk kucukyazi">${t('Bugünlük bu kadar. Yarın yeni soru gelecek.')}</p>`}</section>`;
   }
   function gununSorusuBagla() {
     const kok = $('#gununSorusu'); if (!kok) return; sozlukBagla(kok);
-    const q = gununSorusuKarti._q;
+    const g = S.gununSorusu && S.gununSorusu.g === bugun() ? S.gununSorusu : null;
     kok.querySelectorAll('[data-gs]:not([disabled])').forEach(b => b.onclick = () => {
-      const j = +b.dataset.gs, d = q.secenek[j] === q.dogru;
-      S.gununSorusu = { g: bugun(), a: q.anahtar, sec: j, d }; srsGuncelle(q.anahtar, d); kaydet(); ciz();
-      if (d && window.Konfeti) window.Konfeti.patlat(document.querySelector('#gununSorusu .geribildirim'), 22);
+      const q = gsSoru(gununSorusuAnahtar()), j = +b.dataset.gs, d = q.secenek[j] === q.dogru;
+      S.gununSorusu = { g: bugun(), a: q.anahtar, sec: j, d };
+      const gs = S.gs = S.gs || { gun: 0, dogru: 0 }; if (gs.son !== bugun()) { gs.gun = (gs.gun || 0) + 1; gs.son = bugun(); if (d) gs.dogru = (gs.dogru || 0) + 1; }
+      srsGuncelle(q.anahtar, d); kaydet(); ciz();
+      const yeni = $('#gununSorusu'); if (yeni) { const det = yeni.querySelector('.gs-detay'); if (det) det.open = true; if (d && window.Konfeti) window.Konfeti.patlat(yeni, 22); }
     });
+    kok.querySelectorAll('[data-gse]:not([disabled])').forEach(b => b.onclick = () => {
+      const e = gsSoru(g.ekA), j = +b.dataset.gse, d = e.secenek[j] === e.dogru;
+      Object.assign(g, { ekSec: j, ekD: d }); srsGuncelle(e.anahtar, d); kaydet(); ciz();
+      if (d && window.Konfeti) window.Konfeti.patlat($('#gununSorusu'), 16);
+    });
+    const ek = $('#gsEk'); if (ek) ek.onclick = () => {
+      const kullanilan = new Set([g.a].concat(g.ekler || [])), havuz = gununSorusuHavuz().filter(k => !kullanilan.has(k));
+      if (!havuz.length) { toast(t('Şimdilik yeni soru yok.')); return; }
+      const k = havuz[Math.floor(Math.random() * havuz.length)];
+      Object.assign(g, { ekA: k, ek: (g.ek || 0) + 1, ekSec: null, ekD: null, ekler: (g.ekler || []).concat([k]) }); kaydet(); ciz();
+    };
+    const tm = $('#gsTamam'); if (tm) tm.onclick = () => { Object.assign(g, { ekA: null, ekSec: null }); kaydet(); ciz(); };
+    const kp = $('#gsKapat'); if (kp) kp.onclick = () => { g.kapali = true; kaydet(); ciz(); };
   }
 
   EKRAN.mesk = function (n, a) {
@@ -2708,6 +2745,8 @@
       const harf = DURAK.filter(x => x.tur === 'harf' && d[x.id] && d[x.id].y).length, harfTop = DURAK.filter(x => x.tur === 'harf').length;
       const sira = DURAK.find(x => !(d[x.id] && d[x.id].y));
       const karisan = Object.entries(c.hata || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const dkHafta = Math.round(Object.entries(c.sure || {}).filter(([k]) => new Date(k).getTime() >= hafta - GUN).reduce((a, [, v]) => a + v, 0));
+      const birlikte = p.yas === 'kucuk' ? `<p class="oneri">👨‍👩‍👧 ${t('4–6 yaşta en iyi öğrenme, sizin yanında olduğunuz kısa oturumlarla olur. Haftada 2 gün birlikte oturun; harfi sizin sesinizden duysun. 15 dakikadan sonra uygulama mola önerir.')}</p>` : '';
       const oneri = !buHaftaGun.length ? t('Bu hafta hiç çalışılmamış. Her gün 5 dakikalık tek bir durak yeterli.')
         : karisan.length ? t('Karıştırılan harfleri birlikte tekrar edin. Harfin sesini sizden duyması çok faydalıdır.') : t('Güzel gidiyor! Her gün kısa ve düzenli çalışmaya devam.');
       return `<article class="kart ozet-kart"><div class="profil-satir" style="padding:0">${avatar(p)}<div class="bad"><b>${esc(p.ad || t('Profil {0}', PR.liste.indexOf(p) + 1))}</b><small>${YAS_AD[p.yas]}</small></div></div>
@@ -2715,7 +2754,8 @@
         <div class="grup-cubuk" style="margin-top:12px"><div class="satir-bilgi"><b>${t('Öğrenilen harfler')}</b><small>${harf}/${harfTop}</small></div><div class="pano-cubuk"><div style="width:${Math.round(harf / Math.max(1, harfTop) * 100)}%"></div></div></div>
         <p><b>${t('Sıradaki durak:')}</b> ${sira ? esc(sira.ad) : t('Hepsi bitti 🎉')}</p>
         ${karisan.length ? `<p><b>${t('En çok karıştırdığı:')}</b></p><ul class="karisan">${karisan.map(([k, n]) => { const [a, b] = k.split('|'); return `<li><span class="ar">${a}</span> ${t('yerine')} <span class="ar">${b}</span> <small class="soluk">${t('({0} kez)', n)}</small></li>`; }).join('')}</ul>` : ''}
-        <p class="oneri">💡 ${oneri}</p></article>`;
+        ${dkHafta ? `<p class="soluk kucukyazi">⏱️ ${t('Bu hafta uygulamada yaklaşık {0} dakika geçirdi.', dkHafta)}</p>` : ''}
+        <p class="oneri">💡 ${oneri}</p>${birlikte}</article>`;
     };
     app.innerHTML = `${ust(t('Çocuk özeti'))}<main>
       ${cocuklar.length ? cocuklar.map(kart).join('') : `<article class="kart"><p>${t('Henüz çocuk profili yok. Profiller bölümünden 4–6 ya da 7–12 yaş için profil ekleyebilirsin.')}</p><button class="btn" data-git="profiller">${t('Profiller')}</button></article>`}
