@@ -3,15 +3,19 @@ on: workflow_dispatch
 jobs:
   incele:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Erişim ve arşiv
+      - name: Arşivden kod ve veri
         run: |
-          for u in https://kuran.diyanet.gov.tr/ https://kuran.diyanet.gov.tr/elifba/ https://webdosya.diyanet.gov.tr/kuran/kuranikerim/Sound/ar_osmanSahin/1_1.mp3; do
-            echo "ERISIM $u $(curl -s -m 20 -o /dev/null -w '%{http_code}' "$u" || echo hata)"; done
-          echo "== CDX elifba"
-          curl -s -m 60 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/*&output=txt&fl=timestamp,original,mimetype,statuscode&collapse=urlkey&limit=3000" > cdx.txt; wc -l cdx.txt
-          awk '{print $3}' cdx.txt | sort | uniq -c | sort -rn | head -20 | sed 's/^/MIME /'
-          grep -iE "\.(mp3|ogg|m4a|wav)" cdx.txt | head -150 | sed 's/^/SES /'
-          grep -iE "\.(js|json)" cdx.txt | head -60 | sed 's/^/JS /'
-          grep -viE "\.(mp3|ogg|m4a|wav|js|json|png|jpg|gif|css|svg|woff|ttf)" cdx.txt | head -60 | sed 's/^/SAYFA /'
+          curl -s -m 90 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/*&output=txt&fl=timestamp,original,mimetype,statuscode&collapse=urlkey&limit=5000" > cdx.txt
+          grep -iE "data/|\.json|\.xml" cdx.txt | grep -viE "\.(png|jpg|pdf|mp3)" | head -80 | sed 's/^/VERI /'
+          grep -iE "views/pages/|ContentManager|SdManager|Config|Constants|EbPlayer|App.js|Router" cdx.txt | awk '{print $1, $2}' > js.txt
+          while read ts u; do
+            f=$(echo "$u" | sed 's#.*/##'); curl -s -m 60 "https://web.archive.org/web/${ts}id_/${u}" -o "j_$f" || continue
+            echo "== $f $(wc -c < j_$f)"
+            grep -oE "[\"'][^\"' ]*(sound|Sound|mp3|btn_|harfler|fetha|kesra|esre|damme|otre|ötre|hareke|data/)[^\"' ]*[\"']" "j_$f" | sort -u | head -60 | sed "s/^/KOD $f /"
+          done < js.txt
+          # Sayfa listesi / menü
+          for f in j_*; do grep -oE "(fetha|kesra|esre|damme|otre|ustun|üstün|hareke|harekeler|med|tenvin|cezm|sedde)[a-zA-Z_]*" "$f" | sort | uniq -c | sort -rn | head -30 | sed "s/^/KELIME $f /"; done
+          echo "== Ses klasörleri (arşivde)"
+          grep -oE "data/sound/[^ ]*" cdx.txt | sed -E 's#/[^/]*$##' | sort | uniq -c | sed 's/^/KLASOR /'
