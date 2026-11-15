@@ -1,0 +1,37 @@
+name: Ses kaynağı ara (Commons)
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  ara:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wikimedia Commons ve Lingua Libre sorgusu
+        shell: python
+        run: |
+          import json, urllib.request, urllib.parse
+          A = 'https://commons.wikimedia.org/w/api.php'
+          def q(**p):
+              p.update(format='json'); u = A + '?' + urllib.parse.urlencode(p)
+              r = urllib.request.Request(u, headers={'User-Agent': 'tecvid-ogren-arastirma/1.0 (github Latif07)'})
+              return json.load(urllib.request.urlopen(r, timeout=30))
+          print('== Kategori araması')
+          for s in ['Arabic alphabet pronunciation', 'Arabic letters audio', 'Pronunciation of Arabic letters', 'Tajweed audio', 'Arabic phonemes']:
+              d = q(action='query', list='search', srsearch=s, srnamespace=14, srlimit=10)
+              print(s, '->', [x['title'] for x in d['query']['search']])
+          print('== Ses dosyası araması')
+          for s in ['Arabic letter pronunciation filetype:audio', 'Arabic alphabet filetype:audio', 'Ar- harf filetype:audio', 'arabic consonant filetype:audio', 'pharyngeal fricative filetype:audio', 'tajweed filetype:audio', 'makhraj filetype:audio']:
+              d = q(action='query', list='search', srsearch=s, srnamespace=6, srlimit=30)
+              print(s, '->', d['query']['searchinfo']['totalhits'], [x['title'] for x in d['query']['search']])
+          print('== Harf adları (Lingua Libre ve diğer)')
+          adlar = ['ألف', 'باء', 'تاء', 'ثاء', 'جيم', 'حاء', 'خاء', 'دال', 'ذال', 'راء', 'زاي', 'سين', 'شين', 'صاد', 'ضاد', 'طاء', 'ظاء', 'عين', 'غين', 'فاء', 'قاف', 'كاف', 'لام', 'ميم', 'نون', 'هاء', 'واو', 'ياء']
+          for a in adlar:
+              d = q(action='query', list='search', srsearch=f'intitle:"{a}" filetype:audio', srnamespace=6, srlimit=10)
+              print(a, '->', [x['title'] for x in d['query']['search']])
+          print('== Lingua Libre Arapça toplam')
+          d = q(action='query', list='search', srsearch='"LL-Q13955 (ara)"', srnamespace=6, srlimit=5)
+          print(d['query']['searchinfo']['totalhits'], [x['title'] for x in d['query']['search']])
+          print('== Ses dosyaları: IPA ünsüz örnekleri (Wikipedia ses örnekleri)')
+          for s in ['Voiced pharyngeal fricative', 'Voiceless pharyngeal fricative', 'Voiceless uvular plosive', 'Voiced uvular fricative', 'Pharyngealized']:
+              d = q(action='query', list='search', srsearch=f'intitle:"{s}" filetype:audio', srnamespace=6, srlimit=5)
+              print(s, '->', [x['title'] for x in d['query']['search']])
