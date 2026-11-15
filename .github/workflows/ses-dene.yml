@@ -1,49 +1,70 @@
 name: Hece sesi denemesi (SILMA TTS)
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      deneme:
+        description: 'Deneme adı'
+        default: 'v2'
 permissions:
-  contents: read
+  contents: write
 jobs:
   uret:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
-      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
-      - run: pip install -q silma-tts==1.0.5 || pip install -q silma-tts
-      - name: Paket bilgisi
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng >/dev/null
+      - run: pip install -q silma-tts==1.0.5 praat-parselmouth transformers phonemizer soundfile librosa
+      - name: Normalleştirici hareke siliyor mu?
         shell: python
         run: |
-          import inspect, silma_tts, os
-          from silma_tts.api import SilmaTTS
-          print(inspect.signature(SilmaTTS.__init__)); print(inspect.signature(SilmaTTS.infer))
-          kok = list(silma_tts.__path__)[0]
-          for r, d, f in os.walk(kok):
-              for x in f:
-                  if x.endswith(('.wav', '.mp3', '.flac', '.txt', '.toml', '.yaml')): print(os.path.join(r, x))
-      - name: Heceleri üret
+          import inspect, silma_tts
+          from silma_tts import api
+          src = inspect.getsource(api)
+          for k in ['normaliz', 'tashkeel', 'diacrit', 'harak', 'strip']:
+              for i, l in enumerate(src.splitlines()):
+                  if k in l.lower(): print(i, l.strip()[:200])
+      - name: Heceleri üret ve ölç
         shell: python
         run: |
-          import os, glob, silma_tts, subprocess
-          from silma_tts.api import SilmaTTS
+          import os, json, subprocess, numpy as np, parselmouth, soundfile as sf, librosa, torch
           from importlib.resources import files
-          ref = [str(files("silma_tts").joinpath("infer/ref_audio_samples/ar.ref.24k.wav"))]
+          from silma_tts.api import SilmaTTS
+          REF = str(files("silma_tts").joinpath("infer/ref_audio_samples/ar.ref.24k.wav"))
           REF_TEXT = "ويدقق النظر في القرآن الكريم وسائر الكتب السماوية ويتبع مسالك الرسل العظام عليهم الصلاة والسلام."
-          print('referans:', ref, os.path.exists(ref[0]))
-          tts = SilmaTTS()
-          os.makedirs('ornek', exist_ok=True)
-          H = {'ayin': 'ع', 'ha': 'ح', 'hi': 'خ', 'kaf': 'ق', 'sad': 'ص', 'dad': 'ض', 'ti': 'ط', 'zi': 'ظ', 'gayin': 'غ', 'se': 'ث', 'zel': 'ذ', 'vav': 'و', 'be': 'ب'}
-          V = {'ustun': 'َ', 'esre': 'ِ', 'otre': 'ُ'}
-          isler = []
+          tts = SilmaTTS(enable_normalizer=False, force_tashkeel=False)
+          H = {'ayin': 'ع', 'ha': 'ح', 'hi': 'خ', 'kaf': 'ق', 'sad': 'ص', 'dad': 'ض', 'ti': 'ط', 'zi': 'ظ', 'gayin': 'غ', 'se': 'ث', 'zel': 'ذ', 'vav': 'و', 'be': 'ب', 'mim': 'م'}
+          V = {'ustun': ('َ', 'a'), 'esre': ('ِ', 'i'), 'otre': ('ُ', 'u')}
+          from transformers import AutoProcessor, AutoModelForCTC
+          proc = AutoProcessor.from_pretrained('facebook/wav2vec2-lv-60-espeak-cv-ft'); asr = AutoModelForCTC.from_pretrained('facebook/wav2vec2-lv-60-espeak-cv-ft')
+          def fonem(path):
+              y, _ = librosa.load(path, sr=16000)
+              with torch.no_grad(): lg = asr(proc(y, sampling_rate=16000, return_tensors='pt').input_values).logits
+              return proc.batch_decode(torch.argmax(lg, -1))[0]
+          def unlu(path):
+              snd = parselmouth.Sound(path); f = snd.to_formant_burg(max_number_of_formants=5, maximum_formant=5000)
+              it = snd.to_intensity(); t0, t1 = snd.xmin, snd.xmax
+              ts = [t for t in np.linspace(t0 + .02, t1 - .02, 60) if it.get_value(t) and it.get_value(t) > it.values.max() - 12]
+              ts = ts[len(ts)//3:] or ts   # sessiz harf geçişinden sonra, ünlünün oturduğu kısım
+              f1 = np.nanmedian([f.get_value_at_time(1, t) for t in ts]); f2 = np.nanmedian([f.get_value_at_time(2, t) for t in ts])
+              # kaba sınıflama: /i/ yüksek F2 alçak F1; /u/ alçak F1 alçak F2; /a/ yüksek F1
+              tah = 'i' if f2 > 1900 and f1 < 520 else 'u' if f2 < 1300 and f1 < 520 else 'a' if f1 >= 520 else '?'
+              return round(float(f1)), round(float(f2)), tah
+          os.makedirs('ornek', exist_ok=True); sonuc = []
           for ad, h in H.items():
-              isler.append((f'{ad}_uclu', f'{h}{V["ustun"]} {h}{V["esre"]} {h}{V["otre"]}'))
-              for vad, v in V.items(): isler.append((f'{ad}_{vad}', h + v))
-          for ad, metin in isler:
-              try:
-                  kw = dict(gen_text=metin, file_wave=f'ornek/{ad}.wav', seed=7, speed=0.8, force_tashkeel=False, ref_file=ref[0], ref_text=REF_TEXT)
-                  tts.infer(**kw)
-                  subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', f'ornek/{ad}.wav', '-b:a', '64k', f'ornek/{ad}.mp3'])
-                  os.remove(f'ornek/{ad}.wav'); print('tamam', ad, metin)
-              except Exception as e: print('HATA', ad, repr(e)[:300])
-      - uses: actions/upload-artifact@v4
-        with: { name: hece-ornekleri, path: ornek/, retention-days: 7 }
+              for vad, (m, beklenen) in V.items():
+                  ad_ = f'{ad}_{vad}'
+                  try:
+                      tts.infer(ref_file=REF, ref_text=REF_TEXT, gen_text=h + m, file_wave=f'ornek/{ad_}.wav', seed=7, speed=0.8, force_tashkeel=False)
+                      f1, f2, tah = unlu(f'ornek/{ad_}.wav'); fn = fonem(f'ornek/{ad_}.wav')
+                      ok = tah == beklenen
+                      sonuc.append(dict(ad=ad_, metin=h + m, beklenen=beklenen, f1=f1, f2=f2, olculen=tah, fonem=fn, uygun=ok))
+                      print(('UYGUN ' if ok else 'UYMAZ ') + f'{ad_:12} {h+m}  beklenen {beklenen}  ölçülen {tah}  F1 {f1} F2 {f2}  fonem: {fn}', flush=True)
+                      subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', f'ornek/{ad_}.wav', '-b:a', '64k', f'ornek/{ad_}.mp3']); os.remove(f'ornek/{ad_}.wav')
+                  except Exception as e: print('HATA', ad_, repr(e)[:300], flush=True)
+          json.dump(sonuc, open('ornek/sonuc.json', 'w'), ensure_ascii=False, indent=1)
+          print('ÖZET', sum(x['uygun'] for x in sonuc), '/', len(sonuc))
+      - name: Sesleri dala koy
+        run: |
+          cd ornek && git init -q -b ses-deneme-${{ inputs.deneme }} && git add . && git -c user.name=bot -c user.email=bot@x commit -qm "SILMA TTS hece denemesi ${{ inputs.deneme }}" && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ses-deneme-${{ inputs.deneme }}
