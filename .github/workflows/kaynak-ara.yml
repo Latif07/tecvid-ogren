@@ -6,25 +6,21 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get install -y poppler-utils >/dev/null 2>&1 || true
-      - name: Diyanet sayfaları ve belgeleri
+      - name: Diyanet Kur'an portalı yapısı (yalnız adresler, içerik indirilmez)
         shell: bash
         run: |
-          UA='Mozilla/5.0 (X11; Linux x86_64) tecvid-ogren-arastirma'
-          al() { curl -sL -m 40 -A "$UA" "$1" -o "$2"; echo "== $1 -> $(stat -c%s "$2" 2>/dev/null) bayt"; }
-          al 'https://hukukmusavirligi.diyanet.gov.tr/Documents/Diyanet%20%C4%B0%C5%9Fleri%20Ba%C5%9Fkanl%C4%B1%C4%9F%C4%B1%20Mushaflar%C4%B1%20%C4%B0nceleme%20ve%20K%C4%B1raat%20Kurulu%20Uygulama%20Genelgesi.pdf' genelge.pdf
-          pdftotext -layout genelge.pdf - 2>/dev/null | sed 's/[[:space:]]\+/ /g' | grep -v '^ *$' | head -400
-          for u in 'https://mushaflariinceleme.diyanet.gov.tr/' 'https://mushaflariinceleme.diyanet.gov.tr/Pages/Iletisim.aspx' 'https://diniyayinlar.diyanet.gov.tr/' 'https://diniyayinlar.diyanet.gov.tr/Pages/Iletisim.aspx' 'https://www.diyanet.gov.tr/tr-TR/Kurumsal/Iletisim'; do
-            al "$u" s.html
-            python3 - <<'PY'
-          import re, html
-          s = open('s.html', encoding='utf-8', errors='ignore').read()
-          t = html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>', ' ', s, flags=re.S))
-          links = re.findall(r'href="([^"]+)"[^>]*>([^<]{3,80})<', t)
-          txt = re.sub(r'<[^>]+>', ' ', t); txt = re.sub(r'\s+', ' ', txt)
-          for k in ['letişim', 'Telefon', 'Tel', 'e-posta', 'E-posta', '@diyanet', 'Adres', 'Başvuru', 'başvuru', 'Form', 'form', 'Dijital', 'dijital', 'Elektronik', 'telif', 'Telif']:
-              for m in re.finditer(k, txt):
-                  print('  ...', txt[max(0, m.start() - 120): m.start() + 200]); break
-          print('  bağlantılar:', [(a, b.strip()) for a, b in links if re.search(r'(?i)ileti|başvur|form|dijital|elektron|telif|izin|mevzuat|tebli|duyuru', a + b)][:40])
-          PY
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
+          for u in https://kuran.diyanet.gov.tr/ https://kuran.diyanet.gov.tr/mushaf https://mobiluygulama.diyanet.gov.tr/ https://elifba.diyanet.gov.tr/ ; do
+            code=$(curl -sL -m 30 -A "$UA" -o p.html -w '%{http_code} %{url_effective}' "$u"); echo "== $u -> $code $(stat -c%s p.html)"
+            grep -oE '(src|href)="[^"]+\.(js|json)[^"]*"' p.html | head -20
+            grep -oE 'https?://[a-zA-Z0-9./_-]*(api|audio|ses|mp3|cdn|media)[a-zA-Z0-9./_-]*' p.html | sort -u | head -20
+            grep -oiE '<title>[^<]*' p.html | head -2
+          done
+          # ana JS paketlerinde API uçları
+          curl -sL -m 30 -A "$UA" https://kuran.diyanet.gov.tr/mushaf -o m.html
+          for js in $(grep -oE 'src="[^"]+\.js[^"]*"' m.html | sed 's/src="//;s/"$//' | head -12); do
+            case "$js" in http*) url="$js";; /*) url="https://kuran.diyanet.gov.tr$js";; *) url="https://kuran.diyanet.gov.tr/$js";; esac
+            curl -sL -m 30 -A "$UA" "$url" -o b.js; echo "-- $url $(stat -c%s b.js)"
+            grep -oE '"(https?:)?//[^"]{4,120}"|`(https?:)?//[^`]{4,120}`' b.js | grep -iE 'api|audio|ses|mp3|sound|cdn|meal|mushaf|sure|ayet' | sort -u | head -25
+            grep -oE '"/api/[^"]{2,80}"|/api/[a-zA-Z/{}]{2,60}' b.js | sort -u | head -25
           done
