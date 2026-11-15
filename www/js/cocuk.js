@@ -81,10 +81,22 @@
       if (!metin) return;
       const lang = EN ? 'en-GB' : 'tr-TR';
       const TTS = window.capEklenti && window.capEklenti('TextToSpeech');
-      if (TTS) { TTS.stop().catch(() => { }).then(() => TTS.speak({ text: metin, lang, rate: .95 })).catch(() => { }); return; }
-      try { const ss = window.speechSynthesis; if (!ss) return; ss.cancel(); const u = new SpeechSynthesisUtterance(metin); u.lang = lang; u.rate = .95; ss.speak(u); } catch (e) { }
+      const no = ++this._no, bitti = () => { if (this._no === no) { this.konusuyor = false; this._dugme && this._dugme(); this._dugme = null; } };
+      this.konusuyor = true;
+      if (TTS) { TTS.stop().catch(() => { }).then(() => TTS.speak({ text: metin, lang, rate: .95 })).then(bitti, bitti); return; }
+      try { const ss = window.speechSynthesis; if (!ss) return bitti(); ss.cancel(); const u = new SpeechSynthesisUtterance(metin); u.lang = lang; u.rate = .95; u.onend = bitti; u.onerror = bitti; ss.speak(u); } catch (e) { bitti(); }
     },
-    sus() { const TTS = window.capEklenti && window.capEklenti('TextToSpeech'); if (TTS) TTS.stop().catch(() => { }); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { } }
+    _no: 0, konusuyor: false, _dugme: null,
+    // Düğmeli konuşma: konuşurken düğme ⏹ olur, tekrar dokununca susar
+    dugmeyle(btn, metin) {
+      if (this.konusuyor && this._btn === btn) { this.sus(); return; }
+      this.sus(); const D = window.SesDugme; if (window.sesDurdur) window.sesDurdur();
+      const a = this.acik; this.acik = true; this._btn = btn;
+      if (btn && D) D.caliyor(btn); this._dugme = () => { if (btn && D) D.birak(btn); this._btn = null; };
+      this.soyle(metin); this.acik = a;
+    },
+    sus() { const TTS = window.capEklenti && window.capEklenti('TextToSpeech'); if (TTS) TTS.stop().catch(() => { }); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { }
+      this._no++; this.konusuyor = false; if (this._dugme) { const f = this._dugme; this._dugme = null; f(); } }
   };
   window.Sesli = Sesli;
 
@@ -113,16 +125,22 @@
       kaydet: (k, blob) => islem('readwrite', st => st.put(blob, k)).then(() => anahtarlar.add(k)),
       sil: k => islem('readwrite', st => st.delete(k)).then(() => anahtarlar.delete(k)),
       al: k => islem('readonly', st => st.get(k)),
-      async cal(k) {
+      dur() { if (calan) { calan.pause(); if (calan.src.startsWith('blob:')) URL.revokeObjectURL(calan.src); calan = null; } if (this._btn && window.SesDugme) window.SesDugme.birak(this._btn); this._btn = null; },
+      async cal(k, btn) {
+        // Aynı düğmeye tekrar dokunulursa durur
+        if (btn && this._btn === btn && calan && !calan.ended) { this.dur(); return false; }
         // Önce bu telefonda yapılan kayıt, yoksa uygulamayla gelen paket
         try {
           let url;
           if (anahtarlar.has(k)) { const b = await this.al(k); if (b) url = URL.createObjectURL(b); }
           if (!url && paket.has(k)) url = dosya(k);
           if (!url) return false;
-          Sesli.sus(); if (calan) { calan.pause(); if (calan.src.startsWith('blob:')) URL.revokeObjectURL(calan.src); }
-          calan = new Audio(url); await calan.play(); return true;
-        } catch (e) { return false; }
+          Sesli.sus(); if (window.sesDurdur) window.sesDurdur(); this.dur();
+          const a = calan = new Audio(url);
+          if (btn && window.SesDugme) { window.SesDugme.caliyor(btn); this._btn = btn; }
+          a.onended = () => { if (calan === a && this._btn && window.SesDugme) { window.SesDugme.birak(this._btn); this._btn = null; } };
+          await a.play(); return true;
+        } catch (e) { if (this._btn && window.SesDugme) { window.SesDugme.birak(this._btn); this._btn = null; } return false; }
       }
     };
   })();
@@ -581,16 +599,16 @@
       const sq = D.adim === 'oyun' ? D.sorular[D.i] : null;
       const mj = D.adim === 'bitti' ? app.querySelector('[data-mujde]') : null;
       const sesliMetin = sq ? (sq.sesli || sq.soru) : balon + (mj && kucuk() ? ' ' + mj.dataset.mujde : '');
-      if (mj) mj.onclick = () => Sesli.soyle(mj.dataset.mujde);
-      app.querySelector('.c-hoparlor').onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses); else if (sq && sq.ayetSes) api.ayetCal(sq.ayetSes); else Sesli.soyle(sesliMetin); };
+      if (mj) mj.onclick = () => Sesli.dugmeyle(mj, mj.dataset.mujde);
+      const hop = app.querySelector('.c-hoparlor'); hop.onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses, hop); else if (sq && sq.ayetSes) api.ayetCal(sq.ayetSes, hop); else Sesli.dugmeyle(hop, sesliMetin); };
       app.querySelectorAll('[data-ayet]').forEach(b => b.onclick = () => api.ayetCal(b.dataset.ayet, b));
       app.querySelectorAll('[data-oku]').forEach(b => b.onclick = () => { b.outerHTML = `<b class="oku-acik">${b.dataset.oku}</b>`; });
       app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { const i = +b.dataset.tekrar; D.tekrar[i] = !D.tekrar[i]; if (D.tekrar[i]) { tik(true); Konfeti.patlat(b, 14); } durakSakla(); b.classList.toggle('tamam', !!D.tekrar[i]); b.textContent = D.tekrar[i] ? '✓' : t('Tekrar ettim'); b.closest('.c-ayet').classList.toggle('tamam', !!D.tekrar[i]); });
       const si = document.getElementById('sureIndir'); if (si) si.onclick = () => { api.sureSes(d.n).indir(); si.disabled = true; si.textContent = t('İndiriliyor…'); };
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
-      if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => Sesli.soyle(sesliMetin), 200); }
-      app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses));
-      app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => { const a_ = Sesli.acik; Sesli.acik = true; Sesli.soyle(b.dataset.hadi); Sesli.acik = a_; });
+      if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) Sesli.dugmeyle(hop, sesliMetin); }, 200); }
+      app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses, b));
+      app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => Sesli.dugmeyle(b, b.dataset.hadi));
       durakSakla();
       const gec = document.getElementById('cBuyuge'); if (gec) gec.onclick = () => api.buyugeGec();
       const ileri = document.getElementById('cIleri'); if (ileri) ileri.onclick = () => { D.adim = adimlar[adimlar.indexOf('tanis') + 1]; api.ciz(); window.scrollTo(0, 0); };
@@ -809,7 +827,7 @@
         <div class="sekmeler"><button class="${sekme === 'harf' ? 'aktif' : ''}" data-ssekme="harf">${t('Harfler')} (${HarfSes.sayi('h:')}/${HARF.length})</button><button class="${sekme === 'hareke' ? 'aktif' : ''}" data-ssekme="hareke">${t('Harekeli heceler')} (${HarfSes.sayi('hr:')}/${HAREKE_HARF.length * 3})</button></div>
         <div class="ses-izgara ${sekme}">${izgara}</div></main>`;
       app.querySelectorAll('[data-ssekme]').forEach(b => b.onclick = () => api.ekranDegistir('harfSesleri', b.dataset.ssekme));
-      app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses));
+      app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses, b));
       app.querySelectorAll('[data-ssil]').forEach(b => b.onclick = async () => { await HarfSes.sil(b.dataset.ssil).catch(() => { }); api.ciz(); });
       app.querySelectorAll('[data-skayit]').forEach(b => b.onclick = async () => {
         const k = b.dataset.skayit;

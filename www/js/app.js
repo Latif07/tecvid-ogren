@@ -212,20 +212,48 @@
   const ayetUrl = (r, klasor) => { const [s, a] = r.split(':').map(Number); return `https://everyayah.com/data/${klasor || kari().klasor}/${pad(s)}${pad(a)}.mp3`; };
   const kelimeUrl = (r, w) => { const [s, a] = r.split(':').map(Number); return `https://audio.qurancdn.com/wbw/${pad(s)}_${pad(a)}_${pad(w)}.mp3`; };
   let ses = null;
+  // ---- çalan düğme: çalarken "⏹ Durdur" olur, tekrar dokununca ses durur (bütün dinle düğmelerinde)
+  let calanDugme = null, calanDur = null;
+  function dugmeCaliyor(btn, dur) {
+    dugmeBirak();
+    if (!btn) return;
+    calanDugme = btn; calanDur = dur || null; btn.classList.add('caliyor');
+    if (btn.dataset.orj == null) btn.dataset.orj = btn.innerHTML;
+    // Yalnız dinleme düğmelerinin yazısı değişir; kelime gibi Arapça öğeler sadece vurgulanır
+    const tx = btn.textContent || '';
+    if (btn.tagName !== 'BUTTON' || btn.classList.contains('kelime') || /[\u0600-\u06FF]/.test(tx)) { delete btn.dataset.orj; return; }
+    const yazili = /[A-Za-zÇĞİÖŞÜçğıöşüâîû]/.test(tx);
+    btn.innerHTML = yazili ? `⏹ ${t('Durdur')}` : '⏹'; btn.setAttribute('aria-pressed', 'true');
+  }
+  function dugmeBirak(btn) {
+    const b = btn || calanDugme; if (!b) return;
+    b.classList.remove('caliyor'); b.removeAttribute('aria-pressed');
+    if (b.dataset.orj != null) { b.innerHTML = b.dataset.orj; delete b.dataset.orj; }
+    if (!btn || btn === calanDugme) { calanDugme = null; calanDur = null; }
+  }
+  // Çalan sesi durdur (düğmeyi eski hâline getirir)
+  function sesDurdur() {
+    const d = calanDur; if (ses) { ses.pause(); ses._iptal = true; ses = null; } dugmeBirak(); if (d) d();
+  }
+  window.sesDurdur = () => sesDurdur();
+  window.SesDugme = { caliyor: dugmeCaliyor, birak: dugmeBirak, calan: () => calanDugme };
   function cal(url, btn, yedekUrl) {
-    if (ses) { ses.pause(); document.querySelectorAll('.caliyor').forEach(b => b.classList.remove('caliyor')); }
-    if (ses && ses._url === url && !ses._bitti) { ses = null; return; }
-    ses = new Audio(sesKaynak(url)); ses._url = url; ses.playbackRate = S.ayar.hiz || 1;
-    btn && btn.classList.add('caliyor');
+    // Aynı düğmeye (ya da düğmesiz aynı sese) tekrar dokunulursa durdur
+    if (btn && btn === calanDugme) { sesDurdur(); return; }
+    if (!btn && ses && ses._url === url && !ses._bitti) { sesDurdur(); return; }
+    sesDurdur(); if (window.HarfSes && HarfSes.dur) HarfSes.dur(); if (window.Sesli) Sesli.sus();
+    const a = ses = new Audio(sesKaynak(url)); a._url = url; a.playbackRate = S.ayar.hiz || 1;
+    dugmeCaliyor(btn);
+    const bitir = () => { if (ses === a) ses = null; if (btn) dugmeBirak(btn); };
     const hata = () => {
-      btn && btn.classList.remove('caliyor');
+      if (a._iptal) return; bitir();
       // Seçilen kârinin kaydı bulunamazsa Husarî (öğretim) ile çal
-      if (yedekUrl && yedekUrl !== url && navigator.onLine !== false) { toast(t('Bu kârinin kaydı açılamadı; Husarî ile çalınıyor.')); ses = null; cal(yedekUrl, btn); return; }
+      if (yedekUrl && yedekUrl !== url && navigator.onLine !== false) { toast(t('Bu kârinin kaydı açılamadı; Husarî ile çalınıyor.')); cal(yedekUrl, btn); return; }
       toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.'));
     };
-    ses.onended = () => { ses._bitti = true; btn && btn.classList.remove('caliyor'); };
-    ses.onerror = hata;
-    ses.play().catch(e => { if (e && e.name === 'NotAllowedError') { btn && btn.classList.remove('caliyor'); return; } hata(); });
+    a.onended = () => { a._bitti = true; bitir(); };
+    a.onerror = hata;
+    a.play().catch(e => { if (a._iptal) return; if (e && e.name === 'NotAllowedError') { bitir(); return; } hata(); });
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-ses]'); if (!b) return;
@@ -333,14 +361,17 @@
   }
   function kayitDurdur() { if (kayitci && kayitci.state !== 'inactive') kayitci.stop(); }
   function arkaArka(urls, btn) {
-    if (ses) { ses.pause(); ses = null; }
-    let i = 0; btn && btn.classList.add('caliyor');
+    if (btn && btn === calanDugme) { sesDurdur(); return; }
+    sesDurdur(); if (window.HarfSes && HarfSes.dur) HarfSes.dur();
+    let i = 0; const is = { iptal: false };
+    dugmeCaliyor(btn, () => { is.iptal = true; });
     const sonraki = () => {
-      if (i >= urls.length) { btn && btn.classList.remove('caliyor'); ses = null; return; }
-      ses = new Audio(sesKaynak(urls[i++])); ses.playbackRate = S.ayar.hiz || 1;
-      ses.onended = () => setTimeout(sonraki, 600);
-      ses.onerror = () => { btn && btn.classList.remove('caliyor'); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
-      ses.play().catch(() => btn && btn.classList.remove('caliyor'));
+      if (is.iptal) return;
+      if (i >= urls.length) { if (btn) dugmeBirak(btn); ses = null; return; }
+      const a = ses = new Audio(sesKaynak(urls[i++])); a.playbackRate = S.ayar.hiz || 1;
+      a.onended = () => setTimeout(sonraki, 600);
+      a.onerror = () => { if (a._iptal || is.iptal) return; if (btn) dugmeBirak(btn); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
+      a.play().catch(() => { if (!a._iptal && btn) dugmeBirak(btn); });
     };
     sonraki();
   }
@@ -555,6 +586,7 @@
     if (sureCalma && anahtar !== ciz.son) { sureCalma.iptal = true; sureCalma = null; if (ses) { ses.pause(); ses = null; } }
     if (anahtar !== ciz.son && window.Konfeti) window.Konfeti.durdur();
     if (anahtar !== ciz.son && window.Sesli) window.Sesli.sus();
+    if (anahtar !== ciz.son) { if (ses) sesDurdur(); else dugmeBirak(); if (window.HarfSes && HarfSes.dur) HarfSes.dur(); }
     if (anahtar !== ciz.son && MESK.kayit) { const r_ = MESK.kayit; MESK.kayit = null; r_.onstop = () => { try { r_.stream.getTracks().forEach(x => x.stop()); } catch (e) { } }; r_.state !== 'inactive' && r_.stop(); }
     if (anahtar !== ciz.son) document.querySelectorAll('.sozluk-pencere').forEach(x => x.remove());   // sözlük penceresi ekranla birlikte kapanır
     ciz.son = anahtar;
@@ -1872,7 +1904,7 @@
       ${besmele}${ayetler}
       ${mod === 'tekrar' && e ? `<button class="btn genis" id="tekrarEttim">${t('✓ Tekrar ettim')}</button>` : ''}
     </main>`;
-    const durdur = () => { if (sureCalma) { sureCalma.iptal = true; sureCalma = null; } if (ses) { ses.pause(); ses = null; } document.querySelectorAll('.ayet-kart.caliyor-ayet').forEach(e => e.classList.remove('caliyor-ayet')); };
+    const durdur = () => { if (sureCalma) { sureCalma.iptal = true; sureCalma = null; } if (ses) { ses.pause(); ses._iptal = true; ses = null; } dugmeBirak(); document.querySelectorAll('.ayet-kart.caliyor-ayet').forEach(e => e.classList.remove('caliyor-ayet')); };
     function calSira(baslangic, bitis, secili, bitince) {
       durdur(); const is = { iptal: false }; sureCalma = is;
       const liste = []; for (const i of (secili || Array.from({ length: bitis - baslangic + 1 }, (_, j) => baslangic + j))) for (let k = 0; k < tekrar; k++) liste.push(i);
@@ -1880,7 +1912,7 @@
       const sonraki = () => {
         if (is.iptal) return;
         document.querySelectorAll('.ayet-kart.caliyor-ayet').forEach(e => e.classList.remove('caliyor-ayet'));
-        if (j >= liste.length) { sureCalma = null; $('#hepsi') && ($('#hepsi').textContent = t('▶ Tamamını dinle')); bitince && bitince(); return; }
+        if (j >= liste.length) { sureCalma = null; dugmeBirak(); $('#hepsi') && ($('#hepsi').textContent = t('▶ Tamamını dinle')); bitince && bitince(); return; }
         const i = liste[j++]; const kart = document.getElementById('ayet-' + i); kart && kart.classList.add('caliyor-ayet'); kart && kart.scrollIntoView({ behavior: 'smooth', block: 'center' });
         ses = new Audio(sesKaynak(ayetUrl(`${n}:${i}`))); ses.playbackRate = S.ayar.hiz || 1;
         ses.onended = () => setTimeout(sonraki, 500);
@@ -1892,7 +1924,7 @@
     const yeniArg = (degis) => { const a = { n, filtre, mod, hedef: '' }; Object.assign(a, degis); return [a.n, a.filtre, a.mod, a.hedef]; };
     const yenile = degis => { durdur(); ekranYigini[ekranYigini.length - 1] = ['sure', yeniArg(degis)]; ciz(); };
     $('#hepsi').onclick = () => { if (sureCalma) { durdur(); $('#hepsi').textContent = t('▶ Tamamını dinle'); return; } $('#hepsi').textContent = t('⏹ Durdur'); calSira(1, x.ayet.length, gorunen.map(i => i + 1)); S.sure = S.sure || {}; S.sure[n] = Object.assign({}, S.sure[n], { dinlendi: Date.now() }); kaydet(); };
-    app.querySelectorAll('[data-ayet-cal]').forEach(b => b.onclick = () => { const i = +b.dataset.ayetCal; calSira(i, i); });
+    app.querySelectorAll('[data-ayet-cal]').forEach(b => b.onclick = () => { if (b === calanDugme) { durdur(); return; } const i = +b.dataset.ayetCal; calSira(i, i); dugmeCaliyor(b, () => { if (sureCalma) { sureCalma.iptal = true; sureCalma = null; } }); });
     app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { S.ayar.tekrar = +b.dataset.tekrar; kaydet(); yenile({}); });
     const la = $('#lejantAc'); la.onclick = () => { const l = $('#lejant'); l.hidden = !l.hidden; };
     app.querySelectorAll('[data-filtre]').forEach(b => b.onclick = () => { const f = b.dataset.filtre; yenile({ filtre: f === filtre ? '' : f }); });

@@ -753,3 +753,4 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .kucuk-gs .btn.kucuk { margin-top: 4px; }
 .c-mola { display: flex; align-items: center; gap: 12px; border: 2px solid var(--ana2); background: var(--iyi-bg); }
 .c-mola p { margin: 2px 0 0; }
+.c-hoparlor.caliyor, .c-dinle.caliyor, .mujde-ses.caliyor { background: var(--altin-acik); border-color: var(--altin); }
