@@ -1,4 +1,4 @@
-name: Ses kaynağı ara (Commons)
+name: Kaynak araştırma
 on: workflow_dispatch
 permissions:
   contents: read
@@ -6,31 +6,25 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - name: Wikimedia Commons sorgusu
-        shell: python
+      - run: sudo apt-get install -y poppler-utils >/dev/null 2>&1 || true
+      - name: Diyanet sayfaları ve belgeleri
+        shell: bash
         run: |
-          import json, time, urllib.request, urllib.parse
-          A = 'https://commons.wikimedia.org/w/api.php'
-          def q(**p):
-              p.update(format='json'); u = A + '?' + urllib.parse.urlencode(p)
-              for d in (2, 6, 15):
-                  try:
-                      r = urllib.request.Request(u, headers={'User-Agent': 'tecvid-ogren-arastirma/1.0 (github.com/Latif07/tecvid-ogren)'})
-                      x = json.load(urllib.request.urlopen(r, timeout=30)); time.sleep(1.5); return x
-                  except Exception as e: print('  tekrar', e); time.sleep(d)
-              return {}
-          def bilgi(titles):
-              d = q(action='query', titles='|'.join(titles), prop='imageinfo', iiprop='extmetadata|size|url|mediatype')
-              for pg in d.get('query', {}).get('pages', {}).values():
-                  ii = (pg.get('imageinfo') or [{}])[0]; m = ii.get('extmetadata', {})
-                  g = lambda k: (m.get(k, {}).get('value') or '')[:160].replace('\n', ' ')
-                  print(f"- {pg['title']} | lisans: {g('LicenseShortName')} | yazar: {g('Artist')} | süre: {ii.get('duration')} | {g('ImageDescription')[:140]} | {ii.get('url')}")
-          print('== Escuela Internacional de Árabe serisi')
-          d = q(action='query', list='search', srsearch='intitle:"Escuela Internacional de Árabe" filetype:audio', srnamespace=6, srlimit=100)
-          l = [x['title'] for x in d.get('query', {}).get('search', [])]; print(len(l), 'dosya'); 
-          for i in range(0, len(l), 40): bilgi(l[i:i + 40])
-          print('== Tek dosyada alfabe ve diğer adaylar')
-          bilgi(['File:حروف الأبجدية العربية Arabic alphabet.ogg', 'File:Arabic alphabet (31s, 80kbps).ogg', 'File:Arabic alphabets.ogg', 'File:Arabic خ.wav', 'File:Voiced pharyngeal fricative "ع".wav', 'File:NL-Arabisch Alfabet-article.ogg'])
-          print('== Category:Arabic alphabet içindeki ses dosyaları')
-          d = q(action='query', list='categorymembers', cmtitle='Category:Arabic alphabet', cmtype='file', cmlimit=200)
-          print([x['title'] for x in d.get('query', {}).get('categorymembers', []) if x['title'].lower().endswith(('.ogg', '.oga', '.wav', '.mp3', '.opus', '.flac'))])
+          UA='Mozilla/5.0 (X11; Linux x86_64) tecvid-ogren-arastirma'
+          al() { curl -sL -m 40 -A "$UA" "$1" -o "$2"; echo "== $1 -> $(stat -c%s "$2" 2>/dev/null) bayt"; }
+          al 'https://hukukmusavirligi.diyanet.gov.tr/Documents/Diyanet%20%C4%B0%C5%9Fleri%20Ba%C5%9Fkanl%C4%B1%C4%9F%C4%B1%20Mushaflar%C4%B1%20%C4%B0nceleme%20ve%20K%C4%B1raat%20Kurulu%20Uygulama%20Genelgesi.pdf' genelge.pdf
+          pdftotext -layout genelge.pdf - 2>/dev/null | sed 's/[[:space:]]\+/ /g' | grep -v '^ *$' | head -400
+          for u in 'https://mushaflariinceleme.diyanet.gov.tr/' 'https://mushaflariinceleme.diyanet.gov.tr/Pages/Iletisim.aspx' 'https://diniyayinlar.diyanet.gov.tr/' 'https://diniyayinlar.diyanet.gov.tr/Pages/Iletisim.aspx' 'https://www.diyanet.gov.tr/tr-TR/Kurumsal/Iletisim'; do
+            al "$u" s.html
+            python3 - <<'PY'
+          import re, html
+          s = open('s.html', encoding='utf-8', errors='ignore').read()
+          t = html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>', ' ', s, flags=re.S))
+          links = re.findall(r'href="([^"]+)"[^>]*>([^<]{3,80})<', t)
+          txt = re.sub(r'<[^>]+>', ' ', t); txt = re.sub(r'\s+', ' ', txt)
+          for k in ['letişim', 'Telefon', 'Tel', 'e-posta', 'E-posta', '@diyanet', 'Adres', 'Başvuru', 'başvuru', 'Form', 'form', 'Dijital', 'dijital', 'Elektronik', 'telif', 'Telif']:
+              for m in re.finditer(k, txt):
+                  print('  ...', txt[max(0, m.start() - 120): m.start() + 200]); break
+          print('  bağlantılar:', [(a, b.strip()) for a, b in links if re.search(r'(?i)ileti|başvur|form|dijital|elektron|telif|izin|mevzuat|tebli|duyuru', a + b)][:40])
+          PY
+          done
