@@ -7,11 +7,11 @@ jobs:
     steps:
       - name: Arşivden kod ve veri
         run: |
-          curl -s -m 90 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/*&output=txt&fl=timestamp,original,mimetype,statuscode&collapse=urlkey&limit=5000" > cdx.txt
+          for i in 1 2 3 4 5; do curl -s -m 120 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/*&output=txt&fl=timestamp,original,mimetype,statuscode&collapse=urlkey&limit=5000" > cdx.txt; [ -s cdx.txt ] && break; echo "CDX tekrar $i"; sleep 20; done; echo "CDXSATIR $(wc -l < cdx.txt)"
           grep -iE "data/|\.json|\.xml" cdx.txt | grep -viE "\.(png|jpg|pdf|mp3)" | head -80 | sed 's/^/VERI /'
           grep -iE "views/pages/|ContentManager|SdManager|Config|Constants|EbPlayer|App.js|Router" cdx.txt | awk '{print $1, $2}' > js.txt
           while read ts u; do
-            f=$(echo "$u" | sed 's#.*/##'); curl -s -m 60 "https://web.archive.org/web/${ts}id_/${u}" -o "j_$f" || continue
+            f=$(echo "$u" | sed 's#.*/##'); sleep 2; curl -s --retry 3 -m 60 "https://web.archive.org/web/${ts}id_/${u}" -o "j_$f" || continue
             echo "== $f $(wc -c < j_$f)"
             grep -oE "[\"'][^\"' ]*(sound|Sound|mp3|btn_|harfler|fetha|kesra|esre|damme|otre|ötre|hareke|data/)[^\"' ]*[\"']" "j_$f" | sort -u | head -60 | sed "s/^/KOD $f /"
           done < js.txt
