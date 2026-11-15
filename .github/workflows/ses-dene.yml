@@ -26,9 +26,17 @@ jobs:
         run: |
           import os, glob, silma_tts, subprocess
           from silma_tts.api import SilmaTTS
-          kok = os.path.dirname(silma_tts.__file__)
-          ref = sorted(glob.glob(kok + '/**/*.wav', recursive=True))
+          from huggingface_hub import list_repo_files, hf_hub_download
+          ref = []
+          for repo in ['silma-ai/silma-tts']:
+              try:
+                  fs = list_repo_files(repo); print(repo, [f for f in fs if f.lower().endswith(('.wav', '.mp3', '.flac', '.txt', '.md'))])
+                  for f in fs:
+                      if f.lower().endswith(('.wav', '.mp3', '.flac')): ref.append(hf_hub_download(repo, f))
+              except Exception as e: print('liste hatası', repo, e)
           print('referans adayları:', ref)
+          import shutil
+          if ref: shutil.copy(ref[0], 'ornek_ref' + os.path.splitext(ref[0])[1])
           tts = SilmaTTS()
           os.makedirs('ornek', exist_ok=True)
           H = {'ayin': 'ع', 'ha': 'ح', 'hi': 'خ', 'kaf': 'ق', 'sad': 'ص', 'dad': 'ض', 'ti': 'ط', 'zi': 'ظ', 'gayin': 'غ', 'se': 'ث', 'zel': 'ذ', 'vav': 'و', 'be': 'ب'}
@@ -39,8 +47,7 @@ jobs:
               for vad, v in V.items(): isler.append((f'{ad}_{vad}', h + v))
           for ad, metin in isler:
               try:
-                  kw = dict(gen_text=metin, file_wave=f'ornek/{ad}.wav', seed=7, speed=0.8)
-                  if ref: kw.update(ref_file=ref[0], ref_text=None)
+                  kw = dict(gen_text=metin, file_wave=f'ornek/{ad}.wav', seed=7, speed=0.8, force_tashkeel=False, ref_file=ref[0], ref_text=None)
                   tts.infer(**kw)
                   subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', f'ornek/{ad}.wav', '-b:a', '64k', f'ornek/{ad}.mp3'])
                   os.remove(f'ornek/{ad}.wav'); print('tamam', ad, metin)
