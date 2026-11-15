@@ -62,7 +62,7 @@
   let AC = null;
   let sonTik = 0;
   function tik(iyi) {
-    const n = Date.now(); if (n - sonTik < 90) return; sonTik = n;
+    const n = Date.now(); if (window.__sessiz || n - sonTik < 90) return; sonTik = n;
     try {
       AC = AC || new (window.AudioContext || window.webkitAudioContext)();
       const o = AC.createOscillator(), g = AC.createGain(), s = AC.currentTime;
@@ -227,6 +227,17 @@
     const S = () => api.S();
     const profil = () => api.profil();
     const kucuk = () => profil().yas === 'kucuk';
+    // Sessize al: kendiliğinden çıkan sesler (yönerge, övgü, tık, otomatik harf/ayet) susar; çocuğun bastığı Dinle düğmeleri çalar
+    const sessiz = () => !!S().ayar.sessiz;
+    const sesAyarla = () => { window.__sessiz = sessiz(); Sesli.acik = !sessiz() && S().ayar.sesliYonerge !== false; };
+    const sessizDugme = () => `<button class="c-sessiz ${sessiz() ? 'kapali' : ''}" data-sessiz aria-pressed="${sessiz()}" aria-label="${sessiz() ? t('Sesi aç') : t('Sessize al')}">${sessiz() ? '🔇' : '🔊'}</button>`;
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-sessiz]'); if (!b) return;
+      S().ayar.sessiz = !sessiz(); kaydet(); sesAyarla();
+      if (sessiz()) { Sesli.sus(); if (window.sesDurdur) window.sesDurdur(); HarfSes.dur(); }
+      document.querySelectorAll('[data-sessiz]').forEach(x => { x.outerHTML = sessizDugme(); });
+      toast(sessiz() ? t('🔇 Sessiz: yalnız Dinle düğmeleri çalar.') : t('🔊 Sesler açık.'));
+    });
     const HARF = window.TC.HARFLER.map(h => h[0]);
     const HARF_AD = EN ? ['Alif', 'Bāʾ', 'Tāʾ', 'Thāʾ', 'Jīm', 'Ḥāʾ', 'Khāʾ', 'Dāl', 'Dhāl', 'Rāʾ', 'Zāy', 'Sīn', 'Shīn', 'Ṣād', 'Ḍād', 'Ṭāʾ', 'Ẓāʾ', 'ʿAyn', 'Ghayn', 'Fāʾ', 'Qāf', 'Kāf', 'Lām', 'Mīm', 'Nūn', 'Wāw', 'Hāʾ', 'Lām-alif', 'Yāʾ'] : window.TC.HARFLER.map(h => h[1]);
     const adi = h => HARF_AD[HARF.indexOf(h)];
@@ -614,9 +625,9 @@
           <div class="satir">${kalan ? `<button class="btn ikincil" data-git="ana">${t('Haritaya dön')}</button><button class="btn" id="cSonraki">${t('Sonraki durak ›')}</button>` : `<button class="btn" data-git="ana">${t('Haritaya dön')}</button>`}</div>
           ${!kalan ? `<article class="kart c-kart"><h2>${t('🎓 Harf yolculuğunu bitirdin!')}</h2><p>${t('Artık tecvid derslerine hazırsın. Bir büyüğünle birlikte derslere geçebilirsin.')}</p><button class="btn genis" id="cBuyuge">${t('📘 Tecvid derslerine geç')}</button></article>` : ''}`;
       }
-      app.innerHTML = `${ust(esc(d.ad))}<div class="ilerleme c-ilerleme"><div style="width:${ilerle}%"></div></div>
+      app.innerHTML = `${ust(esc(d.ad), true, sessizDugme())}<div class="ilerleme c-ilerleme"><div style="width:${ilerle}%"></div></div>
         <main class="cocuk-ekran"><div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${balon}</span><button class="c-hoparlor" aria-label="${t('Sesli oku')}">🔊</button></div></div>${govde}</main>`;
-      Sesli.acik = S().ayar.sesliYonerge !== false;
+      sesAyarla();
       const sq = D.adim === 'oyun' ? D.sorular[D.i] : null;
       const mj = D.adim === 'bitti' ? app.querySelector('[data-mujde]') : null;
       const sesliMetin = sq ? (sq.sesli || sq.soru) : balon + (mj && kucuk() ? ' ' + mj.dataset.mujde : '');
@@ -627,7 +638,7 @@
       app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { const i = +b.dataset.tekrar; D.tekrar[i] = !D.tekrar[i]; if (D.tekrar[i]) { tik(true); Konfeti.patlat(b, 14); } durakSakla(); b.classList.toggle('tamam', !!D.tekrar[i]); b.textContent = D.tekrar[i] ? '✓' : t('Tekrar ettim'); b.closest('.c-ayet').classList.toggle('tamam', !!D.tekrar[i]); });
       const si = document.getElementById('sureIndir'); if (si) si.onclick = () => { api.sureSes(d.n).indir(); si.disabled = true; si.textContent = t('İndiriliyor…'); };
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
-      if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
+      if (sessiz()) { /* kendiliğinden ses yok */ } else if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
       app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses, b));
       app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => Sesli.dugmeyle(b, b.dataset.hadi));
       durakSakla();
@@ -753,7 +764,7 @@
     // ---------------------------------------------------------- ana ekran: Harf Yolculuğu haritası
     const KAYMA = [0, 58, 86, 58, 0, -58, -86, -58];
     EKRAN.cocuk = function () {
-      maskotRenk = C().renk || 'altin';
+      maskotRenk = C().renk || 'altin'; sesAyarla();
       const p = profil(), yarim = yarimDurak(), s = yarim ? durakBul(yarim.id) : siradaki(), bugunY = C().gun[bugun()] || 0;
       let harita = '', k = 0;
       ADALAR.forEach(a => {
@@ -770,7 +781,7 @@
       });
       const app = document.getElementById('app');
       const ad = p.ad ? esc(p.ad) : '';
-      app.innerHTML = `${ust(t('Harf Yolculuğu'), false, `<span class="c-ust-yildiz">★ ${toplamYildiz()}</span>`)}<main class="cocuk-ekran">
+      app.innerHTML = `${ust(t('Harf Yolculuğu'), false, `${sessizDugme()}<span class="c-ust-yildiz">★ ${toplamYildiz()}</span>`)}<main class="cocuk-ekran">
         <section class="c-kahraman">${MASKOT(86, 'zipla')}<div><p class="c-selam">${ad ? t('Selâmün aleyküm {0}!', ad) : t('Selâmün aleyküm!')}</p>
           <p>${s ? t('Sıradaki durak: <b>{0}</b>', esc(s.ad)) : t('Bütün durakları bitirdin! Maşallah! 🎉')}</p>
           <div class="c-hedef"><span>${bugunY ? '✅' : '🎯'}</span>${bugunY ? t('Bugünkü hedef tamam! Yarın görüşürüz.') : t('Bugünkü hedef: 1 durak')}</div></div></section>
@@ -815,7 +826,7 @@
       const adalar = ADALAR.map(a => { const l = DURAK.filter(d => d.ada === a.id); const b = l.filter(d => yildiz(d.id)).length; const y = l.reduce((x, d) => x + yildiz(d.id), 0); return { a, b, n: l.length, y, max: l.length * 3 }; });
       const ogrenilen = HARF.filter((h, i) => yildiz('h' + i)).length;
       const app = document.getElementById('app');
-      app.innerHTML = `${ust(t('Yıldızlarım'), false)}<main class="cocuk-ekran">
+      app.innerHTML = `${ust(t('Yıldızlarım'), false, sessizDugme())}<main class="cocuk-ekran">
         <section class="c-yildiz-kahraman">${MASKOT(110, 'don')}<div><b class="c-dev-sayi">${top}</b><span>${t('yıldız')}</span></div>
           <p>${cikSay < CIKARTMA.length ? t('Sonraki çıkartmaya {0} yıldız kaldı!', sonraki) : t('Bütün çıkartmaları topladın!')}</p></section>
         <div class="c-istat"><div><b>${ogrenilen}</b><small>${t('harf öğrendin')}</small></div><div><b>${DURAK.filter(d => yildiz(d.id) === 3).length}</b><small>${t('üç yıldızlı durak')}</small></div><div><b>🔥 ${S().seri.gun || 0}</b><small>${t('gün seri')}</small></div></div>
