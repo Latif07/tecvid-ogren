@@ -616,3 +616,59 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .mesk-bitti { text-align: center; border-color: var(--iyi); }
 .mujde-ses { position: absolute; top: 8px; right: 8px; }
 .c-sure-kisa { margin-top: 0; border-color: #a77bf3 !important; color: #7a4fd0 !important; }
+
+/* ---- anlatım tarzı: bordo vurgu (cevap sende, hikâye dersleri, ayet ayet tecvid) */
+:root { --bordo: #6e2a3a; --bordo-acik: #f6e9ea; --krem: #fbf6ee; }
+@media (prefers-color-scheme: dark) { :root:not([data-tema="acik"]) { --bordo: #e58fa1; --bordo-acik: #2f1c21; --krem: #1b1a17; } }
+:root[data-tema="koyu"] { --bordo: #e58fa1; --bordo-acik: #2f1c21; --krem: #1b1a17; }
+.cevap-sende { border: 1.5px solid color-mix(in srgb, var(--bordo) 35%, transparent); background: linear-gradient(180deg, var(--bordo-acik), var(--kart) 70%); }
+.cs-baslik { margin: 0 0 6px; font-weight: 800; color: var(--bordo); letter-spacing: .02em; text-transform: uppercase; font-size: .82rem; }
+.gunun-sorusu { margin-bottom: 14px; }
+.gunun-sorusu .ayet { font-size: 1.6rem; }
+
+/* ayet ayet tecvid */
+.stc-adim { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 12px; }
+.stc-adim button { flex: 1 1 18px; min-width: 18px; max-width: 48px; height: 8px; border-radius: 99px; border: 0; background: var(--cizgi); padding: 0; }
+.stc-adim button.tamam { background: color-mix(in srgb, var(--bordo) 55%, var(--cizgi)); }
+.stc-adim button.simdi { background: var(--bordo); outline: 2px solid color-mix(in srgb, var(--bordo) 30%, transparent); outline-offset: 2px; }
+.stc-kart { background: var(--krem); }
+.stc-ayet { font-size: calc(2rem * var(--ar-olcek, 1)); text-align: center; line-height: 2.1; }
+.stc-liste { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 10px; }
+.stc-kural { display: grid; grid-template-columns: minmax(84px, auto) 1fr; gap: 12px; align-items: start; background: var(--kart); border: 1px solid var(--cizgi); border-radius: 16px; padding: 12px 14px; box-shadow: var(--golge); }
+.stc-kelime { font-size: calc(1.9rem * var(--ar-olcek, 1)); line-height: 1.6; text-align: center; background: var(--krem); border-radius: 12px; padding: 4px 8px; overflow-wrap: anywhere; }
+.stc-bilgi b { display: block; font-size: 1rem; }
+.stc-bilgi p { margin: 2px 0 8px; font-size: .92rem; }
+.sesbtn.kucuk { padding: 6px 12px; font-size: .88rem; }
+.stc-alt { margin-top: 14px; }
+.stc-alt .btn:first-child { flex: 0 0 52px; }
+.stc-bitti { border: 1.5px solid var(--iyi); background: var(--iyi-bg); margin-top: 6px; }
+.stc-giris { background: var(--krem); }
+@media (max-width: 380px) { .stc-kural { grid-template-columns: 1fr; } }
+
+/* hikâye dersleri */
+.hikaye-gir { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-bottom: 14px; cursor: pointer; border: 1.5px solid color-mix(in srgb, var(--bordo) 35%, transparent); background: linear-gradient(120deg, var(--bordo-acik), var(--kart)); }
+.hikaye-gir > span:nth-child(2) { flex: 1; } .hikaye-gir b, .hikaye-gir small { display: block; } .hikaye-gir small { color: var(--soluk); } .hikaye-gir b { color: var(--bordo); }
+.hk-mini { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 1.4rem; background: var(--kart); border: 2px solid var(--bordo); flex: none; }
+.hk-ekran { min-height: 100dvh; display: flex; flex-direction: column; max-width: 640px; margin: 0 auto; padding: calc(10px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); }
+.hk-cubuk { display: flex; gap: 4px; }
+.hk-cubuk span { flex: 1; height: 4px; border-radius: 99px; background: var(--cizgi); }
+.hk-cubuk span.dolu, .hk-cubuk span.simdi { background: var(--bordo); }
+.hk-cubuk span.simdi { opacity: .55; }
+.hk-baslik { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; font-weight: 700; font-size: .92rem; }
+.hk-baslik span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hk-kapat { border: 0; background: var(--kart); width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; box-shadow: var(--golge); flex: none; }
+.hk-kart { flex: 1; background: var(--krem); border: 1px solid var(--cizgi); border-radius: 24px; padding: 22px 20px; box-shadow: var(--golge); overflow-y: auto; position: relative;
+  background-image: radial-gradient(color-mix(in srgb, var(--bordo) 7%, transparent) 1px, transparent 1px); background-size: 18px 18px; }
+.hk-kart h2 { color: var(--bordo); font-size: 1.35rem; margin: 0 0 10px; }
+.hk-metin { font-size: 1.05rem; line-height: 1.65; }
+.hk-kapak { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 20px 0; }
+.hk-kapak small { text-transform: uppercase; letter-spacing: .12em; font-weight: 800; color: var(--bordo); }
+.hk-kapak h2 { font-size: 1.6rem; }
+.hk-ikon { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; font-size: 2.6rem; background: var(--kart); border: 3px solid var(--bordo); box-shadow: var(--golge); margin-bottom: 8px; }
+.hk-secim { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; margin-top: 10px; }
+.hk-etiket { margin: 0 0 6px; font-weight: 700; color: var(--bordo); }
+.hk-ornek .ayet { font-size: calc(2rem * var(--ar-olcek, 1)); text-align: center; }
+.hk-alt { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.hk-alt .btn { flex: 0 0 64px; font-size: 1.3rem; }
+.stc-okunmaz { margin: 0 0 14px; }
+.stc-okunmaz summary { cursor: pointer; font-weight: 700; padding: 10px 2px; color: var(--soluk); }

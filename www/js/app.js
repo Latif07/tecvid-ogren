@@ -642,6 +642,7 @@
           <p class="soluk">${t('🔥 {0} günlük seri', S.seri.gun || 0)} · <button class="baglanti" data-git="ilerleme">${t('📊 İlerleme tablosu')}</button></p>
           ${siradaki ? `<button class="btn" data-git="${siradaki.ara ? 'sinavGiris|' + siradaki.id : 'ders|' + siradaki.id}">${t('Devam et')}</button>` : ''}</div>
         </section>
+        ${gununSorusuKarti()}
         ${iosKurKarti()}
         <div id="odevYer"></div>
         <section class="kart tekrar ${vade ? 'vurgulu' : ''}">
@@ -650,9 +651,10 @@
         </section>
         ${hesapUyari ? `<section class="kart hesap-uyari" style="margin-top:14px"><div><h2>${t('☁️ İlerlemen kaybolmasın')}</h2><p>${t('Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.')}</p></div>
           <div class="satir sola"><button class="btn" data-git="hesap">${t('Giriş yap / Hesap aç')}</button><button class="btn ikincil" id="uyariKapat">${t('Sonra')}</button></div></section>` : ''}
+        <button class="kart mufredat-kart" data-git="sureTecvidSec"><span class="mufredat-ikon">🧭</span><span><b>${t('Sûre sûre tecvid')}</b><small>${t('Fâtiha ve kısa sûreler, ayet ayet: önce sen bul, sonra öğren')}</small></span><span class="gunluk-ok">›</span></button>
         <button class="kart mufredat-kart" data-git="mufredat"><span class="mufredat-ikon">📚</span><span><b>${t('Müfredat')}</b><small>${t('{0}/{1} bölüm · bütün dersler ve sınavlar', gecilen, toplam)}</small></span><span class="gunluk-ok">›</span></button>
       </main>`;
-    odevKartiDoldur(); yarimBagla();
+    odevKartiDoldur(); yarimBagla(); gununSorusuBagla();
     const tk = $('#tanitimKapat'); if (tk) tk.onclick = () => { S.ayar.tanitim = 1; kaydet(); ciz(); };
     const ik = $('#iosKapat'); if (ik) ik.onclick = () => { try { localStorage.setItem('tecvid-ogren.ios', '1'); } catch (e) { } ciz(); };
     const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
@@ -709,7 +711,8 @@
       if (i + 1 > okunan) { S.okunan[id] = i + 1; kaydet(); }
       // 2. sayfadan itibaren: konuyu pekiştiren tek bir "hızlı kontrol" sorusu (aktif hatırlama)
       const hk = i > 0 && (u.sorular || []).length ? hizliKontrolSoru(u, i) : null;
-      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>` + secim : '') + `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>
+      const hikayeGir = `<button class="kart hikaye-gir" data-git="hikaye|${id}|0"><span class="hk-mini">${u.ikon}</span><span><b>${t('⚡ Kısa anlatım')}</b><small>${t('Kart kart, 1–2 dakikada konunun özü ve bir soru')}</small></span><span class="gunluk-ok">›</span></button>`;
+      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>` + hikayeGir + secim : '') + `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>
         ${hk ? `<section class="kart hizli-kontrol"><p class="hk-baslik">${t('🧠 Hızlı kontrol')}</p><p><b>${hk.soru}</b></p><div class="secenekler">${hk.secenek.map((x, j) => `<button class="secenek" data-hk="${j}">${metin(x)}</button>`).join('')}</div><div id="hkSonuc"></div></section>` : ''}
         <div class="satir">
           <button class="btn ikincil" data-sayfa="${i - 1}" ${i === 0 ? 'disabled' : ''}>${t('‹ Önceki')}</button>
@@ -1316,6 +1319,7 @@
   EKRAN.sureler = function () {
     app.innerHTML = `${ust(t('Kur\'an-ı Kerîm'))}<main>
       <p class="soluk">${t('Önce dinle, sonra oku. Kelimeye dokunursan o kelimeyi dinlersin.')}</p>
+      <button class="btn genis" data-git="sureTecvidSec">${t('🧭 Sûre sûre tecvid (ayet ayet)')}</button>
       <button class="btn genis ikincil" data-git="kuralAra">${t('🔍 Bütün Kur\'an\'da kural ara')}</button>
       <h2 class="baslik">${t('Uygulama sûreleri')}</h2>
       <div class="bolumler">${SURELER.map(x => sureSatir(x, x.ayet.length)).join('')}</div>
@@ -1805,7 +1809,7 @@
         <div class="satir sola"><button class="btn" id="hepsi">${t('▶ Tamamını dinle')}</button>${ezberModu ? '' : `<button class="btn ikincil" data-mod="ezber">${t('🧠 Ezber modu')}</button>`}</div>
         <p class="soluk kucukyazi" style="margin-top:10px">${t('Her ayeti kaç kez çalsın?')}</p>
         <div class="satir sola">${[1, 3, 5].map(k => `<button class="btn ${tekrar === k ? '' : 'ikincil'}" data-tekrar="${k}">${k}×</button>`).join('')}</div>
-        <div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${t('Renklerin anlamı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button>${okVar ? `<button class="lejant-ac ${okGoster ? 'aktif' : ''}" id="okunusAc">🔤 ${okGoster ? t('Okunuşu gizle') : t('Okunuşu göster')}</button>` : ''}<button class="lejant-ac ${S.ayar.meal ? 'aktif' : ''}" id="mealAc">📘 ${S.ayar.meal ? t('Meali gizle') : t('Meal')}</button>${ezberModu ? '' : `<button class="lejant-ac" data-git="sureTest|${n}">🔍 ${t('Kural bul testi')}</button>`}</div>
+        <div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${t('Renklerin anlamı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button>${okVar ? `<button class="lejant-ac ${okGoster ? 'aktif' : ''}" id="okunusAc">🔤 ${okGoster ? t('Okunuşu gizle') : t('Okunuşu göster')}</button>` : ''}<button class="lejant-ac ${S.ayar.meal ? 'aktif' : ''}" id="mealAc">📘 ${S.ayar.meal ? t('Meali gizle') : t('Meal')}</button>${ezberModu ? '' : `<button class="lejant-ac" data-git="sureTecvid|${n}|1">🧭 ${t('Ayet ayet tecvid')}</button><button class="lejant-ac" data-git="sureTest|${n}">🔍 ${t('Kural bul testi')}</button>`}</div>
         ${okGoster ? `<p class="soluk kucukyazi">${t('Okunuş yaklaşık bir yazımdır; Arapça harflerin hepsini Latin harfle tam yazmak mümkün değil. Doğru okuyuşu kâriyi dinleyerek öğren.')}</p>` : ''}
         ${mealAcik ? `<p class="soluk kucukyazi">${DIL === 'en' ? t('Meal: Saheeh International (tanzil.net).') : t('Meal: Diyanet İşleri Başkanlığı (tanzil.net). Meal, ayetin anlamını anlamaya yardım eder; Kur\'an\'ın kendisi Arapça metindir.')}</p>` : ''}
         <div id="lejant" hidden>${lejantHTML()}</div>
@@ -2236,6 +2240,197 @@
     const P = Array.from(ref.p), o = ref.sp[i][0], z = ref.sp[j][1];
     return { p: P.slice(o, z).join(''), sp: ref.sp.slice(i, j + 1).map(([x, y]) => [x - o, y - o]), u: ref.u.filter(x => x[3] >= i && x[3] <= j).map(x => [x[0] - o, x[1] - o, x[2], x[3] - i, ...x.slice(4)]) };
   }
+  // ------------------------------------------------------------ sûre sûre tecvid (ayet ayet: önce sen bul, sonra kurallar)
+  // Kural etiketleri cpfair/quran-tajweed verisinden; açıklamalar müfredattaki kural özetlerinden (R) alınır.
+  const HARF_RE = /[ء-غف-يٱ]/g;
+  const TENVIN_RE = /[ً-ࣰٍ-ࣲ]/;
+  function etiketKural(r, s, e, k, sonKelimeMi, kelimeSonu) {
+    const a = AYAH[r] || '', ch = a.slice(s, e), ilk = ch[0];
+    const ozel = (ad, ack, unit) => ({ ad, ack, unit });
+    const kural = (id, unit) => R[id] ? { ad: R[id].ad, ack: R[id].ozet + (R[id].elif ? ` · ${R[id].elif}` : ''), unit } : ozel(LEJ_AD[k], LEJ_ACIKLAMA[k] || '', unit);
+    switch (k) {
+      case 'm2': {
+        if (/[ۥۦ]/.test(ch)) return kural('sila', 'u6');
+        const kalan = (a.slice(e, kelimeSonu).match(HARF_RE) || []).length;
+        if (sonKelimeMi && kalan === 1) return kural(/[وي]/.test(ilk) && a[e] === 'ۡ' ? 'lin' : 'ariz', 'u5');
+        return kural('tabii', 'u1');
+      }
+      case 'mt': return kural('muttasil', 'u2');
+      case 'mf': return kural('munfasil', 'u3');
+      case 'ml': return kural('lazim', 'u4');
+      case 'g': return kural('gunne', 'u13');
+      case 'q': return kural('kalkale', 'u15');
+      case 'k': return kural('iklab', 'u10');
+      case 'h': return ilk === 'م' ? kural('ihfaSefevi', 'u12') : kural('ihfa', 'u11');
+      case 'dg': return ilk === 'م' ? kural('idgamMim', 'u12') : kural('idgamMaal', 'u8');
+      case 'db': return ilk === 'ن' || TENVIN_RE.test(ilk) ? kural('idgamBila', 'u9') : ozel(LEJ_AD.db, LEJ_ACIKLAMA.db, 'u14');
+      case 's':
+        if (ilk === 'ٱ') return ozel(t('Hemze-i vasl'), t('Önceki kelimeye bağlanarak okunurken bu elif okunmaz.'), null);
+        if (ilk === 'ل') return kural('semsi', 'u16');
+        return ozel(t('Okunmayan harf'), t('Yazılır ama okunmaz.'), null);
+    }
+    return ozel(LEJ_AD[k] || k, LEJ_ACIKLAMA[k] || '', null);
+  }
+  // Ayetteki kurallar: aynı kelime(ler) + aynı kural tek satır
+  function ayetKurallari(r) {
+    const a = AYAH[r] || '', w = a.split(' '), ofs = []; let o = 0; for (const k of w) { ofs.push(o); o += k.length + 1; }
+    const kelimeNo = p => { let i = 0; while (i + 1 < ofs.length && ofs[i + 1] <= p) i++; return i; };
+    const l = [], gor = new Set();
+    (RENK[r] || []).forEach(([s, e, k], idx) => {
+      const w1 = kelimeNo(s), w2 = kelimeNo(Math.max(s, e - 1));
+      // Sonraki kelimeye bağlı kurallar ayet sonunda durulunca uygulanmaz (örn. 112:4 sonundaki iklâb işareti)
+      if (['k', 'h', 'dg', 'db', 'mf'].includes(k) && !(a.slice(e).match(HARF_RE) || []).length) return;
+      const kr = etiketKural(r, s, e, k, w2 === w.length - 1, ofs[w2] + w[w2].length);
+      const anahtar = `${w1}-${w2}-${kr.ad}`; if (gor.has(anahtar)) return; gor.add(anahtar);
+      l.push(Object.assign({ s, e, k, w1, w2, idx }, kr));
+    });
+    return { l, w, ofs };
+  }
+  const STC = { r: '', acik: false, q: null, cevap: null };
+  EKRAN.sureTecvid = function (n, a) {
+    n = +n; a = +a || 1;
+    if (!SURE(n)) { app.innerHTML = `${ust(t('Sûre sûre tecvid'))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; sureYukle(n).then(() => ciz()).catch(() => toast(t('Sûre açılamadı.'))); return; }
+    const x = SURE(n), N = x.ayet.length; a = Math.min(Math.max(1, a), N);
+    const r = `${n}:${a}`, { l, w, ofs } = ayetKurallari(r);
+    if (STC.r !== r) {
+      const adaylar = l.filter(k => k.k !== 's');
+      const sec = adaylar.length ? adaylar[Math.floor(Math.random() * adaylar.length)] : null;
+      Object.assign(STC, { r, acik: !sec, q: sec ? soruUret(`k:${n}:${a}:${sec.idx}`) : null, cevap: null });
+    }
+    if (STC.acik) { S.sureTecvid = S.sureTecvid || {}; if ((S.sureTecvid[n] || 0) < a) { S.sureTecvid[n] = a; kaydet(); } }
+    const OKU = (window.OKUNUS || {})[DIL === 'en' ? 'en' : 'tr'] || {};
+    kelimeHTML.renksiz = !STC.acik;
+    const ayet = `<div class="ayet stc-ayet" dir="rtl" lang="ar">${w.map((k, i) => kelimeHTML(r, k, ofs[i])).join(' ')} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>`;
+    kelimeHTML.renksiz = false;
+    const satir = k => {
+      kelimeHTML.filtre = k.k;
+      const kel = w.slice(k.w1, k.w2 + 1).map((z, i) => kelimeHTML(r, z, ofs[k.w1 + i])).join(' ');
+      kelimeHTML.filtre = null;
+      const sesler = w.slice(k.w1, k.w2 + 1).map((_, i) => kelimeUrl(r, k.w1 + i + 1)).join(' ');
+      return `<li class="stc-kural"><div class="stc-kelime ar" dir="rtl">${kel}</div>
+        <div class="stc-bilgi"><b class="tc-${k.k}">● ${esc(k.ad)}</b><p>${esc(k.ack)}</p>
+        <div class="satir sola"><button class="sesbtn ikincil kucuk" data-ardisik="${sesler}">${t('▶ Dinle')}</button>${k.unit && unitById(k.unit) ? `<button class="lejant-ac" data-git="ders|${k.unit}">📖 ${t('Dersi')}</button>` : ''}</div></div></li>`;
+    };
+    const q = STC.q, bitti = STC.acik && a === N;
+    const la = l.filter(k => k.k !== 's'), ls = l.filter(k => k.k === 's');
+    app.innerHTML = `${ust(t('{0} · ayet ayet tecvid', esc(sureAdi(x))))}<main class="stc">
+      <div class="stc-adim">${[...Array(N)].map((_, i) => `<button class="${i + 1 < a || (S.sureTecvid || {})[n] > i ? 'tamam' : ''} ${i + 1 === a ? 'simdi' : ''}" data-stc="${i + 1}" aria-label="${t('{0}. ayet', i + 1)}"></button>`).join('')}</div>
+      <article class="kart stc-kart">${ayet}
+        ${OKU[r] ? `<p class="okunus">🗣️ ${esc(OKU[r])}</p>` : ''}
+        <div class="sesler"><button class="sesbtn" data-ses="${ayetUrl(r)}" data-yedek="${ayetUrl(r, KARILER[0].klasor)}">${t('▶ Ayeti dinle')}</button></div></article>
+      ${q && !STC.acik ? `<section class="kart cevap-sende"><p class="cs-baslik">${t('🎯 Cevap sende')}</p>${q.ust}<p><b>${q.soru}</b></p>
+        <div class="secenekler">${q.secenek.map((s, j) => `<button class="secenek" data-cs="${j}">${metin(s)}</button>`).join('')}</div>
+        <button class="baglanti" id="csAtla">${t('Bilmiyorum, kuralları göster')}</button></section>` : ''}
+      ${STC.acik ? `${STC.cevap ? STC.cevap : ''}<h2 class="baslik">${la.length ? t('Bu ayetteki tecvid kuralları ({0})', la.length) : t('Bu ayette okunuşu değiştiren işaretli bir kural yok.')}</h2>
+        ${la.length ? `<ol class="stc-liste">${la.map(satir).join('')}</ol>` : ''}
+        ${ls.length ? `<details class="stc-okunmaz"><summary>${t('🔇 Yazılıp okunmayan harfler ({0})', ls.length)}</summary><ol class="stc-liste">${ls.map(satir).join('')}</ol></details>` : ''}
+        ${bitti ? `<article class="kart stc-bitti"><h2>${t('🎉 {0} sûresinin tecvidini ayet ayet bitirdin!', esc(sureAdi(x)))}</h2><p>${t('Şimdi sûreyi baştan sona kendin oku; hatalarını yapay zekâ göstersin.')}</p></article>` : ''}` : ''}
+      <div class="satir stc-alt">
+        <button class="btn ikincil" data-stc="${a - 1}" ${a === 1 ? 'disabled' : ''}>‹</button>
+        <button class="btn ikincil" data-git="sure|${n}|||${a}">🎤 ${t('Şimdi sen oku')}</button>
+        ${a < N ? `<button class="btn" data-stc="${a + 1}">${t('Sonraki ›')}</button>` : `<button class="btn" data-git="sureTecvidSec">${t('Bitir')}</button>`}
+      </div>
+      <p class="soluk kucukyazi">${t('Kural işaretleri açık kaynaklı tecvid verisinden (quran-tajweed) otomatik çıkarılır; açıklamalar ders içeriğindendir.')}</p>
+    </main>`;
+    const ayetGit = b => { const yeni = +b; ekranYigini[ekranYigini.length - 1] = ['sureTecvid', [n, yeni]]; ciz(); window.scrollTo(0, 0); };
+    app.querySelectorAll('[data-stc]').forEach(b => b.onclick = () => ayetGit(b.dataset.stc));
+    app.querySelectorAll('[data-ardisik]').forEach(b => b.onclick = () => arkaArka(b.dataset.ardisik.split(' '), b));
+    const atla = $('#csAtla'); if (atla) atla.onclick = () => { STC.acik = true; ciz(); };
+    app.querySelectorAll('[data-cs]').forEach(b => b.onclick = () => {
+      const sec_ = q.secenek[+b.dataset.cs], d = sec_ === q.dogru;
+      srsGuncelle(q.anahtar, d);
+      STC.cevap = `<div class="geribildirim ${d ? 'iyi' : 'kotu'}"><b>${d ? t('✓ Doğru!') : t('✗ Yanlış.')}</b> ${d ? '' : t('Doğru cevap: ') + metin(q.dogru)}${q.ustRenkli ? q.ustRenkli : ''}<p>${q.aciklama}</p></div>`;
+      STC.acik = true; ciz();
+      if (d && window.Konfeti) window.Konfeti.patlat(document.querySelector('.geribildirim'), 18);
+    });
+    if (bitti && window.Konfeti && !STC.kutlandi) { STC.kutlandi = r; window.Konfeti.kutla(); }
+    app.querySelectorAll('.stc-bilgi, .cevap-sende, .geribildirim').forEach(k => sozlukBagla(k));
+  };
+  EKRAN.sureTecvidSec = function () {
+    const st = S.sureTecvid || {};
+    app.innerHTML = `${ust(t('Sûre sûre tecvid'))}<main>
+      <article class="kart stc-giris"><p>${t('Bir sûre seç, ayet ayet ilerle: önce dinle, sonra <b>cevap sende</b> sorusuyla kuralı sen bul, ardından ayetteki bütün tecvid kurallarını kelime kelime gör ve dinle.')}</p></article>
+      <div class="bolumler">${SURELER.map(x => { const v = st[x.n] || 0, N = x.ayet.length;
+        return `<button class="bolum" data-git="sureTecvid|${x.n}|${v && v < N ? v + 1 : 1}"><span class="ikon ar">${esc(x.ar)}</span><span class="bad"><small>${t('{0} ayet', N)}</small>${esc(sureAdi(x))}</span>${v >= N ? `<span class="rozet ok">✓</span>` : v ? `<span class="rozet simdi">${v}/${N}</span>` : ''}</button>`; }).join('')}</div>
+      <p class="soluk kucukyazi">${t('Başka bir sûre için: Kur\'an sekmesinde sûreyi aç, “🧭 Ayet ayet tecvid” düğmesine dokun.')}</p>
+    </main>`;
+  };
+
+  // ------------------------------------------------------------ hikâye dersleri (kısa anlatım: kart kart)
+  const HK = { id: '', kartlar: [], q: null, cevap: null };
+  function hikayeKartlar(u) {
+    const k = [{ tip: 'kapak' }];
+    u.sayfalar.forEach(s => k.push({ tip: 'sayfa', s }));
+    (u.ornek || []).slice(0, 2).forEach(ex => k.push({ tip: 'ornek', ex }));
+    if ((u.sorular || []).length) k.push({ tip: 'soru' });
+    k.push({ tip: 'son' });
+    return k;
+  }
+  EKRAN.hikaye = function (id, i) {
+    const u = unitById(id); if (!u) return anaSayfa();
+    if (HK.id !== id) Object.assign(HK, { id, kartlar: hikayeKartlar(u), q: (u.sorular || []).length ? soruUret(`c:${id}:${Math.floor(Math.random() * u.sorular.length)}`) : null, cevap: null });
+    const K = HK.kartlar; i = Math.min(Math.max(0, +i || 0), K.length - 1);
+    const k = K[i], son = i === K.length - 1;
+    if (k.tip === 'son' && (S.okunan[id] || 0) < u.sayfalar.length) { S.okunan[id] = u.sayfalar.length; kaydet(); }
+    let ic = '';
+    if (k.tip === 'kapak') ic = `<div class="hk-kapak"><span class="hk-ikon">${u.ikon}</span><small>${t('Kısa anlatım')}</small><h2>${esc(u.ad)}</h2><p>${t('{0} kart · yaklaşık {1} dakika', K.length, Math.max(1, Math.round(K.length / 3)))}</p><p class="soluk">${t('Dokun ya da kaydır: ›')}</p></div>`;
+    else if (k.tip === 'sayfa') ic = `<h2>${esc(k.s.t)}</h2><div class="hk-metin">${k.s.h}</div>`;
+    else if (k.tip === 'ornek') ic = `<p class="hk-etiket">${t('Örnek')} · ${esc(R[k.ex.k].ad)}</p>${ayetHTML(k.ex, true)}<p class="okunus">🗣️ <b>${esc(k.ex.oku)}</b></p><p>${esc(k.ex.n)}</p>${sesButonlari(k.ex)}`;
+    else if (k.tip === 'soru') { const q = HK.q; ic = `<p class="cs-baslik">${t('🎯 Cevap sende')}</p><p><b>${q.soru}</b></p><div class="secenekler">${q.secenek.map((s, j) => `<button class="secenek ${HK.cevap ? (s === q.dogru ? 'dogru' : HK.cevap.sec === j ? 'yanlis' : '') : ''}" data-hks="${j}" ${HK.cevap ? 'disabled' : ''}>${metin(s)}</button>`).join('')}</div>${HK.cevap ? HK.cevap.html : ''}`; }
+    else ic = `<div class="hk-kapak"><span class="hk-ikon">✅</span><h2>${t('Kısa anlatımı bitirdin!')}</h2><p>${t('Şimdi ne yapmak istersin?')}</p>
+      <div class="hk-secim"><button class="btn" data-git="testBasla|bolum|${id}">${t('✅ Teste gir')}</button><button class="btn ikincil" data-hkgit="ders">${t('📖 Detaylı ders')}</button><button class="btn ikincil" data-hk="0">${t('↺ Baştan izle')}</button></div></div>`;
+    app.innerHTML = `<div class="hk-ekran">
+      <div class="hk-ust"><div class="hk-cubuk">${K.map((_, j) => `<span class="${j < i ? 'dolu' : j === i ? 'simdi' : ''}"></span>`).join('')}</div>
+        <div class="hk-baslik"><span>${u.ikon} ${esc(u.ad)}</span><button class="hk-kapat" data-git="geri" aria-label="${t('Kapat')}">✕</button></div></div>
+      <article class="hk-kart hk-${k.tip}">${ic}</article>
+      <div class="hk-alt"><button class="btn ikincil" data-hk="${i - 1}" ${i === 0 ? 'disabled' : ''} aria-label="${t('Önceki')}">‹</button><span class="soluk">${i + 1} / ${K.length}</span><button class="btn" data-hk="${i + 1}" ${son || (k.tip === 'soru' && !HK.cevap) ? 'disabled' : ''} aria-label="${t('Sonraki')}">›</button></div>
+    </div>`;
+    const kartGit = j => { ekranYigini[ekranYigini.length - 1] = ['hikaye', [id, j]]; if (+j === 0 && son) Object.assign(HK, { id: '' }); ciz(); window.scrollTo(0, 0); };
+    app.querySelectorAll('[data-hk]').forEach(b => b.onclick = () => kartGit(+b.dataset.hk));
+    app.querySelectorAll('[data-hkgit]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['ders', [id, 'ders']]; ciz(); });
+    app.querySelectorAll('[data-hks]').forEach(b => b.onclick = () => {
+      const q = HK.q, j = +b.dataset.hks, d = q.secenek[j] === q.dogru; srsGuncelle(q.anahtar, d); kaydet();
+      HK.cevap = { sec: j, html: `<div class="geribildirim ${d ? 'iyi' : 'kotu'}"><b>${d ? t('✓ Doğru!') : t('✗ Yanlış.')}</b> ${d ? '' : t('Doğru cevap: ') + metin(q.dogru)}${q.aciklama ? `<p>${q.aciklama}</p>` : ''}</div>` };
+      ciz(); if (d && window.Konfeti) window.Konfeti.patlat(document.querySelector('.hk-kart .geribildirim'), 18);
+    });
+    const kart = app.querySelector('.hk-kart'); sozlukBagla(kart);
+    // Kaydırma: sola kaydır → sonraki, sağa → önceki (sağdan sola dil olsa da ekran düzeni soldan sağa)
+    let x0 = null;
+    kart.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+    kart.addEventListener('touchend', e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (dx < -60 && !son && !(k.tip === 'soru' && !HK.cevap)) kartGit(i + 1); else if (dx > 60 && i > 0) kartGit(i - 1); });
+    if (k.tip === 'kapak') kart.onclick = e => { if (!e.target.closest('button')) kartGit(1); };
+  };
+
+  // ------------------------------------------------------------ günün sorusu ("cevap sende")
+  function gununSorusuAnahtar() {
+    const havuz = [];
+    acikDersler().forEach(u => (u.sorular || []).forEach((_, j) => havuz.push(`c:${u.id}:${j}`)));
+    [1, 112, 113, 114].forEach(n => { const x = SURE(n); if (!x) return; x.ayet.forEach((_, i) => (RENK[`${n}:${i + 1}`] || []).forEach(([, , k], j) => { if (k !== 's') havuz.push(`k:${n}:${i + 1}:${j}`); })); });
+    if (!havuz.length) return null;
+    const tohum = [...(bugun() + AKTIF)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+    return havuz[tohum % havuz.length];
+  }
+  function gununSorusuKarti() {
+    const g = S.gununSorusu && S.gununSorusu.g === bugun() ? S.gununSorusu : null;
+    const anahtar = (g && g.a) || gununSorusuAnahtar(); if (!anahtar) return '';
+    const q = gununSorusuKarti._q && gununSorusuKarti._q.anahtar === anahtar ? gununSorusuKarti._q : (gununSorusuKarti._q = soruUret(anahtar));
+    if (!q) return '';
+    return `<section class="kart cevap-sende gunun-sorusu" id="gununSorusu"><p class="cs-baslik">${t('🎯 Günün sorusu · cevap sende')}</p>
+      ${g ? q.ustRenkli || '' : q.ust || ''}<p><b>${q.soru}</b></p>
+      <div class="secenekler">${q.secenek.map((s, j) => `<button class="secenek ${g ? (s === q.dogru ? 'dogru' : g.sec === j ? 'yanlis' : '') : ''}" data-gs="${j}" ${g ? 'disabled' : ''}>${metin(s)}</button>`).join('')}</div>
+      ${g ? `<div class="geribildirim ${g.d ? 'iyi' : 'kotu'}"><b>${g.d ? t('✓ Doğru!') : t('✗ Yanlış.')}</b> ${g.d ? '' : t('Doğru cevap: ') + metin(q.dogru)}${q.aciklama ? `<p>${q.aciklama}</p>` : ''}<p class="soluk kucukyazi">${t('Yarın yeni soru gelecek.')}</p></div>` : ''}</section>`;
+  }
+  function gununSorusuBagla() {
+    const kok = $('#gununSorusu'); if (!kok) return; sozlukBagla(kok);
+    const q = gununSorusuKarti._q;
+    kok.querySelectorAll('[data-gs]:not([disabled])').forEach(b => b.onclick = () => {
+      const j = +b.dataset.gs, d = q.secenek[j] === q.dogru;
+      S.gununSorusu = { g: bugun(), a: q.anahtar, sec: j, d }; srsGuncelle(q.anahtar, d); kaydet(); ciz();
+      if (d && window.Konfeti) window.Konfeti.patlat(document.querySelector('#gununSorusu .geribildirim'), 22);
+    });
+  }
+
   EKRAN.mesk = function (n, a) {
     n = +n; a = +a;
     if (!SURE(n)) { app.innerHTML = `${ust(t('Meşk'))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; sureYukle(n).then(() => ciz()).catch(() => toast(t('Sûre açılamadı.'))); return; }
