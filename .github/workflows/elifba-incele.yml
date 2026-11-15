@@ -5,29 +5,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Arşivden kod
+      - name: Menü ve yol kurgusu
         run: |
-          cat > js.txt <<'L'
-          20251026135412 https://kuran.diyanet.gov.tr/elifba/js/views/pages/Intro.js
-          20181003004348 http://kuran.diyanet.gov.tr/elifba/js/ContentManager.js
-          20181003015116 http://kuran.diyanet.gov.tr/elifba/js/EbPlayer.js
-          20170607023443 http://kuran.diyanet.gov.tr/elifba/js/SdManager.es5.min.js
-          20170607014709 http://kuran.diyanet.gov.tr/elifba/js/models/Config.js
-          20170607022202 http://kuran.diyanet.gov.tr/elifba/js/models/Constants.js
-          20170607031313 http://kuran.diyanet.gov.tr/elifba/js/models/MenuModel.js
-          20171114210025 http://kuran.diyanet.gov.tr/elifba/js/App.js
-          20180221061525 http://kuran.diyanet.gov.tr/elifba/js/views/pages/Home.js
-          20170607023918 http://kuran.diyanet.gov.tr/elifba/js/views/SlaytManager.es5.min.js
-          20171121080440 http://kuran.diyanet.gov.tr/elifba/js/views/ui/LeftMenuView.js
-          L
-          while read ts u; do
-            f=$(basename "$u"); sleep 3
-            curl -sL --retry 4 --retry-delay 5 -m 90 "https://web.archive.org/web/${ts}id_/${u}" -o "j_$f"
-            echo "== $f $(wc -c < j_$f) $(head -c 60 j_$f | tr -d '\n')"
-          done < js.txt
-          for f in j_*; do grep -oE "[\"'][^\"' ]{0,100}(sound|Sound|mp3|btn_|data/|json|xml)[^\"' ]{0,100}[\"']" "$f" | sort -u | head -80 | sed "s/^/KOD $f /"; done
-          for f in j_*; do grep -oiE "(fetha|kesra|esre|damme|zamme|otre|ustun|hareke|harfler|tenvin|cezm|sedde|med)[a-z_]*" "$f" | sort | uniq -c | sort -rn | head -30 | sed "s/^/KELIME $f /"; done
-          echo "== menü dosyaları"
-          for ts_u in "2017 http://kuran.diyanet.gov.tr/elifba/data/menu.json" "2017 http://kuran.diyanet.gov.tr/elifba/data/data.json"; do :; done
-          sleep 5; curl -sL --retry 4 -m 120 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/data/*&output=txt&fl=timestamp,original,mimetype&collapse=urlkey&limit=3000" > cdx.txt; echo "CDXSATIR $(wc -l < cdx.txt)"; head -3 cdx.txt
-          grep -viE "\.(png|jpg|pdf)" cdx.txt | head -120 | sed 's/^/VERI /'
+          curl -sL --retry 4 --retry-delay 5 -m 90 "https://web.archive.org/web/20170607031313id_/http://kuran.diyanet.gov.tr/elifba/js/models/MenuModel.js" -o menu.js
+          sleep 3; curl -sL --retry 4 --retry-delay 5 -m 90 "https://web.archive.org/web/20181003004348id_/http://kuran.diyanet.gov.tr/elifba/js/ContentManager.js" -o cm.js
+          sed 's/^/MENU /' menu.js | head -400
+          grep -n -B3 -A12 "blob.core" cm.js | sed 's/^/CM /'
+          grep -n -B2 -A6 "data-sound\b\|attr(\"data-sound\|\.mp3" cm.js | head -80 | sed 's/^/CM2 /'
+      - name: Azure deposu erişim
+        run: |
+          B=https://dibwebfiles1we1.blob.core.windows.net/webfiles/kuran.diyanet.gov.tr/elifba/data/sound
+          for p in elifba/harfler/harfler/btn_1.mp3 elifba/fetha/fetha/baslik.mp3 elifba/fetha/fetha/btn_1.mp3 elifba/kesra/kesra/btn_1.mp3 elifba/damme/damme/btn_1.mp3; do
+            echo "BLOB $p $(curl -s -m 30 -o /dev/null -w '%{http_code} %{size_download}' "$B/$p")"; done
+          echo "LISTE $(curl -s -m 30 "https://dibwebfiles1we1.blob.core.windows.net/webfiles?restype=container&comp=list&prefix=kuran.diyanet.gov.tr/elifba/data/sound/elifba/fetha&maxresults=50" | head -c 600)"
