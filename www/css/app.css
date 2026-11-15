@@ -654,8 +654,8 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .hk-cubuk span { flex: 1; height: 4px; border-radius: 99px; background: var(--cizgi); }
 .hk-cubuk span.dolu, .hk-cubuk span.simdi { background: var(--bordo); }
 .hk-cubuk span.simdi { opacity: .55; }
-.hk-baslik { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; font-weight: 700; font-size: .92rem; }
-.hk-baslik span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hk-bas { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; font-weight: 700; font-size: .92rem; }
+.hk-bas span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hk-kapat { border: 0; background: var(--kart); width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; box-shadow: var(--golge); flex: none; }
 .hk-kart { flex: 1; background: var(--krem); border: 1px solid var(--cizgi); border-radius: 24px; padding: 22px 20px; box-shadow: var(--golge); overflow-y: auto; position: relative;
   background-image: radial-gradient(color-mix(in srgb, var(--bordo) 7%, transparent) 1px, transparent 1px); background-size: 18px 18px; }
@@ -709,3 +709,16 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-album { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .c-album > div small { font-size: .58rem; white-space: nowrap; }
 @media (max-width: 380px) { .c-album { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.kesfet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kesfet button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: var(--kart); border: 1px solid var(--cizgi); border-radius: 18px; padding: 14px; box-shadow: var(--golge); min-height: 104px; }
+.kesfet span { font-size: 1.6rem; line-height: 1.2; } .kesfet b { font-size: .98rem; } .kesfet small { color: var(--soluk); font-size: .8rem; }
+.kart.tekrar.vurgulu { margin-bottom: 14px; }
+.stc-uzun { margin: 2px 0 12px; } .stc-uzun small { color: var(--soluk); }
+.hafta-gun { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+.hafta-gun span { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.hafta-gun i { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--cizgi); display: grid; place-items: center; font-style: normal; font-weight: 800; color: #fff; }
+.hafta-gun .dolu i { background: var(--ana2); border-color: var(--ana2); }
+.hafta-gun .bugun i { outline: 2px solid var(--altin); outline-offset: 2px; }
+.hafta-gun small { color: var(--soluk); font-size: .72rem; }
+.bu-hafta h3 { margin: 12px 0 6px; font-size: 1rem; }
+.bu-hafta .hk { width: 100%; }
