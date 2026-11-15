@@ -776,3 +776,24 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .mz-adimlar span { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cizgi); display: grid; place-items: center; font-weight: 800; font-size: .85rem; color: var(--soluk); }
 .mz-adimlar .ok { background: var(--ana2); border-color: var(--ana2); color: #fff; }
 .mz-adimlar .bugun { border-color: var(--altin); color: var(--metin, inherit); outline: 2px solid var(--altin); outline-offset: 2px; }
+
+/* Ezberden oku: canlı takip */
+.canli-kutu { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--cizgi); }
+.canli-bar { position: sticky; bottom: 0; z-index: 20; margin: 12px -4px 0; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); background: var(--kart); border: 1.5px solid var(--ana); border-radius: 16px 16px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,.12); }
+.canli-ic { display: flex; align-items: center; gap: 10px; }
+.canli-durum { flex: 1; font-weight: 700; font-size: .95rem; }
+.canli-bar .btn.kirmizi-btn { background: var(--kotu); border-color: var(--kotu); color: #fff; }
+.canli-nokta { width: 12px; height: 12px; border-radius: 50%; background: var(--soluk); flex: none; }
+.canli-bar.dinliyor .canli-nokta { background: var(--kotu); animation: canliAtim 1.2s ease-in-out infinite; }
+@keyframes canliAtim { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .5; } }
+.kelime.canli-sira { outline: 2px solid var(--ana); outline-offset: 2px; border-radius: 8px; }
+.kelime.canli-acik { animation: canliAcil .45s ease-out; }
+@keyframes canliAcil { from { opacity: 0; filter: blur(3px); } to { opacity: 1; filter: none; } }
+.kelime.canli-bakildi { color: #2f6fb3 !important; }
+.ayet .kelime.r-iyi { color: var(--iyi); }
+.ayet .kelime.r-orta { color: #d08000; text-decoration: underline wavy; }
+.ayet .kelime.r-kotu { color: var(--kotu); text-decoration: underline wavy; }
+main.canli-mod .ayet-kart .okunus, main.canli-mod .ayet-kart .meal { display: none; }
+.canli-sonuc .canli-baslik { font-weight: 800; font-size: 1.05rem; margin: 0 0 6px; }
+.canli-sayilar { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; font-weight: 700; }
+.canli-sayilar .r-iyi { color: var(--iyi); } .canli-sayilar .r-orta { color: #d08000; } .canli-sayilar .r-kotu { color: var(--kotu); } .canli-sayilar .canli-bakildi { color: #2f6fb3; }
