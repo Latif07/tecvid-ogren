@@ -24,6 +24,8 @@
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
  "Meşk": "Meshq",
+ "Yukarıda yazan okunuşa uyanı bul!": "Find the one that matches the reading written above!",
+ "Kur'an'dan dinle": "Hear it in the Qur'an",
  "Maşallah, bunları biliyorsun!": "Mashallah, you know these!",
  "Sorun değil! Birlikte tekrar edelim.": "No problem! Let's go over it together.",
  "{0} açıldı!": "{0} unlocked!",

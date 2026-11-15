@@ -220,6 +220,13 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const ar = (s, cls = '') => `<span class="ar ${cls}" lang="ar">${s}</span>`;
   const BESMELE = 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ';
+  // Konuşma motoru Arapça sesleri (ع ح ق ص…) doğru çıkaramaz; okunuşu yazıda gösterilen sorularda yalnız yönerge söylenir
+  const SESLI_OKUNUS = () => t('Yukarıda yazan okunuşa uyanı bul!');
+  // Harfin Kur'an'dan bir kelimede gerçek tilaveti (kelime kelime ses): [sûre:ayet, kelime sırası, kelime]
+  const KELIME_ORNEK = { 'ا': ['1:5', 1, 'إِيَّاكَ'], 'ب': ['1:1', 1, 'بِسۡمِ'], 'ت': ['105:1', 2, 'تَرَ'], 'ث': ['101:6', 3, 'ثَقُلَتۡ'], 'ج': ['106:4', 4, 'جُوعٖ'], 'ح': ['111:4', 2, 'حَمَّالَةَ'],
+    'خ': ['106:4', 7, 'خَوۡفِۭ'], 'د': ['109:6', 2, 'دِينُكُمۡ'], 'ذ': ['111:3', 3, 'ذَاتَ'], 'ر': ['1:2', 3, 'رَبِّ'], 'ز': ['102:2', 2, 'زُرۡتُمُ'], 'س': ['105:4', 4, 'سِجِّيلٖ'], 'ش': ['108:3', 2, 'شَانِئَكَ'],
+    'ص': ['1:7', 1, 'صِرَٰطَ'], 'ض': ['100:1', 2, 'ضَبۡحٗا'], 'ط': ['105:3', 3, 'طَيۡرًا'], 'ظ': ['94:3', 3, 'ظَهۡرَكَ'], 'ع': ['1:7', 4, 'عَلَيۡهِمۡ'], 'غ': ['1:7', 5, 'غَيۡرِ'], 'ف': ['105:1', 4, 'فَعَلَ'],
+    'ق': ['106:1', 2, 'قُرَيۡشٍ'], 'ك': ['105:1', 3, 'كَيۡفَ'], 'ل': ['1:2', 2, 'لِلَّهِ'], 'م': ['1:4', 1, 'مَٰلِكِ'], 'ن': ['1:5', 2, 'نَعۡبُدُ'], 'و': ['1:5', 3, 'وَإِيَّاكَ'], 'ه': ['106:3', 3, 'هَٰذَا'], 'لا': ['109:2', 1, 'لَآ'], 'ي': ['1:4', 2, 'يَوۡمِ'] };
   const OVGU = () => sec1(EN ? ['Well done!', 'Mashallah!', 'Barakallahu feek!', 'Great job!', 'Excellent!'] : ['Aferin!', 'Maşallah!', 'Bârekallah!', 'Harikasın!', 'Çok güzel!']);
 
   window.CocukModu = function (api) {
@@ -339,10 +346,10 @@
       // aynı harekeli 3 farklı harf (okunuşları birbirinden farklı olmalı)
       const harfler = [h]; for (const x of karistir(HAREKE_HARF)) { if (harfler.length >= 3) break; if (!harfler.some(y => hece(y, i) === hece(x, i))) harfler.push(x); }
       if (tur === 'oku') return secenekli({ soru: t('Nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir(harfler.map(x => hece(x, i))) });
-      if (tur === 'bul') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), dogru: h + HAREKE[i], secenek: karistir(harfler.map(x => x + HAREKE[i])), arSec: true });
+      if (tur === 'bul') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), sesli: SESLI_OKUNUS(), dogru: h + HAREKE[i], secenek: karistir(harfler.map(x => x + HAREKE[i])), arSec: true });
       if (tur === 'okuV') return secenekli({ soru: t('Nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir([0, 1, 2].map(j => hece(h, j))) });
       if (tur === 'dinleV') return secenekli({ soru: t('Dinle: hangisini duydun?'), ses: 'hr:' + h + ':' + i, dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
-      if (tur === 'bulV') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
+      if (tur === 'bulV') return secenekli({ soru: t('Hangisi “{0}” okunur?', hece(h, i)), sesli: SESLI_OKUNUS(), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true });
     }
     // Okuma Adası: yalnız ince harflerle hece/kelime parçaları (okunuşlar kesin)
     function okumaParcasi(k) {
@@ -374,7 +381,7 @@
       const d = v[0];
       if (tur === 'ayni') return secenekli({ soru: t('Aynısını bul!'), goster: ar(d.ar, 'dev'), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
       if (tur === 'oku') return secenekli({ soru: t('Nasıl okunur? (sağdan sola)'), goster: ar(d.ar, 'dev'), dogru: d.oku, secenek: karistir(v.map(x => x.oku)) });
-      return secenekli({ soru: t('Hangisi “{0}” okunur?', d.oku), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
+      return secenekli({ soru: t('Hangisi “{0}” okunur?', d.oku), sesli: SESLI_OKUNUS(), dogru: d.ar, secenek: karistir(v.map(x => x.ar)), arSec: true });
     }
     // Medine mushafındaki işaretler: cezm (ۡ), med işareti (ٓ), dik üstün (ٰ)
     const ISARET = { cezm: '\u06E1', med: '\u0653', dik: '\u0670' };
@@ -469,7 +476,7 @@
         // (besmele satırı EKRAN.cocukDurak içinde eklenir)
         const nokta = h === 'لا' ? t('Lam ile elif birleşince lamelif olur.') : b[0] === 0 ? t('Hiç noktası yok.') : t('{0} noktası var, harfin {1}.', b[0], b[1] === 'alt' ? t('altında') : t('üstünde'));
         const sekiller = h === 'لا' || h === 'ا' ? '' : `<div class="c-sekiller"><div>${ar(h)}<small>${t('Tek')}</small></div><div>${ar(h + (BITISMEZ.has(h) ? '' : 'ـ'))}<small>${t('Başta')}</small></div><div>${ar((BITISMEZ.has(h) ? 'ـ' + h : 'ـ' + h + 'ـ'))}<small>${t('Ortada')}</small></div><div>${ar('ـ' + h)}<small>${t('Sonda')}</small></div></div>`;
-        return `<div class="c-tanis"><div class="c-dev-harf">${ar(h)}</div><h2>${esc(adi(h))}</h2>${HarfSes.var('h:' + h) ? `<button class="c-dinle" data-hses="h:${h}">🔊 ${t('Dinle')}</button>` : `<button class="c-dinle ikincil" data-hadi="${esc(adi(h))}">🗣️ ${t('Adını duy')}</button>`}<p>${nokta}</p>${kucuk() ? '' : sekiller}</div>`;
+        return `<div class="c-tanis"><div class="c-dev-harf">${ar(h)}</div><h2>${esc(adi(h))}</h2>${HarfSes.var('h:' + h) ? `<button class="c-dinle" data-hses="h:${h}">🔊 ${t('Dinle')}</button>` : `<button class="c-dinle ikincil" data-hadi="${esc(adi(h))}">🗣️ ${t('Adını duy')}</button>`}${KELIME_ORNEK[h] && api.kelimeCal ? `<button class="c-dinle c-kelime-dinle" data-kelime="${KELIME_ORNEK[h][0]}|${KELIME_ORNEK[h][1]}">🎧 ${t('Kur\'an\'dan dinle')} <span class="ar" lang="ar">${KELIME_ORNEK[h][2]}</span></button>` : ''}<p>${nokta}</p>${kucuk() ? '' : sekiller}</div>`;
       }
       if (d.tur === 'hareke') {
         const i = d.h, ornek = ['ب', 'ت', 'ق'];
@@ -644,6 +651,7 @@
       if (sessiz()) { /* kendiliğinden ses yok */ } else if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim) { D.sonSoylenen = suan + D.adim; setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
       app.querySelectorAll('[data-hses]').forEach(b => b.onclick = () => HarfSes.cal(b.dataset.hses, b));
       app.querySelectorAll('[data-hadi]').forEach(b => b.onclick = () => Sesli.dugmeyle(b, b.dataset.hadi));
+      app.querySelectorAll('[data-kelime]').forEach(b => b.onclick = () => { const [r, w] = b.dataset.kelime.split('|'); Sesli.sus(); HarfSes.dur(); api.kelimeCal(r, +w, b); });
       durakSakla();
       const gec = document.getElementById('cBuyuge'); if (gec) gec.onclick = () => api.buyugeGec();
       const ileri = document.getElementById('cIleri'); if (ileri) ileri.onclick = () => { D.adim = adimlar[adimlar.indexOf('tanis') + 1]; api.ciz(); window.scrollTo(0, 0); };

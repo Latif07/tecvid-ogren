@@ -763,3 +763,6 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-yoklama-sayac { display: flex; justify-content: space-between; color: var(--soluk); margin: 0 0 8px; }
 .c-yoklama-sonuc { display: flex; align-items: center; gap: 12px; text-align: left; }
 .c-yoklama-sonuc h2 { margin: 0 0 4px; }
+.c-kelime-dinle { display: inline-flex; align-items: center; gap: 8px; }
+.c-kelime-dinle .ar { font-size: 1.5rem; line-height: 1.2; }
+.c-tanis .c-dinle { margin-left: 3px; margin-right: 3px; }
