@@ -3,19 +3,31 @@ on: workflow_dispatch
 jobs:
   incele:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Arşivden kod ve veri
+      - name: Arşivden kod
         run: |
-          for i in 1 2 3 4 5; do curl -s -m 120 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/*&output=txt&fl=timestamp,original,mimetype,statuscode&collapse=urlkey&limit=5000" > cdx.txt; [ -s cdx.txt ] && break; echo "CDX tekrar $i"; sleep 20; done; echo "CDXSATIR $(wc -l < cdx.txt)"
-          grep -iE "data/|\.json|\.xml" cdx.txt | grep -viE "\.(png|jpg|pdf|mp3)" | head -80 | sed 's/^/VERI /'
-          grep -iE "views/pages/|ContentManager|SdManager|Config|Constants|EbPlayer|App.js|Router" cdx.txt | awk '{print $1, $2}' > js.txt
+          cat > js.txt <<'L'
+          20251026135412 https://kuran.diyanet.gov.tr/elifba/js/views/pages/Intro.js
+          20181003004348 http://kuran.diyanet.gov.tr/elifba/js/ContentManager.js
+          20181003015116 http://kuran.diyanet.gov.tr/elifba/js/EbPlayer.js
+          20170607023443 http://kuran.diyanet.gov.tr/elifba/js/SdManager.es5.min.js
+          20170607014709 http://kuran.diyanet.gov.tr/elifba/js/models/Config.js
+          20170607022202 http://kuran.diyanet.gov.tr/elifba/js/models/Constants.js
+          20170607031313 http://kuran.diyanet.gov.tr/elifba/js/models/MenuModel.js
+          20171114210025 http://kuran.diyanet.gov.tr/elifba/js/App.js
+          20180221061525 http://kuran.diyanet.gov.tr/elifba/js/views/pages/Home.js
+          20170607023918 http://kuran.diyanet.gov.tr/elifba/js/views/SlaytManager.es5.min.js
+          20171121080440 http://kuran.diyanet.gov.tr/elifba/js/views/ui/LeftMenuView.js
+          L
           while read ts u; do
-            f=$(echo "$u" | sed 's#.*/##'); sleep 2; curl -s --retry 3 -m 60 "https://web.archive.org/web/${ts}id_/${u}" -o "j_$f" || continue
-            echo "== $f $(wc -c < j_$f)"
-            grep -oE "[\"'][^\"' ]*(sound|Sound|mp3|btn_|harfler|fetha|kesra|esre|damme|otre|ötre|hareke|data/)[^\"' ]*[\"']" "j_$f" | sort -u | head -60 | sed "s/^/KOD $f /"
+            f=$(basename "$u"); sleep 3
+            curl -sL --retry 4 --retry-delay 5 -m 90 "https://web.archive.org/web/${ts}id_/${u}" -o "j_$f"
+            echo "== $f $(wc -c < j_$f) $(head -c 60 j_$f | tr -d '\n')"
           done < js.txt
-          # Sayfa listesi / menü
-          for f in j_*; do grep -oE "(fetha|kesra|esre|damme|otre|ustun|üstün|hareke|harekeler|med|tenvin|cezm|sedde)[a-zA-Z_]*" "$f" | sort | uniq -c | sort -rn | head -30 | sed "s/^/KELIME $f /"; done
-          echo "== Ses klasörleri (arşivde)"
-          grep -oE "data/sound/[^ ]*" cdx.txt | sed -E 's#/[^/]*$##' | sort | uniq -c | sed 's/^/KLASOR /'
+          for f in j_*; do grep -oE "[\"'][^\"' ]{0,100}(sound|Sound|mp3|btn_|data/|json|xml)[^\"' ]{0,100}[\"']" "$f" | sort -u | head -80 | sed "s/^/KOD $f /"; done
+          for f in j_*; do grep -oiE "(fetha|kesra|esre|damme|zamme|otre|ustun|hareke|harfler|tenvin|cezm|sedde|med)[a-z_]*" "$f" | sort | uniq -c | sort -rn | head -30 | sed "s/^/KELIME $f /"; done
+          echo "== menü dosyaları"
+          for ts_u in "2017 http://kuran.diyanet.gov.tr/elifba/data/menu.json" "2017 http://kuran.diyanet.gov.tr/elifba/data/data.json"; do :; done
+          sleep 5; curl -sL --retry 4 -m 120 "https://web.archive.org/cdx/search/cdx?url=kuran.diyanet.gov.tr/elifba/data/*&output=txt&fl=timestamp,original,mimetype&collapse=urlkey&limit=3000" > cdx.txt; echo "CDXSATIR $(wc -l < cdx.txt)"; head -3 cdx.txt
+          grep -viE "\.(png|jpg|pdf)" cdx.txt | head -120 | sed 's/^/VERI /'
