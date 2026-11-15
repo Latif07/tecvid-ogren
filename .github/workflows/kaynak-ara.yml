@@ -6,23 +6,22 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - name: Diyanet Kur'an portalı API uçları (yalnız adresler)
+      - name: Diyanet portalı uç adları (içerik yazdırılmaz)
         shell: bash
         run: |
           set +e
           UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
-          curl -sL -m 30 -A "$UA" https://kuran.diyanet.gov.tr/ -o m.html
-          for js in $(grep -oE '/assets/[^"]+\.js' m.html | sort -u); do
-            curl -sL -m 30 -A "$UA" "https://kuran.diyanet.gov.tr$js" -o b.js; echo "-- $js $(stat -c%s b.js)"
-            grep -oE '/assets/[A-Za-z0-9_.-]+\.js' b.js | sort -u | head -60 > alt.txt; wc -l < alt.txt
-            grep -oE '"https?://[^"]{4,140}"' b.js | sort -u | head -40
-            grep -oE '["`][^"`]{0,40}/(api|v[0-9])/[^"`]{1,90}["`]' b.js | sort -u | head -60
-            grep -oE '[a-zA-Z]*(Url|URL|Endpoint|BASE)[a-zA-Z]*:?"[^"]{4,120}"' b.js | sort -u | head -30
-          done
-          # alt parçalardan API ve ses adresleri
-          for js in $(cat alt.txt | head -60); do
-            curl -sL -m 30 -A "$UA" "https://kuran.diyanet.gov.tr$js" -o c.js
-            r=$(grep -oE '["`][^"`]{0,60}(/api/|\.mp3|audio|Audio|recit|kari|hafiz|meal|Meal|mushaf|elifba)[^"`]{0,90}["`]' c.js | sort -u | head -15)
-            [ -n "$r" ] && echo "-- $js" && echo "$r"
-          done
-          echo "== mobiluygulama"; curl -sIL -m 20 -A "$UA" https://mobiluygulama.diyanet.gov.tr/ | head -5
+          H=(-A "$UA" -H 'Referer: https://kuran.diyanet.gov.tr/kuran' --retry 3 -m 60 -sL)
+          echo "pagedata: $(curl "${H[@]}" -o pd.json -w '%{http_code}' 'https://kuran.diyanet.gov.tr/mushaf/qurandm/pagedata?id=1') $(stat -c%s pd.json) bayt"
+          python3 -c "import json;d=json.load(open('pd.json'));print('anahtarlar:', list(d.keys())[:20] if isinstance(d,dict) else type(d))" 2>&1 | head -3
+          curl "${H[@]}" https://kuran.diyanet.gov.tr/ -o m.html
+          js=$(grep -oE '/assets/index-[^"]+\.js' m.html | head -1)
+          echo "ana js: $js $(curl "${H[@]}" -o b.js -w '%{http_code}' "https://kuran.diyanet.gov.tr$js") $(stat -c%s b.js)"
+          grep -oE '/assets/[A-Za-z0-9_.-]+\.js' b.js | sort -u > alt.txt; echo "alt parça: $(wc -l < alt.txt)"
+          cat b.js > hepsi.js
+          for p in $(cat alt.txt); do curl "${H[@]}" "https://kuran.diyanet.gov.tr$p" >> hepsi.js; echo >> hepsi.js; done
+          echo "toplam js: $(stat -c%s hepsi.js)"
+          echo "== uç adları"
+          grep -oE '["`/](mushaf|qurandm|api|meal|tefsir|audio|ses|mp3|kari|okuyucu|reciter|hafiz|webdosya)[^"`<> ]{0,100}' hepsi.js | sort -u | head -120
+          echo "== tam adresler"
+          grep -oE 'https?://[A-Za-z0-9._/-]*diyanet[A-Za-z0-9._/?=&{}$-]*' hepsi.js | sort -u | head -60
