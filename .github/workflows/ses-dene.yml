@@ -33,6 +33,10 @@ jobs:
           from silma_tts.api import SilmaTTS
           REF = str(files("silma_tts").joinpath("infer/ref_audio_samples/ar.ref.24k.wav"))
           REF_TEXT = "ويدقق النظر في القرآن الكريم وسائر الكتب السماوية ويتبع مسالك الرسل العظام عليهم الصلاة والسلام."
+          # Model, metnin son harekesini vakıf kuralıyla sükûna çeviriyor (normalize_last_word). Tek hecede bu, harekeyi siler;
+          # bu deneme için o adım kapatılır (son harekeye dokunulmaz).
+          import silma_tts.infer.utils_infer as U
+          U.normalize_last_word = lambda t: t
           tts = SilmaTTS(enable_normalizer=False, force_tashkeel=False)
           H = {'ayin': 'ع', 'ha': 'ح', 'hi': 'خ', 'kaf': 'ق', 'sad': 'ص', 'dad': 'ض', 'ti': 'ط', 'zi': 'ظ', 'gayin': 'غ', 'se': 'ث', 'zel': 'ذ', 'vav': 'و', 'be': 'ب', 'mim': 'م'}
           V = {'ustun': ('َ', 'a'), 'esre': ('ِ', 'i'), 'otre': ('ُ', 'u')}
