@@ -17,7 +17,7 @@ jobs:
           import inspect, silma_tts, os
           from silma_tts.api import SilmaTTS
           print(inspect.signature(SilmaTTS.__init__)); print(inspect.signature(SilmaTTS.infer))
-          kok = os.path.dirname(silma_tts.__file__)
+          kok = list(silma_tts.__path__)[0]
           for r, d, f in os.walk(kok):
               for x in f:
                   if x.endswith(('.wav', '.mp3', '.flac', '.txt', '.toml', '.yaml')): print(os.path.join(r, x))
