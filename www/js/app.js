@@ -752,7 +752,7 @@
       // 2. sayfadan itibaren: konuyu pekiştiren tek bir "hızlı kontrol" sorusu (aktif hatırlama)
       const hk = i > 0 && (u.sorular || []).length ? hizliKontrolSoru(u, i) : null;
       const hikayeGir = `<button class="kart hikaye-gir" data-git="hikaye|${id}|0"><span class="hk-mini">${u.ikon}</span><span><b>${t('⚡ Kısa anlatım')}</b><small>${t('Kart kart, 1–2 dakikada konunun özü ve bir soru')}</small></span><span class="gunluk-ok">›</span></button>`;
-      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>` + hikayeGir + secim : '') + `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>
+      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>` + hikayeGir + secim : '') + `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>${mahrecHTML(id, i)}
         ${hk ? `<section class="kart hizli-kontrol"><p class="hk-baslik">${t('🧠 Hızlı kontrol')}</p><p><b>${hk.soru}</b></p><div class="secenekler">${hk.secenek.map((x, j) => `<button class="secenek" data-hk="${j}">${metin(x)}</button>`).join('')}</div><div id="hkSonuc"></div></section>` : ''}
         <div class="satir">
           <button class="btn ikincil" data-sayfa="${i - 1}" ${i === 0 ? 'disabled' : ''}>${t('‹ Önceki')}</button>
@@ -797,6 +797,7 @@
       });
     }
     app.querySelectorAll('[data-sayfa]').forEach(b => b.onclick = () => { EKRAN.ders._sayfa = EKRAN.ders._sayfa || {}; EKRAN.ders._sayfa[id] = +b.dataset.sayfa; ciz(); window.scrollTo(0, 0); });
+    if (sekme === 'ders' && u.sayfalar && u.sayfalar.length) mahrecBagla(id, Math.min(+(EKRAN.ders._sayfa && EKRAN.ders._sayfa[id]) || 0, u.sayfalar.length - 1));
     const la = $('#lejantAc'); if (la) la.onclick = () => { if (!S.ayar.renkli) { S.ayar.renkli = true; kaydet(); ciz(); return; } const l = $('#lejant'); l.hidden = !l.hidden; };
   };
 
@@ -2767,6 +2768,92 @@
     </main>`;
   };
 
+  // ------------------------------------------------------------ Mahreç dersi: bölümlü video, Kur'an'dan dinle, kendin oku, hisset
+  const MV = { kaynak: 'tevhid', j: {} };
+  function mahrecHTML(id, i) {
+    const M = window.MAHREC; if (!M || !M.SAYFA[id]) return '';
+    const kaynaklar = ['tevhid', 'diyanet'].filter(k => (M.V[k][i] || []).length);
+    const harfler = (M.HARF_SIRA[i] || '').split(' ').filter(h => M.kelime(i, h));
+    const hisset = M.HISSET[i] || [];
+    if (!kaynaklar.length && !harfler.length && !hisset.length) return '';
+    if (!kaynaklar.includes(MV.kaynak)) MV.kaynak = kaynaklar[0];
+    let video = '';
+    if (kaynaklar.length) {
+      const L = M.V[MV.kaynak][i], j = Math.min(MV.j[MV.kaynak + i] || 0, L.length - 1), b = L[j], K = M.KANAL[MV.kaynak];
+      video = `<section class="kart mv" id="mv">
+        <div class="mv-bas"><b>🎬 ${t('Video ders')}</b>${M.onay ? '' : `<span class="rozet uyari">${t('Hoca onayı bekliyor')}</span>`}</div>
+        ${kaynaklar.length > 1 ? `<div class="filtre">${kaynaklar.map(k => `<button class="${k === MV.kaynak ? 'aktif' : ''}" data-mv-kaynak="${k}">${k === 'tevhid' ? t('Mahreç anlatımı') : t('Hafız Davut Kaya: harf harf')}</button>`).join('')}</div>` : ''}
+        <div class="mv-oynat" id="mvOynat"><button class="mv-baslat" id="mvBaslat"><img src="https://i.ytimg.com/vi/${b[0]}/hqdefault.jpg" alt="" loading="lazy"><span class="mv-play">▶</span><span class="mv-etiket">${b[4] ? `<span class="ar">${esc(b[4])}</span> ` : ''}${esc(b[3])}</span></button></div>
+        <div class="mv-kontrol"><button class="btn ikincil" data-mv-git="${j - 1}" ${j === 0 ? 'disabled' : ''}>‹ ${t('Önceki')}</button><span class="soluk">${j + 1} / ${L.length}</span><button class="btn" data-mv-git="${j + 1}" ${j === L.length - 1 ? 'disabled' : ''}>${t('Sonraki bölüm')} ›</button></div>
+        <ol class="mv-bolumler">${L.map((x, k) => `${MV.kaynak === 'tevhid' && (k === 0 || L[k - 1][0] !== x[0]) ? `<li class="mv-video">🎞️ ${esc(M.VIDEO_AD[x[0]] || '')}</li>` : ''}<li><button class="${k === j ? 'aktif' : ''}" data-mv-git="${k}">${x[4] ? `<span class="ar mv-harf">${esc(x[4])}</span>` : '<span class="mv-harf">•</span>'}<span class="mv-ad">${esc(x[3])}</span><span class="mv-sure">${M.zaman(x[1])}</span></button></li>`).join('')}</ol>
+        <p class="soluk kucukyazi">${t('Video:')} <a href="${K.url}" target="_blank" rel="noopener">${esc(K.ad)}</a> · <a href="https://www.youtube.com/watch?v=${b[0]}&t=${b[1]}s" target="_blank" rel="noopener">${t('YouTube\'da aç')}</a></p>
+      </section>`;
+    }
+    const dinle = harfler.length ? `<section class="kart mh">
+        <h3>🔊 ${t('Harfi Kur\'an\'dan dinle, sonra sen oku')}</h3>
+        <div class="mh-harfler">${harfler.map(h => { const [r, w, k] = M.kelime(i, h); return `<button class="mh-harf" data-mh="${h}" data-ses="${kelimeUrl(r, w)}"><span class="ar">${h}</span><small class="ar">${k}</small></button>`; }).join('')}</div>
+        <div class="mh-oku" id="mhOku" hidden></div>
+        <p class="soluk kucukyazi">${t('Harfe dokun: Kur\'an\'daki bir kelimeden gerçek kâri sesiyle dinlersin. Sonra "Sen oku" ile kendini kontrol et.')}</p>
+      </section>` : '';
+    const his = hisset.length ? `<section class="kart mh-hisset"><h3>✋ ${t('Hisset')}</h3><ul>${hisset.map(x => `<li>${x}</li>`).join('')}</ul></section>` : '';
+    return video + dinle + his;
+  }
+  function mahrecBagla(id, i) {
+    const M = window.MAHREC; if (!M || !M.SAYFA[id]) return;
+    const yenile = () => { const y = $('#mv'); if (!y) return; const yeni = document.createElement('div'); yeni.innerHTML = mahrecHTML(id, i); y.replaceWith(yeni.querySelector('#mv')); bagla(); };
+    const oynat = () => {
+      const L = M.V[MV.kaynak][i], b = L[Math.min(MV.j[MV.kaynak + i] || 0, L.length - 1)];
+      sesDurdur();
+      $('#mvOynat').innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${b[0]}?start=${b[1]}${b[2] ? '&end=' + b[2] : ''}&autoplay=1&rel=0&playsinline=1&modestbranding=1" title="${esc(b[3])}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    };
+    const bagla = () => {
+      const bs = $('#mvBaslat'); if (bs) bs.onclick = oynat;
+      app.querySelectorAll('[data-mv-git]').forEach(x => x.onclick = () => { MV.j[MV.kaynak + i] = +x.dataset.mvGit; const oynuyor = !!app.querySelector('#mvOynat iframe'); yenile(); if (oynuyor || x.closest('.mv-bolumler') || x.closest('.mv-kontrol')) oynat(); });
+      app.querySelectorAll('[data-mv-kaynak]').forEach(x => x.onclick = () => { MV.kaynak = x.dataset.mvKaynak; yenile(); });
+    };
+    bagla();
+    // Harfe dokununca: kelime çalar (genel data-ses tıklaması) ve "Sen oku" kutusu o harfe göre açılır
+    app.querySelectorAll('[data-mh]').forEach(b => b.addEventListener('click', () => {
+      app.querySelectorAll('.mh-harf.secili').forEach(x => x.classList.remove('secili')); b.classList.add('secili');
+      const h = b.dataset.mh, [r, w, k] = M.kelime(i, h), kutu = $('#mhOku'); kutu.hidden = false;
+      kutu.innerHTML = `<p><b class="ar mh-kelime">${k}</b></p><div class="satir sola"><button class="sesbtn" data-ses="${kelimeUrl(r, w)}">▶ ${t('Tekrar dinle')}</button><button class="sesbtn" id="mhSenOku">🎤 ${t('Sen oku')}</button></div><div id="mhSonuc"></div>`;
+      $('#mhSenOku').onclick = () => mahrecOkut(h, r, w, $('#mhSenOku'));
+    }));
+  }
+  let MH_KAYIT = null;
+  async function mahrecOkut(h, r, w, btn) {
+    const sonuc = $('#mhSonuc');
+    if (MH_KAYIT) { MH_KAYIT.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+    let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    sesDurdur();
+    const parca = [], rec = new MediaRecorder(akis); MH_KAYIT = rec;
+    btn.textContent = t('⏹ Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor');
+    sonuc.innerHTML = `<p class="soluk">${t('🎙️ Dinliyorum… Kelimeyi oku.')}</p>`;
+    O.modelAc().catch(() => { });
+    const zaman = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 5000);
+    rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+    rec.onstop = async () => {
+      clearTimeout(zaman); akis.getTracks().forEach(x => x.stop()); MH_KAYIT = null;
+      btn.textContent = '🎤 ' + t('Sen oku'); btn.classList.remove('kirmizi-btn', 'kaydediyor');
+      sonuc.innerHTML = `<p class="soluk">${t('Kontrol ediliyor…')}</p>`;
+      try {
+        const [s, a] = r.split(':').map(Number);
+        const ref = (await O.fonetik(s))[a - 1], [x0, x1] = ref.sp[w - 1], bek = ref.p.slice(x0, x1);
+        const ses = await O.sesCoz(new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
+        const d = await O.dinle(ses), duy = d.heard;
+        const bekL = Array.from(bek), hedef = [h, { 'ا': 'ء' }[h], { 'ي': 'ۦ', 'و': 'ۥ' }[h]].find(x => x && bekL.includes(x)) || h;
+        let dogru = !!duy && duy.includes(hedef);
+        if (dogru) for (const [tag, i1, i2] of O.opcodes(Array.from(bek), Array.from(duy))) if (tag !== 'equal' && tag !== 'insert' && Array.from(bek).slice(i1, i2).includes(hedef)) dogru = false;
+        sonuc.innerHTML = !duy ? `<p class="r-orta">${t('Sesini duyamadım. Biraz daha yüksek ve yakından oku.')}</p>`
+          : dogru ? `<p class="r-iyi"><b>${t('🟢 Harfi doğru çıkardın. Maşallah!')}</b></p>`
+          : `<p class="r-orta"><b>${t('🟠 Tekrar dene.')}</b> ${t('Önce kâriyi dinle, sonra aynı yerden çıkarmaya çalış.')}</p><div class="satir sola"><button class="sesbtn" data-ses="${kelimeUrl(r, w)}">▶ ${t('Doğrusunu dinle')}</button></div>`;
+        sonuc.innerHTML += `<p class="soluk kucukyazi">${t('Yapay zekâ yanılabilir; son söz hocanındır.')}</p>`;
+      } catch (e) { sonuc.innerHTML = `<p class="hata">${esc(e.message || t('Kontrol edilemedi.'))}</p>`; }
+    };
+    rec.start();
+  }
   // ------------------------------------------------------------ hikâye dersleri (kısa anlatım: kart kart)
   const HK = { id: '', kartlar: [], q: null, cevap: null };
   function hikayeKartlar(u) {

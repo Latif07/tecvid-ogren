@@ -23,6 +23,23 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Video ders": "Video lesson",
+ "Mahreç anlatımı": "Makhraj explanation",
+ "Hafız Davut Kaya: harf harf": "Hafiz Davut Kaya: letter by letter",
+ "Sonraki bölüm": "Next part",
+ "Video:": "Video:",
+ "YouTube'da aç": "Open on YouTube",
+ "Harfi Kur'an'dan dinle, sonra sen oku": "Hear the letter from the Qur'an, then read it yourself",
+ "Harfe dokun: Kur'an'daki bir kelimeden gerçek kâri sesiyle dinlersin. Sonra \"Sen oku\" ile kendini kontrol et.": "Tap a letter to hear it in a Qur'an word, recited by a real reciter. Then check yourself with \"Your turn\".",
+ "Hisset": "Feel it",
+ "Sen oku": "Your turn",
+ "🎙️ Dinliyorum… Kelimeyi oku.": "🎙️ Listening… Read the word.",
+ "Kontrol ediliyor…": "Checking…",
+ "Sesini duyamadım. Biraz daha yüksek ve yakından oku.": "I couldn't hear you. Read a little louder and closer.",
+ "🟢 Harfi doğru çıkardın. Maşallah!": "🟢 You pronounced the letter correctly. Mashallah!",
+ "🟠 Tekrar dene.": "🟠 Try again.",
+ "Önce kâriyi dinle, sonra aynı yerden çıkarmaya çalış.": "Listen to the reciter first, then try to produce it from the same place.",
+ "Kontrol edilemedi.": "Could not be checked.",
  "Hazırlanıyor…": "Preparing…",
  "Yapay zekâ modeli hazırlanıyor: {0}": "Preparing the AI model: {0}",
  "🎙️ Dinliyorum · {0}/{1} kelime": "🎙️ Listening · {0}/{1} words",
