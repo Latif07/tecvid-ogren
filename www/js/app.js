@@ -661,6 +661,20 @@
       ${GRUPLAR.map(([ad, idler]) => { const l = idler.map(unitById).filter(Boolean); return `<h2 class="baslik">${ad} <small class="soluk">${l.filter(u => gecti(u.id)).length}/${l.length}</small></h2><div class="bolumler">${bolumListesi(l)}</div>`; }).join('')}
     </main>`;
   };
+  // ------------------------------------------------------------ sürüm ve yenilikler
+  const SRM = () => window.SURUMLER || { SURUM: '', YAYIN: '', LISTE: [] };
+  const yerli = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const surumYazi = () => { const v = SRM(); return t('Sürüm {0}', v.SURUM) + (yerli() ? ' · Android' : ' · web' + (v.YAYIN ? ' ' + v.YAYIN : '')); };
+  EKRAN.yenilikler = function () {
+    const v = SRM();
+    app.innerHTML = `${ust(t('🆕 Yenilikler'))}<main>
+      <section class="kart"><p><b>${esc(surumYazi())}</b></p><p class="soluk kucukyazi">${t('Her sürümde nelerin değiştiği. Test ederken hangi sürümde olduğunu buradan kontrol et.')}</p></section>
+      ${v.LISTE.map((x, i) => `<article class="kart yenilik ${x.s === v.SURUM ? 'simdiki' : ''}">
+        <div class="satir" style="justify-content:space-between"><h2 style="margin:0">${t('Sürüm {0}', esc(x.s))}</h2><span class="soluk kucukyazi">${new Date(x.t + 'T12:00').toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
+        ${x.durum ? `<span class="rozet uyari">${esc(t(x.durum))}</span>` : x.s === v.SURUM ? `<span class="rozet ok">${t('Şu anki sürüm')}</span>` : ''}
+        <ul>${x.l.map(m => `<li>${esc(m)}</li>`).join('')}</ul></article>`).join('')}
+    </main>`;
+  };
   EKRAN.ana = function () {
     const toplam = U.length, gecilen = U.filter(u => gecti(u.id)).length;
     const vade = vadesiGelenler().length;
@@ -692,6 +706,7 @@
         ${hesapUyari ? `<section class="kart hesap-uyari" style="margin-top:14px"><div><h2>${t('☁️ İlerlemen kaybolmasın')}</h2><p>${t('Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.')}</p></div>
           <div class="satir sola"><button class="btn" data-git="hesap">${t('Giriş yap / Hesap aç')}</button><button class="btn ikincil" id="uyariKapat">${t('Sonra')}</button></div></section>` : ''}
         ${iosKurKarti()}
+        <p class="surum-satir"><button class="link" data-git="yenilikler">${esc(surumYazi())} · ${t('Yenilikler')} ›</button></p>
       </main>`;
     odevKartiDoldur(); yarimBagla(); gununSorusuBagla();
     const hk_ = $('#haftaKapat'); if (hk_) hk_.onclick = () => { S.ayar.haftaKartKapali = Date.now(); kaydet(); ciz(); };
@@ -2288,6 +2303,7 @@
         <div><h2>${esc(AKTIF().ad || (k ? (k.displayName || k.email || '') : t('Misafir')))}</h2><p class="soluk">${k ? t('Verilerin hesabında saklanıyor ☁️') : t('Verilerin sadece bu telefonda')}</p></div></section>
       <div class="istatler kart"><div><b>${gecilen}/${U.length}</b><small>${t('bölüm')}</small></div><div><b>${S.gecmis.length}</b><small>${t('test')}</small></div><div><b>${ezb}</b><small>${t('ezber sûre')}</small></div><div><b>🔥 ${S.seri.gun || 0}</b><small>${t('gün seri')}</small></div></div>
       <div class="bolumler">
+        ${satir('yenilikler', '🆕', t('Yenilikler'), esc(surumYazi()))}
         ${satir('profiller', '👥', t('Profiller'), t('{0} profil · şu an: {1}', PR.liste.length, esc(AKTIF().ad || t('Profil 1')) + ' (' + (YAS_AD[AKTIF().yas] || '—') + ')'))}
         ${cocukMu() ? '' : satir('ilerleme', '📊', t('İlerleme tablosu'), t('Bölümler, etkinlik, güçlü ve zayıf konular'))}
         ${PR.liste.some(p => p.yas === 'kucuk' || p.yas === 'cocuk') ? satir('ebeveynOzet', '👨‍👩‍👧', t('Çocuk özeti'), t('Haftalık çalışma, yıldızlar, karıştırılan harfler')) : ''}

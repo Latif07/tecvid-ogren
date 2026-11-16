@@ -828,3 +828,7 @@ main.canli-mod .ayet-kart .okunus, main.canli-mod .ayet-kart .meal { display: no
 .ar-ses { cursor: pointer; border-bottom: 2px dotted var(--ana); border-radius: 4px; padding: 0 2px; }
 .ar-ses::before { content: '🔊'; font-size: .55em; vertical-align: super; margin-inline-start: 2px; opacity: .8; }
 .ar-ses:hover, .ar-ses.caliyor { background: var(--iyi-bg); }
+.surum-satir { text-align: center; margin: 18px 0 6px; }
+.surum-satir .link { font-size: .8rem; color: var(--soluk); }
+.yenilik ul { margin: 8px 0 0; padding-inline-start: 20px; } .yenilik li { margin: 4px 0; line-height: 1.5; }
+.yenilik.simdiki { border-color: var(--ana); }

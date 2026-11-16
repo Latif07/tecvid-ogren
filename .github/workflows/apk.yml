@@ -65,7 +65,10 @@ jobs:
           # Sabit imza anahtarı: güncellemeler eski sürümün üstüne kurulabilsin
           mkdir -p ~/.android && cp android-res/debug.keystore ~/.android/debug.keystore
           # Sürüm numarası
-          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          SURUM=$(node -e "process.stdout.write(require('./www/js/surumler.js').SURUM)")
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$SURUM\"/" android/app/build.gradle
+          echo "SURUM=$SURUM" >> $GITHUB_ENV
+          node -e "const v=require('./www/js/surumler.js');const x=v.LISTE.find(y=>y.s===v.SURUM)||{l:[]};process.stdout.write('Telefona kurmak için aşağıdaki **tecvid-ogren.apk** dosyasına dokun.\nGüncellemeler eskisinin üstüne kurulur, ilerlemen silinmez.\n\n### Yenilikler\n'+x.l.map(m=>'- '+m).join('\n')+'\n')" > ../surum-notu.md
 
       - name: APK derle
         working-directory: proje/android
@@ -77,10 +80,8 @@ jobs:
       - name: Releases'a koy
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Hüsn-i Kıraat 1.0.${{ github.run_number }}
-          body: |
-            Telefona kurmak için aşağıdaki **tecvid-ogren.apk** dosyasına dokun.
-            Güncellemeler eskisinin üstüne kurulur, ilerlemen silinmez.
+          tag_name: v${{ env.SURUM }}
+          name: Hüsn-i Kıraat ${{ env.SURUM }}
+          body_path: surum-notu.md
           files: tecvid-ogren.apk
           make_latest: true

@@ -23,6 +23,12 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Sürüm {0}": "Version {0}",
+ "🆕 Yenilikler": "🆕 What's new",
+ "Yenilikler": "What's new",
+ "Her sürümde nelerin değiştiği. Test ederken hangi sürümde olduğunu buradan kontrol et.": "What changed in each version. Check here which version you are testing.",
+ "Şu anki sürüm": "Current version",
+ "Webde test ediliyor": "Being tested on the web",
  "Kur'an'dan: {0}": "From the Qur'an: {0}",
  "Video ders": "Video lesson",
  "Mahreç anlatımı": "Makhraj explanation",
