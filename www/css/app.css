@@ -824,3 +824,7 @@ main.canli-mod .ayet-kart .okunus, main.canli-mod .ayet-kart .meal { display: no
 .mh-hisset ul { margin: 6px 0 0; padding-inline-start: 20px; } .mh-hisset li { margin: 6px 0; line-height: 1.6; }
 .mh .r-iyi { color: var(--iyi); } .mh .r-orta { color: #b06d00; }
 .mv-bolumler li.mv-video { padding: 6px 12px; background: var(--bg); color: var(--soluk); font-size: .78rem; font-weight: 700; }
+/* Ders metninde dinlenebilen Arapça örnek */
+.ar-ses { cursor: pointer; border-bottom: 2px dotted var(--ana); border-radius: 4px; padding: 0 2px; }
+.ar-ses::before { content: '🔊'; font-size: .55em; vertical-align: super; margin-inline-start: 2px; opacity: .8; }
+.ar-ses:hover, .ar-ses.caliyor { background: var(--iyi-bg); }

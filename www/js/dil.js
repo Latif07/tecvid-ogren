@@ -23,6 +23,7 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Kur'an'dan: {0}": "From the Qur'an: {0}",
  "Video ders": "Video lesson",
  "Mahreç anlatımı": "Makhraj explanation",
  "Hafız Davut Kaya: harf harf": "Hafiz Davut Kaya: letter by letter",

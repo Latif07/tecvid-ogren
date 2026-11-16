@@ -797,6 +797,7 @@
       });
     }
     app.querySelectorAll('[data-sayfa]').forEach(b => b.onclick = () => { EKRAN.ders._sayfa = EKRAN.ders._sayfa || {}; EKRAN.ders._sayfa[id] = +b.dataset.sayfa; ciz(); window.scrollTo(0, 0); });
+    if (sekme === 'ders') app.querySelectorAll('.kart.sayfa, .mh-hisset').forEach(x => arSesBagla(x, id));
     if (sekme === 'ders' && u.sayfalar && u.sayfalar.length) mahrecBagla(id, Math.min(+(EKRAN.ders._sayfa && EKRAN.ders._sayfa[id]) || 0, u.sayfalar.length - 1));
     const la = $('#lejantAc'); if (la) la.onclick = () => { if (!S.ayar.renkli) { S.ayar.renkli = true; kaydet(); ciz(); return; } const l = $('#lejant'); l.hidden = !l.hidden; };
   };
@@ -2768,6 +2769,37 @@
     </main>`;
   };
 
+  // ------------------------------------------------------------ Ders metnindeki Arapça örnekler: dokununca gerçek kâri sesiyle dinle
+  // Kur'an kelimesi → kendi sesi; tek harf (harekesiz) → o harfin geçtiği bir Kur'an kelimesi (kalkalede harfin sakin/kalkale yapıldığı kelime).
+  // Kur'an'da geçmeyen örnekler ve harekeli tek heceler (bunlar için hoca kaydı gerekir) sessiz kalır.
+  const ISK = w => w.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '');
+  function arSesler(metin_, uid) {
+    const H = window.SES_HARITA; if (!H) return null; metin_ = metin_.trim();
+    if (H.metin[metin_]) return H.metin[metin_].map(([s, a, w]) => kelimeUrl(s + ':' + a, w));
+    const ws = metin_.split(/\s+/).filter(w => !['·', '→', '↔', '/', '،'].includes(w));
+    if (!ws.length || !ws.every(w => w === ISK(w) && ISK(w).length >= 1 && ISK(w).length <= 2)) return null;
+    const kalk = ws.every(w => 'قطبجد'.includes(w));
+    const rs = ws.map(L => H.harf[uid + ':' + L] || (kalk ? H.harf['u15:' + L] : null) || H.harf['*:' + L]);
+    if (!rs.every(Boolean)) return null;
+    const l = rs.map(r => kelimeUrl(r[0] + ':' + r[1], r[2])); if (rs.length === 1) l.kelime = rs[0][3]; return l;
+  }
+  function arSesBagla(kok, uid) {
+    if (!kok) return;
+    // Harf grupları (ق ط ب ج د gibi): her harf ayrı dokunulur
+    kok.querySelectorAll('.ar').forEach(el => {
+      if (el.children.length || el.closest('button, .mh-harf')) return;
+      const ws = el.textContent.trim().split(/\s+/);
+      if (ws.length < 2 || !ws.every(w => w === ISK(w) && w.length <= 2)) return;
+      el.innerHTML = ws.map(w => `<span class="ar">${esc(w)}</span>`).join(' ');
+    });
+    kok.querySelectorAll('span.ar, .ar:not(span)').forEach(sp => {
+      if (sp.children.length || sp.classList.contains('ar-ses') || sp.closest('button, .mh-harf')) return;
+      const l = arSesler(sp.textContent, uid); if (!l) return;
+      sp.classList.add('ar-ses'); sp.setAttribute('role', 'button'); sp.tabIndex = 0; sp.title = t('Dinle');
+      const cal_ = () => { arkaArka(l, sp); if (l.kelime) toast(t('Kur\'an\'dan: {0}', l.kelime)); };
+      sp.onclick = cal_; sp.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cal_(); } };
+    });
+  }
   // ------------------------------------------------------------ Mahreç dersi: bölümlü video, Kur'an'dan dinle, kendin oku, hisset
   const MV = { kaynak: 'tevhid', j: {} };
   function mahrecHTML(id, i) {
@@ -2893,6 +2925,7 @@
       <div class="hk-alt"><button class="btn ikincil" data-hk="${i - 1}" ${i === 0 ? 'disabled' : ''} aria-label="${t('Önceki')}">‹</button><span class="soluk">${i + 1} / ${K.length}</span><button class="btn" data-hk="${i + 1}" ${son || (k.tip === 'soru' && !HK.cevap) ? 'disabled' : ''} aria-label="${t('Sonraki')}">›</button></div>
     </div>`;
     const kartGit = j => { ekranYigini[ekranYigini.length - 1] = ['hikaye', [id, j]]; if (+j === 0 && son) Object.assign(HK, { id: '' }); ciz(); window.scrollTo(0, 0); };
+    arSesBagla(app.querySelector('.hk-metin'), id);
     app.querySelectorAll('[data-hk]').forEach(b => b.onclick = () => kartGit(+b.dataset.hk));
     app.querySelectorAll('[data-hkgit]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['ders', [id, 'ders']]; ciz(); });
     app.querySelectorAll('[data-hks]').forEach(b => b.onclick = () => {
