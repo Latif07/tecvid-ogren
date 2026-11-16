@@ -1,0 +1,13 @@
+name: Türk kâri inceleme
+on: workflow_dispatch
+jobs:
+  incele:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - run: |
+          B=https://webdosya.diyanet.gov.tr/kuran/kuranikerim/Sound
+          for k in ar_osmanSahin ar_mehmetcevik ar_cuheyni ar_ishakDanis ar_ishakdanis ar_IshakDanis ar_ishakDanish ar_ishak ar_davutKaya ar_davutkaya ar_fatihCollak ar_fatihcollak ar_abdurrahmanGurses ar_alperenEmre ar_bayramAli ar_muhammedEmin ar_hasanGurses ar_yasarCakmakli ar_aliTel ar_ahmetUzun ar_husari ar_alafasi ar_sudais ar_mustafaIsmail ar_abdulbasit ar_minsavi; do
+            echo "KARI $k $(curl -s -m 15 -o /dev/null -w '%{http_code} %{size_download}' $B/$k/1_1.mp3)"; done
+          echo "MP3Q $(curl -s -m 30 'https://www.mp3quran.net/api/v3/reciters?language=tr' | python3 -c "import json,sys;d=json.load(sys.stdin);[print('R',r['id'],r['name'],[m['name'] for m in r['moshaf']][:3]) for r in d['reciters'] if any(x in r['name'].lower() for x in ['danış','danis','şahin','sahin','kaya','çollak','collak','türk','turk','gürses','ishak','isak','ishaq','danish'])]" 2>&1 | head -30)"
+          curl -s -m 30 'https://www.mp3quran.net/api/v3/reciters?language=eng' | python3 -c "import json,sys;d=json.load(sys.stdin);[print('E',r['id'],r['name'],[(m['name'],m['server']) for m in r['moshaf']][:2]) for r in d['reciters'] if any(x in r['name'].lower() for x in ['danis','ishaq','ishak','sahin','kaya','collak','turk'])]" 2>&1 | head -20
