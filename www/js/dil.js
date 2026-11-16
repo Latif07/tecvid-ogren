@@ -23,6 +23,10 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Mushaf yazımı": "Mushaf script",
+ "Türkiye: Diyanet mushafındaki gibi (med işaretleri, esre-i memdûde, durak işaretleri). Medine: Medine mushafı yazımı.": "Turkey: as in the Diyanet mushaf (madd marks, long kasra, pause marks). Medina: Medina mushaf script.",
+ "Türkiye (Diyanet)": "Turkey (Diyanet)",
+ "Medine": "Medina",
  "Tanıma": "Recognise",
  "Uygulama": "Apply",
  "✓ Konuyu anladın!": "✓ You've got it!",

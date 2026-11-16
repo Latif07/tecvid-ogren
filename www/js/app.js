@@ -88,7 +88,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t('Kaydedilemedi: ') + e.message); }
     clearTimeout(yuklemeZamanlayici); yuklemeZamanlayici = setTimeout(buluta, 1500);
   };
-  function temaUygula() { const h = document.documentElement; h.dataset.tema = S.ayar.tema || 'sistem'; h.dataset.renk = S.ayar.renk || 'yesil'; try { localStorage.setItem('tecvid-ogren.renk', S.ayar.renk || 'yesil'); } catch (e) { } requestAnimationFrame(() => { const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = getComputedStyle(h).getPropertyValue('--ust-bg').trim() || '#0f5a47'; }); h.style.fontSize = Math.round((S.ayar.yazi || 1) * 100) + '%'; h.style.setProperty('--ar-olcek', S.ayar.arYazi || 1); try { localStorage.setItem('tecvid-ogren.tema', S.ayar.tema || 'sistem'); } catch (e) { } }
+  function temaUygula() { const h = document.documentElement; h.dataset.yazim = (S.ayar.yazim || 'tr'); h.dataset.tema = S.ayar.tema || 'sistem'; h.dataset.renk = S.ayar.renk || 'yesil'; try { localStorage.setItem('tecvid-ogren.renk', S.ayar.renk || 'yesil'); } catch (e) { } requestAnimationFrame(() => { const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = getComputedStyle(h).getPropertyValue('--ust-bg').trim() || '#0f5a47'; }); h.style.fontSize = Math.round((S.ayar.yazi || 1) * 100) + '%'; h.style.setProperty('--ar-olcek', S.ayar.arYazi || 1); try { localStorage.setItem('tecvid-ogren.tema', S.ayar.tema || 'sistem'); } catch (e) { } }
   temaUygula();
 
   // ------------------------------------------------------------ bulut eşitleme
@@ -389,10 +389,64 @@
   });
 
   // ------------------------------------------------------------ ayet gösterimi (renkli tecvid)
+  // ------------------------------------------------------------ Türkiye (Diyanet) mushaf yazımı
+  // Medine metni (tecvid renkleri, sesler, okuma modeli bunun üzerinde) korunur; ekranda kelime kelime Diyanet yazımı gösterilir.
+  // Veri: www/kuran/tr/NNN.json (tools/turk_yazim.py). Font: Diyanet'in Hamdullah hattı, Diyanet sunucusundan; yüklenemezse Scheherazade + Unicode kodlama.
+  const TR_YAZI = {}, TR_HAZIR = window.TR_YAZIM_HAZIR || { a: {}, s: {} };
+  Object.entries(TR_HAZIR.s || {}).forEach(([n, d]) => TR_YAZI[n] = d);
+  const yazimTr = () => (S.ayar.yazim || 'tr') === 'tr';
+  let TR_FONT = false;
+  function trFontYukle() {
+    if (!yazimTr() || TR_FONT || !document.fonts || !window.FontFace) return;
+    try {
+      const f = new FontFace('Hamdullah', 'url(https://webdosya.diyanet.gov.tr/kuran/kuranikerim/dosyalar/font/KuranKerimFontHamdullah.ttf)');
+      f.load().then(ff => { document.fonts.add(ff); TR_FONT = true; document.documentElement.dataset.hfont = '1'; ciz(); }).catch(() => { });
+    } catch (e) { }
+  }
+  setTimeout(trFontYukle, 0);
+  async function trYukle(n) { if (TR_YAZI[n] || !yazimTr()) return; try { TR_YAZI[n] = await (await fetch(`kuran/tr/${pad(n)}.json`)).json(); } catch (e) { } }
+  const trSec = p => p ? (TR_FONT ? p[0] : p[1]) : null;
+  // Medine kelimesi (ayetteki başlangıç konumuyla) → Diyanet yazımındaki karşılığı
+  function trParca(r, bas, kelime) {
+    if (!yazimTr()) return null; const metin_ = medineAyet(r); if (!metin_ || (bas > 0 && metin_[bas - 1] !== ' ')) return null;
+    const wi = bas ? metin_.slice(0, bas).split(' ').length - 1 : 0, mw = metin_.split(' ')[wi];
+    if (mw !== kelime) return null;
+    const [n, a] = r.split(':').map(Number);
+    const p = (TR_YAZI[n] && TR_YAZI[n].a[a - 1] && TR_YAZI[n].a[a - 1][wi]) || (TR_HAZIR.a[r] && TR_HAZIR.a[r][wi]);
+    return p || null;
+  }
+  const medineAyet = r => { if (AYAH[r]) return AYAH[r]; const [n, a] = r.split(':').map(Number), x = SURE(n); return x && x.ayet ? x.ayet[a - 1] : null; };
+  const HARF = ch => /[ء-يٱی]/.test(ch);
+  const harfNorm = ch => ({ 'ٱ': 'ا', 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ی': 'ي', 'ى': 'ي', 'ؤ': 'و', 'ئ': 'ي' })[ch] || ch;
+  const kumeler = s => { const l = []; for (const ch of s) { if (HARF(ch) || !l.length) l.push(ch); else l[l.length - 1] += ch; } return l; };
+  // Medine kelimesindeki renk sınıflarını harf eşlemesiyle Diyanet yazımına taşı
+  function trRenkli(medine, bas, tr, etiket) {
+    const mk = kumeler(medine), tk = kumeler(tr);
+    let p = bas; const mSinif = mk.map(k => { let s = null; for (let i = 0; i < k.length && !s; i++) for (const [a, b, c] of etiket) if (p + i >= a && p + i < b) { s = c; break; } p += k.length; return s; });
+    const n = mk.length, m = tk.length, D = Array.from({ length: n + 1 }, () => new Int16Array(m + 1));
+    const ayni = (i, j) => harfNorm(mk[i][0]) === harfNorm(tk[j][0]);
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) D[i][j] = ayni(i, j) ? D[i + 1][j + 1] + 1 : Math.max(D[i + 1][j], D[i][j + 1]);
+    const tSinif = new Array(m).fill(undefined); let i = 0, j = 0;
+    while (i < n && j < m) { if (ayni(i, j)) { tSinif[j] = mSinif[i]; i++; j++; } else if (D[i + 1][j] >= D[i][j + 1]) i++; else j++; }
+    for (let k = 0; k < m; k++) if (tSinif[k] === undefined) tSinif[k] = k ? tSinif[k - 1] : null;
+    let html = '', akan = '', s0 = null;
+    tk.forEach((k, x) => { if (tSinif[x] !== s0) { if (akan) html += s0 ? `<span class="tc-${s0}">${esc(akan)}</span>` : esc(akan); akan = ''; s0 = tSinif[x]; } akan += k; });
+    if (akan) html += s0 ? `<span class="tc-${s0}">${esc(akan)}</span>` : esc(akan);
+    return html;
+  }
+  const trBesmele = () => yazimTr() ? (trSec((TR_YAZI[2] || {}).b) || trSec(TR_HAZIR.a['1:1'] ? [TR_HAZIR.a['1:1'].map(x => x[0]).join(' '), TR_HAZIR.a['1:1'].map(x => x[1]).join(' ')] : null)) : null;
+  // Ayetin düz metni (renksiz): Türk yazımı açıksa Diyanet kelimeleri
+  function ayetMetni(r) {
+    const metin_ = medineAyet(r) || ''; if (!yazimTr()) return metin_;
+    const [n, a] = r.split(':').map(Number), d = (TR_YAZI[n] && TR_YAZI[n].a[a - 1]) || TR_HAZIR.a[r];
+    return d ? d.map(trSec).filter(Boolean).join(' ') : metin_;
+  }
   function kelimeHTML(r, kelime, bas) {
     const f = kelimeHTML.filtre;
     let etiket = f || (S.ayar.renkli && !kelimeHTML.renksiz) ? RENK[r] : null;
     if (etiket && f) etiket = etiket.filter(e => e[2] === f);
+    const trp = trSec(trParca(r, bas, kelime));
+    if (trp) return etiket && etiket.length ? trRenkli(kelime, bas, trp, etiket) : esc(trp);
     if (!etiket || !etiket.length) return esc(kelime);
     let html = '', akan = '', akanSinif = null;
     for (let i = 0; i < kelime.length; i++) {
@@ -433,8 +487,8 @@
     return KURAN_INDEX;
   }
   async function sureYukle(n) {
-    if (SURE(n)) return SURE(n);
-    const x = await (await fetch(`kuran/${pad(n)}.json`)).json();
+    if (SURE(n)) { if (yazimTr() && !TR_YAZI[n]) await trYukle(n); return SURE(n); }
+    const [x] = await Promise.all([fetch(`kuran/${pad(n)}.json`).then(y => y.json()), trYukle(n)]);
     x.ayet.forEach((a, i) => { const r = `${n}:${i + 1}`; AYAH[r] = a; if (x.renk[i + 1]) RENK[r] = x.renk[i + 1]; });
     delete x.renk; KURAN[n] = x; return x;
   }
@@ -459,6 +513,7 @@
     for (const w of k) {
       const ws = o, we = o + w.length; o = we + 1;
       if (we <= bas || ws >= son) { parca.push(kelimeHTML(r, w, ws)); continue; }
+      if (yazimTr() && trParca(r, ws, w)) { parca.push(`<span class="isaret">${kelimeHTML(r, w, ws)}</span>`); continue; }
       const a = Math.max(bas, ws) - ws, b = Math.min(son, we) - ws;
       parca.push(kelimeHTML(r, w.slice(0, a), ws) + `<span class="isaret">${kelimeHTML(r, w.slice(a, b), ws + a)}</span>` + kelimeHTML(r, w.slice(b), ws + b));
     }
@@ -1765,10 +1820,10 @@
   // Metnin satırları; Kur'an parçaları uygulamanın Kur'an verisinden (yüklenmemişse null)
   function mzSatirlar(x) {
     if (x.satir) return x.satir;
-    if (x.kuran.some(([s]) => !SURE(s))) return null;
+    if (x.kuran.some(([s]) => !SURE(s) || (yazimTr() && !TR_YAZI[s]))) return null;
     const OKU = ((window.OKUNUS || {}).tr) || {};
     return x.kuran.map(([s, a]) => { const r = `${s}:${a}`, m = MEAL['tr' + s];
-      return { ar: SURE(s).ayet[a - 1], ok: OKU[r] || '', tr: m ? m[a - 1] : '', n: 1, ses: ayetUrl(r), yedek: ayetUrl(r, KARILER[0].klasor), r }; });
+      return { ar: ayetMetni(r), ok: OKU[r] || '', tr: m ? m[a - 1] : '', n: 1, ses: ayetUrl(r), yedek: ayetUrl(r, KARILER[0].klasor), r }; });
   }
   function mzYukle(x, ekran) {
     const l = [...new Set((x.kuran || []).map(([s]) => s))];
@@ -2185,7 +2240,7 @@
     let html = '', onceki = null;
     ay.forEach(([n, a]) => {
       const x = SURE(n);
-      if (n !== onceki) { if (onceki !== null) html += '</div>'; if (a === 1) html += `<div class="sure-baslik"><span class="ar">${esc(x.ar)}</span> · ${esc(sureAdi(x))}</div>${n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(window.BESMELE || '')}</div>` : ''}`; html += '<div class="ayet sayfa-metin" dir="rtl" lang="ar">'; onceki = n; }
+      if (n !== onceki) { if (onceki !== null) html += '</div>'; if (a === 1) html += `<div class="sure-baslik"><span class="ar">${esc(x.ar)}</span> · ${esc(sureAdi(x))}</div>${n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : ''}`; html += '<div class="ayet sayfa-metin" dir="rtl" lang="ar">'; onceki = n; }
       const r = `${n}:${a}`; let o = 0;
       html += x.ayet[a - 1].split(' ').map((w, wi) => { const h = `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${kelimeHTML(r, w, o)}</span>`; o += w.length + 1; return h; }).join(' ') + ` <span class="ayet-no" data-ayet-sayfa="${n}:${a}">﴿${a.toLocaleString('ar-EG')}﴾</span> `;
     });
@@ -2251,7 +2306,7 @@
       </article>`;
     }).join('');
     kelimeHTML.filtre = null;
-    const besmele = !filtre && n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(window.BESMELE || '')}</div>${okGoster && OKU.b ? `<p class="okunus ortala">${esc(OKU.b)}</p>` : ''}` : '';
+    const besmele = !filtre && n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>${okGoster && OKU.b ? `<p class="okunus ortala">${esc(OKU.b)}</p>` : ''}` : '';
     const top_ = x.ayet.length;
     const ezberUst = `<section class="kart ezber-ust">
         <div class="satir" style="justify-content:space-between"><h2 style="margin:0">${mod === 'tekrar' ? t('🔁 Ezber tekrarı') : t('🧠 Ezber modu')}</h2><button class="link" data-mod="">${t('Kapat')}</button></div>
@@ -2407,6 +2462,9 @@
         <div class="satir sola">${[[0.9, 'A−'], [1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="btn ${(S.ayar.yazi || 1) === v ? '' : 'ikincil'}" data-yazi="${v}">${ad}</button>`).join('')}</div>
         <p style="margin-top:12px"><b>${t('Arapça yazı boyutu')}</b></p>
         <div class="satir sola">${[[0.85, '−'], [1, ''], [1.2, '+'], [1.4, '++']].map(([v, ek]) => `<button class="btn ${(S.ayar.arYazi || 1) === v ? '' : 'ikincil'}" data-aryazi="${v}"><span class="ar" style="font-size:1.2em;line-height:1">ع</span>${ek}</button>`).join('')}</div>
+        <p style="margin-top:16px"><b>${t('Mushaf yazımı')}</b></p>
+        <p class="soluk">${t('Türkiye: Diyanet mushafındaki gibi (med işaretleri, esre-i memdûde, durak işaretleri). Medine: Medine mushafı yazımı.')}</p>
+        <div class="satir sola">${[['tr', t('Türkiye (Diyanet)')], ['medine', t('Medine')]].map(([v, ad]) => `<button class="btn ${(S.ayar.yazim || 'tr') === v ? '' : 'ikincil'}" data-yazim="${v}">${ad}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Renkli tecvid yazısı')}</b></p>
         <p class="soluk">${t('Örnek ayetlerde her tecvid kuralı kendi rengiyle gösterilir. Testlerde renkler cevabı ele vermesin diye cevaptan sonra görünür.')}</p>
         <div class="satir sola"><button class="btn ${S.ayar.renkli ? '' : 'ikincil'}" data-renkli="1">${t('Açık')}</button><button class="btn ${S.ayar.renkli ? 'ikincil' : ''}" data-renkli="0">${t('Kapalı')}</button></div>
@@ -2447,6 +2505,7 @@
     app.querySelectorAll('[data-yazi]').forEach(b => b.onclick = () => { S.ayar.yazi = +b.dataset.yazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-aryazi]').forEach(b => b.onclick = () => { S.ayar.arYazi = +b.dataset.aryazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-renkli]').forEach(b => b.onclick = () => { S.ayar.renkli = b.dataset.renkli === '1'; kaydet(); ciz(); });
+    app.querySelectorAll('[data-yazim]').forEach(b => b.onclick = async () => { S.ayar.yazim = b.dataset.yazim; temaUygula(); kaydet(); trFontYukle(); await Promise.all(Object.keys(KURAN).map(n => trYukle(+n))); ciz(); });
     const hatirAyarla = async (acik, saat) => {
       S.ayar.hatirlat = { acik, saat }; kaydet();
       const ok = await hatirlatmaKur(acik);

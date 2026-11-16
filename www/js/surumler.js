@@ -5,6 +5,7 @@
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
     { s: '1.0.36', t: '2026-11-16', durum: 'Webde test ediliyor', l: [
+      'Kur\'an metni Türkiye (Diyanet) mushafı yazımıyla: med işaretleri, esre-i memdûde, durak işaretleri; Hamdullah hattı. Ayarlardan Medine yazımı da seçilebilir',
       'Seviye tespiti ("Seni tanıyalım"): kısa test; bildiğin konuların bölümleri atlanır, doğru yerden başlarsın',
       'Alıştırma: 5–8 soru, basitten zora; konuyu anlayınca "Konuyu anladın" ile biter; aynı sorular tekrar gelmez; bölüm testi ders uzunluğuna göre 6/8/10 soru',
       'Mahreç dersi: bölümlü video (Hafız Davut Kaya / Diyanet Dijital ve Tevhid Medya), harfi Kur\'an\'dan dinleme, "Sen oku" ile kontrol, "Hisset" ipuçları',

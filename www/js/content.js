@@ -248,7 +248,7 @@ window.TC = (function () {
       { t: "Neden 'tabîî'?", h: `<p>Çünkü bu uzatma harfin doğasında var. Med harfi olan bir kelime bu uzatma olmadan zaten doğru okunamaz. Diğer bütün medlerin temeli budur. Önce bunu sağlam öğren!</p><p class="not">Ayrıntı: Bir kelimede hemzeden sonra gelen med (<span class="ar">ءَامَنُواْ</span>, "âmenû") da Hafs'ta 1 elif okunur. Buna med-i bedel denir ve tabîî gibi uygulanır.</p>` }
     ],
     ornek: [
-      { k: 'tabii', r: '1:4', w: [1], oku: "mâliki", n: "Mîmin üstündeki dik üstün (ـٰ) elif yerine geçer: 1 elif." },
+      { k: 'tabii', r: '1:4', w: [1], oku: "mâliki", n: "Mîmden sonra elif: 1 elif. (Medine mushafında bu elif dik üstünle (ـٰ) yazılır, Türk mushafında açık elifle.)" },
       { k: 'tabii', r: '113:2', w: [3], oku: "mâ", n: "Üstünlü mîmden sonra elif." },
       { k: 'tabii', r: '1:7', w: [2], oku: "ellezîne", n: "Esreli zelden sonra sakin ye." },
       { k: 'tabii', r: '114:5', w: [4], oku: "sudûri", n: "Ötreli dalden sonra sakin vav." },
@@ -375,7 +375,7 @@ window.TC = (function () {
     ornek: [
       { k: 'sila', r: '112:4', w: [3], oku: "lehû", n: "Önü üstünlü lâm, sonrası harekeli kâf: 1 elif." },
       { k: 'sila', r: '111:2', w: [4], oku: "mâluhû", n: "İki harekeli harf arasında zamir." },
-      { k: 'sila', r: '100:4', w: [2], oku: "bihî", n: "Küçük ye ile gösterilmiş: 1 elif." },
+      { k: 'sila', r: '100:4', w: [2], oku: "bihî", n: "Zamir iki harekeli harf arasında: 1 elif. (Medine mushafında küçük ye ile, Türk mushafında esre-i memdûde ile gösterilir.)" },
       { k: 'sila', r: '104:3', w: [3, 4], oku: "mâlehûû ahledeh", n: "Sonrasında hemze: munfasıl gibi (sıla-i kübrâ)." },
       { k: 'sila', r: '25:69', w: [7, 8], oku: "fîhî muhânâ", n: "İstisna: önü sakin olduğu hâlde uzatılır." }
     ],
