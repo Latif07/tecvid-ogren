@@ -6,16 +6,23 @@ jobs:
     timeout-minutes: 15
     steps:
       - run: |
-          pip install -q youtube-transcript-api >/dev/null 2>&1 || true
+          true
           cat > y.py <<'PY'
           import json, re, urllib.request, time
           H = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'tr-TR,tr;q=0.9'}
           def get(u): return urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30).read().decode('utf-8', 'ignore')
-          V = 'dGiqhF5XziY JoSehOoZQ3o fo61Tg9MJOw Kw4nPEMYQyk kxNCMdeEjLY 7NNJ4ipl-7o v4uqlmzqs38 fhMIf5J5H1k pR6MewRIv1g 1DZINs1sOOM hEMYIWvipbo gby842585tA y2CGC83DTNU 84sUS6ByhZY ttfEYTkXvFk Y-caH_s3hQo X8-Q7E09CpA'.split()
-          try:
-            from youtube_transcript_api import YouTubeTranscriptApi
-            api = YouTubeTranscriptApi()
-          except Exception as e: api = None; print('TRHATA', e)
+          import urllib.parse
+          V = []
+          for q in ["Kur'an Dersleri 6. Bölüm Davut Kaya Diyanet Dijital", "Kur'an Dersleri 9. Bölüm Davut Kaya Diyanet Dijital", "Tevhid Medya Tecvid Dersleri 5 mahreç", "Tevhid Medya Tecvid Dersleri 8 mahreç", "Tevhid Medya Dâd harfi mahreci", "Tevhid Medya Sâd Zây Sîn harflerinin mahreci", "Tevhid Medya Cevf mahreç med harfleri Tecvid Dersleri"]:
+            try:
+              hh = get('https://www.youtube.com/results?search_query=' + urllib.parse.quote(q) + '&hl=tr&gl=TR')
+              for vid, t in re.findall(r'"videoRenderer":\{"videoId":"([\w-]{11})".*?"title":\{"runs":\[\{"text":"(.*?)"', hh)[:6]:
+                print('ARA', q, '|', vid, '|', t)
+                if ('Diyanet' in q and ('6. Bölüm' in t or '9. Bölüm' in t)) or ('Tevhid' in q and 'Tecvid Dersleri' in t): V.append(vid)
+            except Exception as e: print('ARAHATA', e)
+            time.sleep(2)
+          V = list(dict.fromkeys(V))
+          api = None
           for v in V:
             time.sleep(2)
             try:
