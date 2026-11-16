@@ -832,3 +832,6 @@ main.canli-mod .ayet-kart .okunus, main.canli-mod .ayet-kart .meal { display: no
 .surum-satir .link { font-size: .8rem; color: var(--soluk); }
 .yenilik ul { margin: 8px 0 0; padding-inline-start: 20px; } .yenilik li { margin: 4px 0; line-height: 1.5; }
 .yenilik.simdiki { border-color: var(--ana); }
+.ustalik-tamam { margin-top: 12px; border-color: var(--iyi); background: var(--iyi-bg); }
+.seviye-rozet { font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--bg); border: 1px solid var(--cizgi); }
+.seviye-rozet.sv3 { border-color: var(--altin); } .seviye-rozet.sv4 { border-color: var(--ana); }

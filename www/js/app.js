@@ -539,6 +539,67 @@
     });
     return k;
   }
+  // ---- Soru seviyeleri: 1 Temel (kavram), 2 Tanıma (örnekte bulma), 3 Uygulama (okunuş, uzatma), 4 Ayırt etme (önceki derslerle karışık)
+  function soruSeviye(k) {
+    const p = k.split(':');
+    if (p[0] === 'c') {
+      const l = (window.SORU_SEVIYE || {})[p[1]]; if (l && l[+p[2]]) return l[+p[2]];
+      const u = unitById(p[1]), c = u && u.sorular[+p[2]]; return c && /[؀-ۿ]/.test(c.q + ' ' + c.a + ' ' + c.w.join(' ')) ? 2 : 1;
+    }
+    if (p[0] === 'd') return 2;
+    if (p[0] === 'e') return p[3] === 'kural' ? 2 : 3;
+    return 2;
+  }
+  const kalip = k => { const p = k.split(':'); return p[0] === 'e' ? p[3] : p[0] === 'c' ? 'c' : p[0]; };
+  const kokAnahtar = k => k.split(':').slice(0, 3).join(':');
+  // Ders uzunluğuna göre soru sayısı (alıştırma 5/6/8, bölüm testi 6/8/10)
+  function dersSoruSayisi(u, test) { const s = (u.sayfalar || []).length; return test ? (s <= 2 ? 6 : s === 3 ? 8 : 10) : (s <= 2 ? 5 : s === 3 ? 6 : 8); }
+  // Cevabı her örnekte aynı olan kalıp (ör. med-i tabîîde "kaç elif?") sette en fazla bir kez
+  function kalipSinir(u, c) { if (c === 'elif') { const l = (u.ornek || []).filter(e => R[e.k].elif && R[e.k].grup === 'med').map(e => R[e.k].elif); return new Set(l).size <= 1 ? 1 : 2; } return c === 'c' ? 3 : 2; }
+  const oncekiDersler = u => acikDersler().filter(d => d.id !== u.id && U.indexOf(d) < U.indexOf(u) && d.id !== 'u0');
+  // Seviye kotalarına göre seç: görülmemiş önce, sonra zayıf olan; aynı örnekten tek soru; kalıp sınırı
+  function seviyeliSec(u, n, kota, oncekiler, gorulmemisOnce = true) {
+    // Cevabı hep aynı olan kalıp (tabîîde "kaç elif") bir kez görüldüyse bir daha sorulmaz
+    const tekCevap = kalipSinir(u, 'elif') === 1, elifGoruldu = tekCevap && anahtarlar(u).some(k => kalip(k) === 'elif' && S.srs[k]);
+    const tum = anahtarlar(u).filter(k => !(elifGoruldu && kalip(k) === 'elif')), sec_ = [], kok = new Set(), kalipSay = {};
+    const uygun = (k, uu) => !kok.has(kokAnahtar(k)) && (kalipSay[kalip(k)] || 0) < kalipSinir(uu, kalip(k));
+    const al = k => { sec_.push(k); kok.add(kokAnahtar(k)); kalipSay[kalip(k)] = (kalipSay[kalip(k)] || 0) + 1; };
+    const sirala = l => karistir(l).sort((a, b) => (gorulmemisOnce ? (!S.srs[b]) - (!S.srs[a]) : 0) || (zayiflik(b) - zayiflik(a)));
+    for (const sv of [1, 2, 3]) {
+      let say = 0;
+      for (const k of sirala(tum.filter(k => soruSeviye(k) === sv))) { if (say >= (kota[sv] || 0)) break; if (uygun(k, u)) { al(k); say++; } }
+    }
+    const dort = [];
+    if (kota[4] && oncekiler.length) {
+      for (const k of sirala(oncekiler.flatMap(d => anahtarlar(d).filter(x => soruSeviye(x) >= 2)))) { if (dort.length >= kota[4]) break; if (!kok.has(kokAnahtar(k))) { kok.add(kokAnahtar(k)); dort.push(k); } }
+    }
+    // eksik kalırsa kalan sorulardan tamamla (sınırı gevşeterek)
+    for (const k of sirala(tum)) { if (sec_.length + dort.length >= n) break; if (!kok.has(kokAnahtar(k))) al(k); }
+    const sv = {}; sec_.forEach(k => sv[k] = soruSeviye(k)); dort.forEach(k => sv[k] = 4);
+    return { anahtarlar: sec_.sort((a, b) => sv[a] - sv[b]).concat(dort).slice(0, n), sv };
+  }
+  // Alıştırma = ustalık turu: basitten zora, az soru, anlayınca erken bitiş, yanlışta aynı seviyeden yeni soru
+  function ustalikPlan(u) {
+    const n = dersSoruSayisi(u, false), tum = anahtarlar(u), gorulmemis = tum.filter(k => !S.srs[k]).length, onc = oncekiDersler(u);
+    const hepsiGoruldu = gorulmemis < 2;
+    const kota = hepsiGoruldu && onc.length ? { 1: 1, 2: 2, 3: 1, 4: n - 4 } : n <= 5 ? { 1: 2, 2: 2, 3: 1 } : n <= 6 ? { 1: 2, 2: 2, 3: 2 } : { 1: 2, 2: 3, 3: 2, 4: onc.length ? 1 : 0 };
+    return Object.assign(seviyeliSec(u, n, kota, onc), { n, karisik: hepsiGoruldu && onc.length > 0 });
+  }
+  function ustalikDurum(o) {
+    const c = o.cevaplar.filter(Boolean); if (c.length < Math.min(4, o.sorular.length)) return false;
+    const son = c.slice(-4), dogru = son.filter(x => x.dogru).length;
+    if (dogru < Math.min(3, son.length)) return false;
+    const seviyeler = new Set(o.sorular.slice(0, o.ustalik.n).map(q => o.ustalik.sv[q.anahtar]).filter(Boolean));
+    return [...seviyeler].every(sv => o.sorular.some((q, i) => o.cevaplar[i] && o.cevaplar[i].dogru && o.ustalik.sv[q.anahtar] === sv));
+  }
+  function ustalikYanlis(o, q) {   // yanlışta aynı seviyeden, bu oturumda olmayan yeni bir soru (en fazla 3 ek)
+    if (!o.ustalik || o.ustalik.ek >= 3) return;
+    const u = unitById(o.id), sv = o.ustalik.sv[q.anahtar], olan = new Set(o.sorular.map(x => kokAnahtar(x.anahtar)));
+    const havuz = sv === 4 ? oncekiDersler(u).flatMap(anahtarlar).filter(k => soruSeviye(k) >= 2) : anahtarlar(u).filter(k => soruSeviye(k) === sv);
+    const k = karistir(havuz).sort((a, b) => (!S.srs[b]) - (!S.srs[a])).find(x => !olan.has(kokAnahtar(x)));
+    const yeni = k && soruUret(k); if (!yeni) return;
+    o.sorular.push(yeni); o.anahtarlar.push(k); o.ustalik.sv[k] = sv; o.ustalik.ek++;
+  }
   // Zayıflık puanı: düşük kutu ve çok yanlış önce gelir
   function zayiflik(k) { const s = S.srs[k]; if (!s) return 2.5; return (6 - s.kutu) + (s.yanlis || 0) * 0.7 - (s.dogru || 0) * 0.2; }
   function sec(havuz, n, oncelik) {
@@ -654,7 +715,7 @@
     let liste = '';
     (l || U).forEach(u => {
       const acik = acikMi(u), ok = gecti(u.id), il = S.ilerleme[u.id];
-      const durum = ok && il.atla && !il.deneme ? `<span class="rozet ok">${t('Atlandı')}</span>` : ok ? `<span class="rozet ok">✓ ${yuzdeStr(il.en)}</span>` : acik ? `<span class="rozet simdi">${t('Şimdi')}</span>` : `<span class="rozet kilit">🔒</span>`;
+      const durum = ok && il.atla && il.oner && !il.deneme ? `<span class="rozet simdi">${t('Önerilir')}</span>` : ok && il.atla && !il.deneme ? `<span class="rozet ok">${t('Atlandı')}</span>` : ok ? `<span class="rozet ok">✓ ${yuzdeStr(il.en)}</span>` : acik ? `<span class="rozet simdi">${t('Şimdi')}</span>` : `<span class="rozet kilit">🔒</span>`;
       liste += `<button class="bolum ${acik ? '' : 'kilitli'} ${u.ara ? 'ara' : ''}" data-git="${u.ara ? 'sinavGiris|' + u.id : 'ders|' + u.id}">
         <span class="ikon">${u.ikon}</span><span class="bad"><small>${u.ara ? (u.final ? t('Final') : t('Ara sınav')) : t('Bölüm {0}', dersler.indexOf(u))}</small>${esc(u.ad)}</span>${durum}</button>`;
     });
@@ -836,10 +897,10 @@
     ekranYigini.pop();
     if (tur === 'bolum') {
       const u = unitById(id);
-      const kendi = anahtarlar(u);
-      const onceki = acikDersler().filter(d => d.id !== id && d.id !== 'u0' && U.indexOf(d) < U.indexOf(u)).flatMap(anahtarlar);
-      const tekrarSayi = onceki.length ? 2 : 0;
-      const sorular = sec(kendi, 10 - tekrarSayi, true).concat(sec(onceki, tekrarSayi, true));
+      // Ders uzunluğuna göre 6/8/10 soru; seviyeler dengeli (temel → tanıma → uygulama → önceki derslerle karışık)
+      const n = dersSoruSayisi(u, true), onc = oncekiDersler(u), d4 = onc.length ? (n >= 10 ? 2 : 1) : 0, kalan = n - d4;
+      const kota = { 1: Math.round(kalan * 0.3), 2: Math.round(kalan * 0.4), 3: kalan - Math.round(kalan * 0.3) - Math.round(kalan * 0.4), 4: d4 };
+      const sorular = seviyeliSec(u, n, kota, onc, false).anahtarlar;
       oturumBaslat({ tur: 'bolum', id, kimlik: 'bolum|' + id, baslik: u.ad, anahtarlar: karistir(sorular), puanli: true });
     }
   };
@@ -869,7 +930,8 @@
 
   function alistirmaBaslat(id) {
     const u = unitById(id);
-    oturumBaslat({ tur: 'alistirma', id, kimlik: 'alistirma|' + id, baslik: t('Alıştırma: ') + u.ad, anahtarlar: sec(anahtarlar(u), 12, true), puanli: false, sonsuz: true });
+    const pl = ustalikPlan(u);
+    oturumBaslat({ tur: 'alistirma', id, kimlik: 'alistirma|' + id, baslik: t('Alıştırma: ') + u.ad, anahtarlar: pl.anahtarlar, puanli: false, sonsuz: true, ustalik: { n: pl.n, sv: pl.sv, ek: 0, karisik: pl.karisik } });
   }
   EKRAN.alistirmaBasla = function (id) { ekranYigini.pop(); alistirmaBaslat(id); };
 
@@ -890,7 +952,8 @@
     app.innerHTML = `${ust(esc(o.baslik))}
       <div class="ilerleme"><div style="width:${ilerleme}%"></div></div>
       <main>
-        <p class="soluk">${t('Soru {0} / {1}', o.i + 1, o.sorular.length)}${o.puanli ? '' : t(' · alıştırma')}</p>
+        <p class="soluk">${o.tur === 'seviye' ? t('Konu {0}/{1}: {2}', o.sv.blok + 1, SV_BLOK.length, esc(SV_BLOK[o.sv.blok].ad())) : t('Soru {0} / {1}', o.i + 1, o.sorular.length) + (o.puanli ? '' : t(' · alıştırma'))}${o.ustalik ? ` · <span class="seviye-rozet sv${o.ustalik.sv[q.anahtar] || 2}">${[t('Temel'), t('Tanıma'), t('Uygulama'), t('Karışık')][(o.ustalik.sv[q.anahtar] || 2) - 1]}</span>` : ''}</p>
+        ${o.ustalik && o.ustalik.karisik && o.i === 0 ? `<p class="soluk kucukyazi">${t('Bu dersin sorularının hepsini gördün; önceki derslerle karışık sorular geliyor.')}</p>` : ''}
         <article class="kart soru">
           ${(cevap ? q.ustRenkli : q.ust) || ''}
           <h2>${q.soru}</h2>
@@ -904,7 +967,9 @@
               ${q.aciklama ? `<p>${q.aciklama}</p>` : ''}
               ${q.ex ? sesButonlari(q.ex) : ''}${q.exSes ? `<div class="sesler"><button class="sesbtn" data-ses="${q.exSes}">${t('▶ Ayeti dinle')}</button></div>` : ''}
             </div>
-            <button class="btn genis" id="ileri">${o.i + 1 < o.sorular.length ? t('Sonraki soru ›') : (o.sonsuz ? t('Yeni soru seti ›') : t('Sonucu gör ›'))}</button>` : ''}
+            ${o.ustalik && ustalikDurum(o) ? `<div class="kart ustalik-tamam"><b>${t('✓ Konuyu anladın!')}</b><p class="soluk kucukyazi">${t('İstersen bitir, istersen birkaç soru daha çöz.')}</p>
+              <div class="satir sola"><button class="btn" id="ustalikBitir">${t('Bitir')}</button>${o.i + 1 < o.sorular.length ? `<button class="btn ikincil" id="ileri">${t('Devam et ({0} soru)', o.sorular.length - o.i - 1)}</button>` : `<button class="btn ikincil" id="ileri">${t('Yeni sorular ›')}</button>`}</div></div>`
+            : `<button class="btn genis" id="ileri">${o.i + 1 < o.sorular.length ? t('Sonraki soru ›') : (o.sonsuz ? (o.ustalik ? t('Yeni sorularla devam ›') : t('Yeni soru seti ›')) : t('Sonucu gör ›'))}</button>`}` : ''}
         </article>
       </main>`;
     const gb = $('[data-goster]'); if (gb) gb.onclick = () => { $('.gizli-kelime').hidden = false; gb.remove(); };
@@ -912,12 +977,14 @@
     app.querySelectorAll('.secenek').forEach(b => b.onclick = () => {
       const s = q.secenek[+b.dataset.i]; const d = s === q.dogru;
       o.cevaplar[o.i] = { secilen: s, dogru: d };
-      srsGuncelle(q.anahtar, d); kaydet(); oturumSakla();
+      srsGuncelle(q.anahtar, d); if (!d && o.ustalik) ustalikYanlis(o, q); kaydet(); oturumSakla();
       ciz();
       const g = $('.geribildirim'); if (g) { sozlukBagla(g); g.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     });
+    const ub = $('#ustalikBitir'); if (ub) ub.onclick = () => { const id = o.id; oturum = null; oturumSakla(); toast(t('Bârekallah! Konuyu anladın ✓')); ekranYigini.pop(); ciz(); window.scrollTo(0, 0); };
     const ileri = $('#ileri');
     if (ileri) ileri.onclick = () => {
+      if (o.tur === 'seviye') return seviyeIleri(o);
       if (o.i + 1 < o.sorular.length) { o.i++; oturumSakla(); ciz(); window.scrollTo(0, 0); return; }
       if (o.sonsuz) { oturum = null; ekranYigini.pop(); alistirmaBaslat(o.id); return; }
       bitir();
@@ -2311,6 +2378,7 @@
         ${satir('yenilikler', '🆕', t('Yenilikler'), esc(surumYazi()))}
         ${satir('profiller', '👥', t('Profiller'), t('{0} profil · şu an: {1}', PR.liste.length, esc(AKTIF().ad || t('Profil 1')) + ' (' + (YAS_AD[AKTIF().yas] || '—') + ')'))}
         ${cocukMu() ? '' : satir('ilerleme', '📊', t('İlerleme tablosu'), t('Bölümler, etkinlik, güçlü ve zayıf konular'))}
+        ${cocukMu() ? '' : satir('seviyeTespit', '🧭', t('Seviyeni yeniden belirle'), t('Kısa test; bildiğin bölümleri atla'))}
         ${PR.liste.some(p => p.yas === 'kucuk' || p.yas === 'cocuk') ? satir('ebeveynOzet', '👨‍👩‍👧', t('Çocuk özeti'), t('Haftalık çalışma, yıldızlar, karıştırılan harfler')) : ''}
         ${S.ayar.mesk ? satir('meskSec', '🎓', t('Meşk'), t('Hoca okur, sen tekrar edersin')) : ''}
         ${satir('harfSesleri', '🎙️', t('Harf seslerini kaydet'), t('Hoca sesiyle çocuk modundaki “Dinle” oyunları'))}
@@ -2455,6 +2523,101 @@
   const YAS_KART = [['kucuk', '🌱', t('4–6 yaş'), t('Minikler: resimli, oyunlu harf yolculuğu')], ['cocuk', '🌟', t('7–12 yaş'), t('Çocuklar: harfler, harekeler ve okuma oyunları')], ['buyuk', '📘', t('13 yaş ve üstü'), t('Gençler ve yetişkinler: tecvid dersleri ve testler')]];
   const avatar = p => `<span class="avatar p-${p.yas || 'yok'}">${p.ad ? esc(p.ad.trim()[0].toLocaleUpperCase(DIL === 'en' ? 'en' : 'tr')) : (p.yas === 'kucuk' ? '🌱' : p.yas === 'cocuk' ? '🌟' : '👤')}</span>`;
   // Yeni yetişkin profile bir kez "nereden başlayalım?" sorulur (daha önce ilerlemesi olana sorulmaz)
+  if (location.hostname === 'localhost') window.__test = { oturum: () => oturum };
+  // ------------------------------------------------------------ Seviye tespiti: "Seni tanıyalım" (yetişkin)
+  // Bloklar basitten zora; her blokta 3 soru (örnekte tanıma/uygulama), 2 doğru → blok geçildi; takılınca test biter.
+  const SV_BLOK = [
+    { ad: () => t('Harfler ve harekeler'), dersler: ['e1', 'u0'], oner: ['m1', 'm2', 'm3'] },
+    { ad: () => t('Medler'), dersler: ['u1', 'u2', 'u3', 'u4', 'u5', 'u6'], ek: ['x1'] },
+    { ad: () => t('Nûn sâkin, tenvin, mîm sâkin, ğunne'), dersler: ['u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13'], ek: ['x2'] },
+    { ad: () => t('İdğamlar, kalkale, lâm-ı tarif, Allah lafzı, râ'), dersler: ['u14', 'u15', 'u16', 'u17', 'u18'] },
+    { ad: () => t('Vakf ve Hafs\'a özel okunuşlar'), dersler: ['u19', 'u20'] },
+  ];
+  function svSorular(b) {
+    const gruplar = karistir(b.dersler.map(unitById).filter(Boolean).map(u => { const l = anahtarlar(u).filter(k => !k.endsWith(':kural')); const iyi = l.filter(k => soruSeviye(k) >= 2); return karistir(iyi.length ? iyi : l); }));
+    const l = []; for (let i = 0; l.length < 3 && i < 10; i++) for (const g of gruplar) { if (l.length >= 3) break; if (g[i] && !l.some(x => kokAnahtar(x) === kokAnahtar(g[i]))) l.push(g[i]); }
+    return l;
+  }
+  EKRAN.seviyeTespit = function () {
+    app.innerHTML = `${ust(t('🧭 Seni tanıyalım'))}<main>
+      <section class="kart"><p>${t('Birkaç kısa soruyla bildiğin konuları bulalım; bildiğin bölümleri atlayıp doğru yerden başlayalım. Puan yok, yanlış yapmak sorun değil.')}</p>
+        <ol class="sv-bloklar">${SV_BLOK.map(b => `<li>${esc(b.ad())}</li>`).join('')}</ol>
+        <p class="soluk kucukyazi">${t('Her konuda 3 soru. Bilmediğin bir konuya gelince test orada biter. Yaklaşık 5–10 dakika.')}</p>
+        <button class="btn genis" id="svBasla">${t('Başlayalım')}</button></section></main>`;
+    $('#svBasla').onclick = () => { ekranYigini.pop(); oturumBaslat({ tur: 'seviye', kimlik: 'seviye', baslik: t('Seni tanıyalım'), anahtarlar: svSorular(SV_BLOK[0]), puanli: false, sv: { blok: 0, bas: 0, gecen: 0 } }); };
+  };
+  function seviyeIleri(o) {
+    const n = o.sorular.length;
+    if (o.i + 1 < n) { o.i++; oturumSakla(); ciz(); window.scrollTo(0, 0); return; }
+    const dogru = o.cevaplar.slice(o.sv.bas).filter(c => c && c.dogru).length, gecti_ = dogru >= Math.ceil((n - o.sv.bas) * 2 / 3);
+    if (gecti_) o.sv.gecen = o.sv.blok + 1;
+    if (gecti_ && o.sv.blok + 1 < SV_BLOK.length) {
+      o.sv.blok++; o.sv.bas = n;
+      const yeni = svSorular(SV_BLOK[o.sv.blok]); o.anahtarlar.push(...yeni); o.sorular.push(...yeni.map(soruUret).filter(Boolean));
+      o.i++; oturumSakla(); toast(t('Bârekallah! Sonraki konu: {0}', SV_BLOK[o.sv.blok].ad())); ciz(); window.scrollTo(0, 0); return;
+    }
+    const gecen = o.sv.gecen; oturum = null; oturumSakla();
+    seviyeYerlestir(gecen); ekranYigini.pop(); git('seviyeSonuc', gecen);
+  }
+  // Geçilen blokların derslerini "Atlandı (seviye)" yap; sorularının bir kısmı ileride tekrara düşsün
+  function seviyeYerlestir(gecen) {
+    SV_BLOK.forEach((b, i) => {
+      const atla = i < gecen;
+      for (const id of b.dersler.concat(b.ek || [])) {
+        const il = S.ilerleme[id];
+        if (atla && !gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true, seviye: true };
+        if (!atla && il && il.atla && il.seviye) delete S.ilerleme[id];
+        if (atla) { const u = unitById(id); if (u && !u.ara) karistir(anahtarlar(u)).slice(0, 2).forEach(k => { if (!S.srs[k]) S.srs[k] = { kutu: 2, dogru: 1, yanlis: 0, son: simdi(), vade: simdi() + (3 + Math.floor(Math.random() * 10)) * GUN }; }); }
+      }
+      for (const id of b.oner || []) {
+        if (atla && !gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true, seviye: true, oner: true };
+        if (!atla && S.ilerleme[id] && S.ilerleme[id].oner) delete S.ilerleme[id];
+      }
+    });
+    S.ayar.seviye = 'tespit'; S.ayar.seviyeBlok = gecen; kaydet();
+  }
+  EKRAN.seviyeSonuc = function (gecen) {
+    gecen = +gecen || 0; const sir = U.find(u => !gecti(u.id));
+    app.innerHTML = `${ust(t('🧭 Seni tanıdık'), false)}<main>
+      <section class="kart sv-sonuc"><h2>${sir ? t('Buradan başlıyorsun: {0}', esc(sir.ad)) : t('Maşallah! Bütün konuları biliyorsun.')}</h2>
+        ${gecen ? `<p>${t('Bildiğin konular:')}</p><ul>${SV_BLOK.slice(0, gecen).map(b => `<li>✓ ${esc(b.ad())}</li>`).join('')}</ul>
+          <p class="soluk kucukyazi">${t('Bu konuların bölümleri "Atlandı" olarak açık kaldı; istediğin zaman çalışabilir, testlerine girebilirsin. Unutmaman için birkaç sorusu ara sıra günlük tekrarda gelecek.')}</p>` : `<p>${t('Baştan, adım adım ilerleyelim. Her bölüm kısa ve kolay.')}</p>`}
+        ${gecen ? `<p class="kucukyazi">📍 ${t('Mahreç, sıfat ve karıştırılan harfler bölümleri senin için önerilir; açık kaldı.')}</p>` : ''}
+        <div class="satir sola">${sir ? `<button class="btn" data-git="${sir.ara ? 'sinavGiris|' + sir.id : 'ders|' + sir.id}">${t('Başla')}</button>` : ''}${gecen ? `<button class="btn ikincil" id="svGeri">${t('Bir önceki konudan başla')}</button>` : ''}<button class="btn ikincil" id="svAna">${t('Ana sayfa')}</button></div>
+      </section>
+      ${gecen ? `<section class="kart"><h2>🎙️ ${t('İstersen okuyuşunu da dinleyelim')}</h2><p>${t('Fâtiha\'nın 2. ayetini sesli oku. Yapay zekâ okuyuşunu kontrol eder; çok hata çıkarsa okumayı güçlendiren bölümden başlamanı öneririz.')}</p>
+        <div class="ayet" dir="rtl" lang="ar">ٱلۡحَمۡدُ لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ</div>
+        <div class="satir sola"><button class="sesbtn" id="svOku">🎤 ${t('Oku')}</button></div><div id="svOkuSonuc"></div></section>` : ''}
+    </main>`;
+    const sa = $('#svAna'); if (sa) sa.onclick = () => anaSayfa();
+    const sg = $('#svGeri'); if (sg) sg.onclick = () => { seviyeYerlestir(gecen - 1); ekranYigini[ekranYigini.length - 1] = ['seviyeSonuc', [gecen - 1]]; ciz(); };
+    const so = $('#svOku'); if (so) so.onclick = () => seviyeOkut(so, gecen);
+  };
+  let SV_KAYIT = null;
+  async function seviyeOkut(btn, gecen) {
+    const kutu = $('#svOkuSonuc');
+    if (SV_KAYIT) { SV_KAYIT.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+    let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    const parca = [], rec = new MediaRecorder(akis); SV_KAYIT = rec; O.modelAc().catch(() => { });
+    btn.textContent = t('⏹ Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor'); kutu.innerHTML = `<p class="soluk">${t('🎙️ Dinliyorum… Ayeti oku, bitince "Bitir"e dokun.')}</p>`;
+    const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 15000);
+    rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+    rec.onstop = async () => {
+      clearTimeout(z); akis.getTracks().forEach(x => x.stop()); SV_KAYIT = null;
+      btn.textContent = '🎤 ' + t('Tekrar oku'); btn.classList.remove('kirmizi-btn', 'kaydediyor'); kutu.innerHTML = `<p class="soluk">${t('Kontrol ediliyor…')}</p>`;
+      try {
+        const s = await O.ayetRaporu(1, 2, new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
+        const j = s.kelimeler.filter(w => w.notes.some(z_ => z_.severity === 'jali')).length;
+        kutu.innerHTML = raporHTML(1, 2, s) + (j >= 2 ? `<p><b>${t('Okumanı güçlendirmek için "Harekeler ve işaretler" bölümünden başlamanı öneririz.')}</b></p><button class="btn" id="svOkumadan">${t('Okumayı güçlendirerek başla')}</button>`
+          : `<p><b>${t('Okuyuşun iyi görünüyor. Yerleştirme uygun.')}</b></p>`);
+        const ob = $('#svOkumadan'); if (ob) ob.onclick = () => { delete S.ilerleme.u0; seviyeYerlestirOkuma(); kaydet(); git('ders', 'u0'); };
+      } catch (e) { kutu.innerHTML = `<p class="hata">${esc(e.message || t('Kontrol edilemedi.'))}</p>`; }
+    };
+    rec.start();
+  }
+  function seviyeYerlestirOkuma() { ['u0', 'm1', 'm2', 'm3'].forEach(id => { const il = S.ilerleme[id]; if (il && il.atla) delete S.ilerleme[id]; }); }
   const seviyeSorulmali = () => !cocukMu() && !S.ayar.seviye && !Object.keys(S.ilerleme).length && !S.gecmis.length;
   EKRAN.hosgeldin = function (adim = 'yas') {
     const p = AKTIF();
@@ -2466,10 +2629,16 @@
           <button class="yas-kart" data-sv="harf"><span>✏️</span><b>${t('Harfleri tanıyorum')}</b><small>${t('Harekeler ve işaretlerle başla')}</small></button>
           <button class="yas-kart" data-sv="okur"><span>📖</span><b>${t('Kur\'an okuyabiliyorum')}</b><small>${t('Doğrudan tecvid konularına geç')}</small></button>
         </div></main>`;
-      app.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => {
-        const atla = { sifir: [], harf: ['e1'], okur: ['e1', 'u0'] }[b.dataset.sv];
+      const kendim = sv => { const atla = { sifir: [], harf: ['e1'], okur: ['e1', 'u0'] }[sv];
         atla.forEach(id => { if (!gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true }; });
-        S.ayar.seviye = b.dataset.sv; kaydet(); anaSayfa();
+        S.ayar.seviye = sv; kaydet(); anaSayfa(); };
+      app.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => {
+        const sv = b.dataset.sv; if (sv === 'sifir') return kendim(sv);
+        app.querySelector('main').innerHTML = `<p>${t('Bildiğin konuları kısa bir testle bulalım mı? Böylece bildiğin bölümleri atlarsın.')}</p>
+          <div class="yas-kartlar"><button class="yas-kart" id="svTest"><span>🧭</span><b>${t('Seni tanıyalım')}</b><small>${t('5–10 dakikalık kısa test (önerilir)')}</small></button>
+          <button class="yas-kart" id="svKendim"><span>✋</span><b>${t('Kendim seçeyim')}</b><small>${sv === 'okur' ? t('Doğrudan tecvid konularına geç') : t('Harekeler ve işaretlerle başla')}</small></button></div>`;
+        $('#svKendim').onclick = () => kendim(sv);
+        $('#svTest').onclick = () => { S.ayar.seviye = sv; kaydet(); ekranYigini = [[evKok(), []], ['seviyeTespit', []]]; ciz(); };
       });
       return;
     }
