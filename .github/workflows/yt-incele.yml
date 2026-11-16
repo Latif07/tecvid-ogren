@@ -11,8 +11,8 @@ jobs:
           H = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'tr-TR,tr;q=0.9'}
           def get(u):
             return urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30).read().decode('utf-8', 'ignore')
-          ids = set('y2CGC83DTNU Y-caH_s3hQo 1DZINs1sOOM C1PS8DB-7oQ tpoSFszQu20 9t-27mDzvYE UZRKP0qFA_M PHWdLabLN88 4WClyGtBnQ0'.split())
-          for q in ['mahreç tecvid', 'harflerin mahreçleri', 'mahreç dersi', 'mahreçler hafız', 'harflerin çıkış yerleri tecvid', 'boğaz harfleri mahreç', 'peltek harfler mahreç ث ذ ظ']:
+          ids = set()
+          for q in ['Kur\'an Dersleri Bölüm Davut Kaya Diyanet Dijital', 'Davut Kaya Kur\'an Dersleri harfler Diyanet', 'Davut Kaya boğaz harfleri', 'Davut Kaya kalın harfler', 'Tevhid Medya Tecvid Dersleri mahreç', 'Diyanet Dijital Kur\'an dersleri harflerin mahreci']:
             try:
               h = get('https://www.youtube.com/results?search_query=' + urllib.parse.quote(q) + '&hl=tr&gl=TR')
               m = re.search(r'var ytInitialData = (\{.*?\});</script>', h)
