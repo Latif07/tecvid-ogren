@@ -167,25 +167,75 @@
     <circle cx="86" cy="14" r="3" fill="${r[1]}"/><circle cx="12" cy="20" r="2.2" fill="${r[1]}"/><circle cx="90" cy="70" r="2" fill="${r[1]}"/></svg>`; };
 
   // ------------------------------------------------------------ ebeveyn kilidi
-  function ebeveynKilidi() {
+  // Veli 4 haneli PIN belirler (ilk kurulumda yazıyla yazılmış sayı sorulur, çocuk kendisi kuramasın).
+  // Kilit açılınca 5 dakika tekrar sorulmaz. PIN unutulursa yazıyla sayı → yeni PIN.
+  const PIN_KEY = 'tecvid-ogren.pin', ACIK_SURE = 5 * 60 * 1000;
+  let acikKadar = 0;
+  const pinOzet = p => { let h = 5381; for (const c of 'hk:' + p) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h.toString(36); };
+  const pinAl = () => { try { return localStorage.getItem(PIN_KEY); } catch (e) { return null; } };
+  const pinYaz = p => { try { localStorage.setItem(PIN_KEY, pinOzet(p)); } catch (e) { } };
+  function sayiYazi(n) {
+    const yuz = Math.floor(n / 100), on = Math.floor(n / 10) % 10, bir = n % 10;
+    if (EN) {
+      const B = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'], O = ['', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+      const G = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+      const son = on === 1 ? G[bir] : [O[on], B[bir]].filter(Boolean).join('-');
+      return [B[yuz] + ' hundred', son].filter(Boolean).join(' ');
+    }
+    const B = ['', 'bir', 'iki', 'üç', 'dört', 'beş', 'altı', 'yedi', 'sekiz', 'dokuz'], O = ['', 'on', 'yirmi', 'otuz', 'kırk', 'elli', 'altmış', 'yetmiş', 'seksen', 'doksan'];
+    return [yuz === 1 ? 'yüz' : B[yuz] + ' yüz', O[on], B[bir]].filter(Boolean).join(' ');
+  }
+  // kip: 'gir' (PIN sor), 'yazi' (yazıyla sayı), 'yeni' (PIN belirle), 'tekrar' (PIN'i tekrar gir)
+  function kilitPencere(baslangic, zorla) {
     return new Promise(coz => {
-      const a = 12 + Math.floor(Math.random() * 30), b = 3 + Math.floor(Math.random() * 6);
       const d = document.createElement('div'); d.className = 'modal-arka';
-      d.innerHTML = `<div class="modal kart" role="dialog" aria-modal="true"><h2>${t('👨‍👩‍👧 Büyükler için')}</h2>
-        <p>${t('Bu bölüm anne-baba ya da öğretmen içindir. Devam etmek için işlemi çöz:')}</p>
-        <p class="kilit-soru" data-a="${a}" data-b="${b}"><b>${a} × ${b} = ?</b></p>
-        <input type="number" inputmode="numeric" id="kilitCevap" aria-label="${t('Cevap')}">
-        <p class="kirmizi kucukyazi" id="kilitHata" hidden>${t('Olmadı, tekrar dene.')}</p>
-        <div class="satir"><button class="btn ikincil" id="kilitVazgec">${t('Vazgeç')}</button><button class="btn" id="kilitTamam">${t('Tamam')}</button></div></div>`;
       document.body.appendChild(d);
-      const inp = d.querySelector('#kilitCevap'); setTimeout(() => inp.focus(), 50);
-      const bitir = v => { d.remove(); coz(v); };
-      d.querySelector('#kilitVazgec').onclick = () => bitir(false);
+      let kip = baslangic, ilkPin = '', sayi = 0;
+      const bitir = v => { d.remove(); if (v) acikKadar = Date.now() + ACIK_SURE; coz(v); };
+      const ciz = (hata) => {
+        if (kip === 'yazi') sayi = 100 + Math.floor(Math.random() * 900);
+        const baslik = { gir: t('Büyükler için'), yazi: t('Büyükler için'), yeni: t('PIN belirle'), tekrar: t('PIN belirle') }[kip];
+        const aciklama = {
+          gir: t('Bu bölüm anne-baba ya da öğretmen içindir. 4 haneli PIN\'i gir.'),
+          yazi: zorla === 'unuttum' ? t('Yeni PIN belirlemek için yazıyla yazılan sayıyı rakamla gir:') : t('Bu bölüm anne-baba ya da öğretmen içindir. Yazıyla yazılan sayıyı rakamla gir:'),
+          yeni: t('Çocuğun bilmeyeceği 4 haneli bir PIN seç. Büyükler bölümüne her girişte sorulur; açınca 5 dakika tekrar sormaz.'),
+          tekrar: t('Aynı PIN\'i bir kez daha gir.'),
+        }[kip];
+        d.innerHTML = `<div class="modal kart kilit" role="dialog" aria-modal="true"><h2>👨‍👩‍👧 ${baslik}</h2>
+          <p>${aciklama}</p>
+          ${kip === 'yazi' ? `<p class="kilit-soru"><b>${sayiYazi(sayi)}</b></p>` : ''}
+          <input ${kip === 'yazi' ? 'type="text"' : 'type="password" maxlength="4" class="pin-gir"'} inputmode="numeric" autocomplete="off" id="kilitCevap" aria-label="${t('Cevap')}">
+          <p class="kirmizi kucukyazi" id="kilitHata" ${hata ? '' : 'hidden'}>${hata || ''}</p>
+          <div class="satir"><button class="btn ikincil" id="kilitVazgec">${t('Vazgeç')}</button><button class="btn" id="kilitTamam">${t('Tamam')}</button></div>
+          ${kip === 'gir' ? `<p class="kucukyazi" style="text-align:center"><button class="link" id="pinUnuttum">${t('PIN\'i unuttum')}</button></p>` : ''}</div>`;
+        const inp = d.querySelector('#kilitCevap'); setTimeout(() => inp.focus(), 50);
+        d.querySelector('#kilitVazgec').onclick = () => bitir(false);
+        const un = d.querySelector('#pinUnuttum'); if (un) un.onclick = () => { kip = 'yazi'; zorla = 'unuttum'; ciz(); };
+        const dene = () => {
+          const v = inp.value.replace(/\D/g, '');
+          if (kip === 'gir') { if (pinOzet(v) === pinAl()) return bitir(true); return ciz(t('PIN yanlış, tekrar dene.')); }
+          if (kip === 'yazi') { if (+v === sayi) { if (pinAl() && zorla !== 'unuttum') return bitir(true); kip = 'yeni'; return ciz(); } return ciz(t('Olmadı, tekrar dene.')); }
+          if (v.length !== 4) return ciz(t('PIN 4 rakam olmalı.'));
+          if (kip === 'yeni') { ilkPin = v; kip = 'tekrar'; return ciz(); }
+          if (v !== ilkPin) { kip = 'yeni'; return ciz(t('İki PIN aynı değil, baştan gir.')); }
+          pinYaz(v); bitir(true);
+        };
+        d.querySelector('#kilitTamam').onclick = dene;
+        inp.onkeydown = e => { if (e.key === 'Enter') dene(); };
+        if (kip !== 'yazi') inp.oninput = () => { if (inp.value.replace(/\D/g, '').length === 4) dene(); };
+      };
       d.onclick = e => { if (e.target === d) bitir(false); };
-      const dene = () => { if (+inp.value === a * b) bitir(true); else { d.querySelector('#kilitHata').hidden = false; inp.value = ''; inp.focus(); } };
-      d.querySelector('#kilitTamam').onclick = dene;
-      inp.onkeydown = e => { if (e.key === 'Enter') dene(); };
+      ciz();
     });
+  }
+  function ebeveynKilidi() {
+    if (Date.now() < acikKadar) return Promise.resolve(true);
+    return kilitPencere(pinAl() ? 'gir' : 'yazi');
+  }
+  // Ayarlardan: PIN değiştir (önce mevcut kilit, sonra yeni PIN)
+  async function pinDegistir() {
+    if (pinAl() && !(await kilitPencere('gir'))) return false;
+    return kilitPencere(pinAl() ? 'yeni' : 'yazi');
   }
 
   // ------------------------------------------------------------ harf bilgileri
@@ -976,5 +1026,6 @@
     return { Y: () => Y, gecildi, yoklamaBaslat, molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
+  window.ebeveynPin = { var: () => !!pinAl(), degistir: pinDegistir, kilitle: () => { acikKadar = 0; } };
   window.MASKOT = MASKOT;
 })();

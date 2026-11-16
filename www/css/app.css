@@ -838,3 +838,14 @@ main.canli-mod .ayet-kart .okunus, main.canli-mod .ayet-kart .meal { display: no
 /* Türkiye (Diyanet) mushaf yazımı: Hamdullah hattı yüklenince Kur'an metinlerinde */
 html[data-yazim="tr"][data-hfont="1"] .ayet:not(.mz-kart .ayet), html[data-yazim="tr"][data-hfont="1"] .besmele { font-family: "Hamdullah", "Mushaf", serif; }
 .kelime:empty { display: none; }
+/* Günün sorusu: açılır-kapanır satır */
+.gs-acilir { padding-top: 12px; padding-bottom: 12px; }
+.gs-acilir > summary { list-style: none; cursor: pointer; }
+.gs-acilir > summary::-webkit-details-marker { display: none; }
+.gs-ok { font-size: 1.4rem; color: var(--soluk); transition: transform .2s; }
+.gs-acilir[open] .gs-ok { transform: rotate(90deg); }
+.gs-govde { margin-top: 10px; border-top: 1px solid var(--cizgi); padding-top: 8px; }
+/* PIN girişi */
+.modal input.pin-gir { letter-spacing: .6em; font-size: 1.8rem; padding-left: .6em; }
+.toast.geri-al { display: flex; align-items: center; gap: 14px; z-index: 120; }
+.toast.geri-al .link { color: #ffd166; font-weight: 700; background: none; border: 0; font: inherit; padding: 4px; cursor: pointer; }

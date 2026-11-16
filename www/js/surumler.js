@@ -18,6 +18,9 @@
       'Bütün dinleme düğmelerinde ⏹ Durdur',
       'Türk hafızlar: Hafız Davut Kaya, Osman Şahin, Mehmet Çevik (Diyanet Kur\'an portalı kayıtları)',
       'Sürüm numarası ve bu Yenilikler sayfası',
+      'Büyükler kilidi: çarpım sorusu yerine velinin belirlediği 4 haneli PIN; açınca 5 dakika tekrar sorulmaz; PIN unutulursa yazıyla sayı',
+      'Profil silme: her profilin yanında 🗑️, ne kaybolacağını gösteren onay, 10 saniye "Geri al"',
+      'Günün sorusu ana sayfada ince, açılır-kapanır satır; Ayarlar\'dan gizlenebilir',
     ] },
     { s: '1.0.35', t: '2026-11-15', l: [
       'Sûre sûre (ayet ayet) tecvid, hikâye tarzı kısa anlatım, günün sorusu',
