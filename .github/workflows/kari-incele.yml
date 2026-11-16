@@ -3,11 +3,16 @@ on: workflow_dispatch
 jobs:
   incele:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - run: |
+          sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || true
           B=https://webdosya.diyanet.gov.tr/kuran/kuranikerim/Sound
-          for k in ar_osmanSahin ar_mehmetcevik ar_cuheyni ar_ishakDanis ar_ishakdanis ar_IshakDanis ar_ishakDanish ar_ishak ar_davutKaya ar_davutkaya ar_fatihCollak ar_fatihcollak ar_abdurrahmanGurses ar_alperenEmre ar_bayramAli ar_muhammedEmin ar_hasanGurses ar_yasarCakmakli ar_aliTel ar_ahmetUzun ar_husari ar_alafasi ar_sudais ar_mustafaIsmail ar_abdulbasit ar_minsavi; do
-            echo "KARI $k $(curl -s -m 15 -o /dev/null -w '%{http_code} %{size_download}' $B/$k/1_1.mp3)"; done
-          echo "MP3Q $(curl -s -m 30 'https://www.mp3quran.net/api/v3/reciters?language=tr' | python3 -c "import json,sys;d=json.load(sys.stdin);[print('R',r['id'],r['name'],[m['name'] for m in r['moshaf']][:3]) for r in d['reciters'] if any(x in r['name'].lower() for x in ['danış','danis','şahin','sahin','kaya','çollak','collak','türk','turk','gürses','ishak','isak','ishaq','danish'])]" 2>&1 | head -30)"
-          curl -s -m 30 'https://www.mp3quran.net/api/v3/reciters?language=eng' | python3 -c "import json,sys;d=json.load(sys.stdin);[print('E',r['id'],r['name'],[(m['name'],m['server']) for m in r['moshaf']][:2]) for r in d['reciters'] if any(x in r['name'].lower() for x in ['danis','ishaq','ishak','sahin','kaya','collak','turk'])]" 2>&1 | head -20
+          for k in ar_davutKaya ar_osmanSahin ar_mehmetcevik; do
+            ok=0; yok=""
+            for r in 1_1 1_7 2_1 2_255 2_282 2_286 3_1 9_1 9_129 18_110 36_1 36_83 55_13 67_1 78_1 96_19 112_1 113_5 114_1 114_6 4_176 5_120 6_165 7_206 24_35 33_56 39_75 59_24 73_20 98_8; do
+              c=$(curl -s -m 15 -o /dev/null -w '%{http_code}' $B/$k/$r.mp3); [ "$c" = 200 ] && ok=$((ok+1)) || yok="$yok $r"
+            done
+            echo "KAPSAM $k $ok/30 eksik:$yok"
+            for r in 1_1 2_1 112_1 9_1; do curl -s -m 20 -o t.mp3 $B/$k/$r.mp3; echo "SURE $k $r $(ffprobe -v error -show_entries format=duration -of csv=p=0 t.mp3)"; done
+          done
