@@ -1,0 +1,41 @@
+name: YouTube bölüm ve altyazı inceleme
+on: workflow_dispatch
+jobs:
+  incele:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: |
+          pip install -q youtube-transcript-api >/dev/null 2>&1 || true
+          cat > y.py <<'PY'
+          import json, re, urllib.request, time
+          H = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'tr-TR,tr;q=0.9'}
+          def get(u): return urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30).read().decode('utf-8', 'ignore')
+          V = 'dGiqhF5XziY JoSehOoZQ3o fo61Tg9MJOw Kw4nPEMYQyk kxNCMdeEjLY 7NNJ4ipl-7o v4uqlmzqs38 fhMIf5J5H1k pR6MewRIv1g 1DZINs1sOOM hEMYIWvipbo gby842585tA y2CGC83DTNU 84sUS6ByhZY ttfEYTkXvFk Y-caH_s3hQo X8-Q7E09CpA'.split()
+          try:
+            from youtube_transcript_api import YouTubeTranscriptApi
+            api = YouTubeTranscriptApi()
+          except Exception as e: api = None; print('TRHATA', e)
+          for v in V:
+            time.sleep(2)
+            try:
+              h = get('https://www.youtube.com/watch?v=' + v + '&hl=tr')
+              m = re.search(r'var ytInitialPlayerResponse = (\{.*?\});(?:var|</script>)', h)
+              p = json.loads(m.group(1)); vd = p.get('videoDetails', {})
+              print('VIDEO', v, '|', vd.get('title'), '|', vd.get('author'), '|', vd.get('lengthSeconds'))
+              ds = vd.get('shortDescription', '')
+              ts = re.findall(r'^.*\b\d{1,2}:\d{2}\b.*$', ds, re.M)
+              print('ACIKLAMA', v, '|', ds[:300].replace('\n', ' / '))
+              for t in ts[:40]: print('ZAMAN', v, '|', t)
+              mm = re.findall(r'"chapterRenderer":\{"title":\{"simpleText":"(.*?)"\},"timeRangeStartMillis":(\d+)', h)
+              for t, ms in mm[:40]: print('BOLUM', v, '|', int(ms)//1000, '|', t)
+              tr = [c.get('languageCode') + ('(oto)' if c.get('kind') == 'asr' else '') for c in p.get('captions', {}).get('playerCaptionsTracklistRenderer', {}).get('captionTracks', [])]
+              print('ALTYAZI', v, '|', tr)
+            except Exception as e: print('VHATA', v, e)
+            if api:
+              try:
+                tt = api.fetch(v, languages=['tr', 'ar'])
+                for s in tt: print('METIN', v, '|', round(s.start), '|', s.text.replace('\n', ' '))
+              except Exception as e: print('METINHATA', v, type(e).__name__)
+          PY
+          python3 y.py
