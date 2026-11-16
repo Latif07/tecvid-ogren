@@ -37,7 +37,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .ust { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: var(--ust-bg); color: #fff; }
 .ust h1 { font-size: 1.08rem; margin: 0; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ust .geri { background: rgba(255,255,255,.15); border: 0; color: #fff; width: 36px; height: 36px; border-radius: 10px; font-size: 1.6rem; line-height: 1; flex: none; }
+.ust .geri { background: rgba(255,255,255,.15); border: 0; color: #fff; width: 44px; height: 44px; border-radius: 10px; font-size: 1.6rem; line-height: 1; flex: none; }
 .ust .logo { font-size: 1.5rem; color: var(--altin-acik); }
 
 main { max-width: 640px; margin: 0 auto; padding: 14px 16px 40px; }
@@ -90,7 +90,7 @@ main { max-width: 640px; margin: 0 auto; padding: 14px 16px 40px; }
 .rozet.kilit { background: transparent; }
 
 .sekmeler { display: flex; gap: 4px; overflow-x: auto; padding: 8px 12px; background: var(--kart); border-bottom: 1px solid var(--cizgi); position: sticky; top: calc(56px + env(safe-area-inset-top)); z-index: 4; }
-.sekmeler button { flex: 1; border: 0; background: transparent; padding: 8px 10px; border-radius: 10px; font-size: .88rem; font-weight: 600; color: var(--soluk); white-space: nowrap; }
+.sekmeler button { flex: 1 1 auto; min-height: 44px; border: 0; background: transparent; padding: 8px 6px; border-radius: 10px; font-size: .82rem; font-weight: 600; color: var(--soluk); white-space: nowrap; }
 .sekmeler button.aktif { background: var(--ana); color: #fff; }
 
 .sayfa { min-height: 240px; } .sayfa ul, .sayfa ol { padding-left: 20px; } .sayfa li { margin: 6px 0; }
@@ -239,7 +239,7 @@ textarea { width: 100%; font: .8rem/1.4 ui-monospace, monospace; border-radius: 
 /* alt sekme çubuğu */
 body.sekmeli main { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
 .alt-menu { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--kart); border-top: 1px solid var(--cizgi); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
-.alt-menu button { border: 0; background: none; color: var(--soluk); font: inherit; font-size: .7rem; font-weight: 650; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; border-radius: 12px; }
+.alt-menu button { border: 0; background: none; color: var(--soluk); font: inherit; font-size: .78rem; font-weight: 650; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; border-radius: 12px; }
 .alt-menu button span { font-size: 1.3rem; line-height: 1.2; filter: grayscale(.6); opacity: .8; }
 .alt-menu button.aktif { color: var(--ana); background: var(--iyi-bg); }
 .alt-menu button.aktif span { filter: none; opacity: 1; }
@@ -646,8 +646,8 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 @media (max-width: 380px) { .stc-kural { grid-template-columns: 1fr; } }
 
 /* hikâye dersleri */
-.hikaye-gir { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-bottom: 14px; cursor: pointer; border: 1.5px solid color-mix(in srgb, var(--bordo) 35%, transparent); background: linear-gradient(120deg, var(--bordo-acik), var(--kart)); }
-.hikaye-gir > span:nth-child(2) { flex: 1; } .hikaye-gir b, .hikaye-gir small { display: block; } .hikaye-gir small { color: var(--soluk); } .hikaye-gir b { color: var(--bordo); }
+.kart.hikaye-gir { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-bottom: 14px; cursor: pointer; border: 1.5px solid color-mix(in srgb, var(--bordo) 35%, transparent); background: linear-gradient(120deg, var(--bordo-acik), var(--kart)); }
+.kart.hikaye-gir > span:nth-child(2) { flex: 1; } .kart.hikaye-gir b, .kart.hikaye-gir small { display: block; } .kart.hikaye-gir small { color: var(--soluk); } .kart.hikaye-gir b { color: var(--bordo); }
 .hk-mini { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 1.4rem; background: var(--kart); border: 2px solid var(--bordo); flex: none; }
 .hk-ekran { min-height: 100dvh; display: flex; flex-direction: column; max-width: 640px; margin: 0 auto; padding: calc(10px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); }
 .hk-cubuk { display: flex; gap: 4px; }
@@ -754,7 +754,7 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 .c-mola { display: flex; align-items: center; gap: 12px; border: 2px solid var(--ana2); background: var(--iyi-bg); }
 .c-mola p { margin: 2px 0 0; }
 .c-hoparlor.caliyor, .c-dinle.caliyor, .mujde-ses.caliyor { background: var(--altin-acik); border-color: var(--altin); }
-.c-sessiz { margin-left: auto; flex: none; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,.18); color: #fff; font-size: 1.15rem; line-height: 1; }
+.c-sessiz { margin-left: auto; flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.18); color: #fff; font-size: 1.15rem; line-height: 1; }
 .c-sessiz.kapali { background: rgba(255,255,255,.38); }
 .c-sessiz + .c-ust-yildiz { margin-left: 8px; }
 .c-ada-atla { display: flex; justify-content: center; margin: -4px 0 10px; }
@@ -849,3 +849,19 @@ html[data-yazim="tr"][data-hfont="1"] .ayet:not(.mz-kart .ayet), html[data-yazim
 .modal input.pin-gir { letter-spacing: .6em; font-size: 1.8rem; padding-left: .6em; }
 .toast.geri-al { display: flex; align-items: center; gap: 14px; z-index: 120; }
 .toast.geri-al .link { color: #ffd166; font-weight: 700; background: none; border: 0; font: inherit; padding: 4px; cursor: pointer; }
+
+/* Ders başı: ders metni üstte; kısa anlatım ve teste gir ince satırlar */
+.ders-inceler { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.ders-ince { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--cizgi); background: var(--kart); color: var(--metin); text-align: left; font-size: .95rem; }
+.ders-ince b { color: var(--ana); white-space: nowrap; }
+.ders-ince.hikaye-gir b { color: var(--bordo); font-size: 1.2rem; }
+.uygulama-alt { margin: -2px 0 8px; text-align: center; font-size: .9rem; color: var(--soluk); }
+
+/* Dokunma alanları en az 44 px (kullanıcı testi 16.11) */
+.sesbtn, .lejant-ac, .filtre button, .cip, .hesapbtn, .secenek-liste button { min-height: 44px; }
+.sesbtn.mini { min-height: 0; }
+.lejant-ac, .filtre button, .cip { display: inline-flex; align-items: center; }
+/* Uzun sûreler: ekranda görünmeyen ayet kartları çizilmez (Bakara yavaş telefonda 2,8 sn idi) */
+.ayet-kart { content-visibility: auto; contain-intrinsic-size: auto 300px; }
+details.kural-ara summary { min-height: 44px; display: flex; align-items: center; }
+#tanitimKapat, .ses-dugmeler button { min-height: 44px; min-width: 44px; }

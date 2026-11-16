@@ -154,7 +154,7 @@ window.TC = (function () {
   const lejantMahrec = (b) => `<ol class="mahrec-liste">${b.map(x => `<li><b>${x[0]}</b><span>${x[1]}</span></li>`).join('')}</ol>`;
 
   unit({
-    id: 'm1', ad: "Mahrecler: harflerin çıkış yerleri", ikon: '👄', kurallar: [],
+    id: 'm1', ad: "Mahreçler: harflerin çıkış yerleri", ikon: '👄', kurallar: [],
     sayfalar: [
       { t: "Mahreç nedir?", h: `<p><b>Mahreç</b>, harfin çıktığı yerdir. Her harfin kendi "adresi" vardır. Harfi yanlış yerden çıkarırsan başka bir harfe dönüşür ve mana bozulabilir:</p><p><span class="ar">قَلۡب</span> (kalp) ↔ <span class="ar">كَلۡب</span> (köpek)</p><p>İbnü'l-Cezerî'nin görüşüne göre harfler <b>5 bölgede 17 mahreçten</b> çıkar: ağız-boğaz boşluğu (cevf), boğaz (halk), dil (lisan), dudaklar (şefeteyn) ve geniz (hayşum).</p><p class="not"><b>Mahreci bulma yolu:</b> Harfi sakin yap ve önüne harekeli bir hemze getir: <span class="ar">أَبۡ · أَقۡ · أَصۡ</span>. Sesin kesildiği yer o harfin mahrecidir.</p>` },
       { t: "Şema", h: `${MAHREC_SVG}<p class="soluk kucukyazi">Şematik çizimdir; numaralar sonraki sayfalardaki mahreçlerdir.</p>${lejantMahrec([['1', 'Cevf — med harfleri'], ['2–4', 'Boğaz (halk)'], ['5–14', 'Dil (lisan)'], ['15–16', 'Dudaklar (şefeteyn)'], ['17', 'Geniz (hayşum) — ğunne']])}` },

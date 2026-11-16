@@ -23,6 +23,20 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Bu harfle tanışalım!": "Let's meet this letter!",
+ "Yeni bir şey öğreniyoruz!": "We're learning something new!",
+ "Bismillâhir-rahmânir-rahîm.": "Bismillāhir-raḥmānir-raḥīm.",
+ "Tecvidli Kur'an okumayı adım adım öğren": "Learn to recite the Qur'an with tajweed, step by step",
+ "Bu konuyu biliyor musun?": "Already know this topic?",
+ "Teste gir ›": "Take the test ›",
+ "Kısa anlatım": "Quick lesson",
+ "{0} kart, ~{1} dk": "{0} cards, ~{1} min",
+ "Hazırlık": "Preparation",
+ "Mahreç ve sıfat": "Articulation and attributes",
+ "Mushaf, 604 sayfa · {0}. sayfadan devam": "Mushaf, 604 pages · continue from page {0}",
+ "Gelişimin": "Your progress",
+ "{0} soru. Geçmek için en az <b>{1}</b> alman gerekir. Testte önceki bölümlerden de birkaç tekrar sorusu çıkar.": "{0} questions. You need at least <b>{1}</b> to pass. A few review questions from earlier units are included.",
+ "Bu konuyu biliyorsan testi geçerek ({0}) bölümü açabilirsin.": "If you know this topic, pass the test ({0}) to unlock the unit.",
  "Büyükler için": "For grown-ups",
  "PIN belirle": "Set a PIN",
  "Bu bölüm anne-baba ya da öğretmen içindir. 4 haneli PIN'i gir.": "This section is for parents or teachers. Enter the 4-digit PIN.",
@@ -1093,7 +1107,7 @@
  "Final": "Final",
  "Ara sınav": "Checkpoint",
  "Bölüm {0}": "Unit {0}",
- "Hüsn-i Kıraat": "Hüsn-i Kıraat",
+ "Hüsn-i Kıraat": "Husn-i Qiraat",
  "Hesap": "Account",
  "Giriş": "Sign in",
  "tamam": "done",
@@ -1270,5 +1284,5 @@
     for (var i = 1; i < arguments.length; i++) r = r.split('{' + (i - 1) + '}').join(arguments[i]);
     return r;
   };
-  if (dil === 'en') document.title = 'Learn Tajweed';
+  if (dil === 'en') document.title = 'Husn-i Qiraat: Learn Tajweed';
 })();

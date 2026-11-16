@@ -660,7 +660,8 @@
       let govde = '', balon = '';
       if (D.adim === 'tanis') {
         // Her derse besmeleyle başlanır
-        balon = d.tur === 'harf' ? t('Bismillâhir-rahmânir-rahîm. Bu harfle tanışalım!') : t('Bismillâhir-rahmânir-rahîm. Yeni bir şey öğreniyoruz!');
+        // Besmele kartta Arapça yazılı ve sesli okunur (Husarî); balonda tekrar yazılmaz
+        balon = d.tur === 'harf' ? t('Bu harfle tanışalım!') : t('Yeni bir şey öğreniyoruz!');
         govde = `<article class="kart c-kart"><p class="besmele" lang="ar" dir="rtl">${BESMELE}</p>${tanisHTML(d)}</article><button class="btn genis c-btn" id="cIleri">${d.tur === 'harf' ? t('Hadi çizelim ✏️') : d.tur === 'sure' ? t('Dinleyelim 🎧') : t('Hadi oynayalım 🎯')}</button>`;
       }
       else if (D.adim === 'dinle') {
@@ -693,7 +694,7 @@
       sesAyarla();
       const sq = D.adim === 'oyun' ? D.sorular[D.i] : null;
       const mj = D.adim === 'bitti' ? app.querySelector('[data-mujde]') : null;
-      const sesliMetin = sq ? (sq.sesli || sq.soru) : balon + (mj && kucuk() ? ' ' + mj.dataset.mujde : '');
+      const sesliMetin = sq ? (sq.sesli || sq.soru) : (D.adim === 'tanis' ? t('Bismillâhir-rahmânir-rahîm.') + ' ' : '') + balon + (mj && kucuk() ? ' ' + mj.dataset.mujde : '');
       if (mj) mj.onclick = () => Sesli.dugmeyle(mj, mj.dataset.mujde);
       const hop = app.querySelector('.c-hoparlor'); hop.onclick = () => { if (sq && sq.ses) HarfSes.cal(sq.ses, hop); else if (sq && sq.ayetSes) api.ayetCal(sq.ayetSes, hop); else balonSoyle(hop, sesliMetin); };
       app.querySelectorAll('[data-ayet]').forEach(b => b.onclick = () => api.ayetCal(b.dataset.ayet, b));
@@ -924,10 +925,10 @@
         <section class="c-kahraman">${MASKOT(86, 'zipla')}<div><p class="c-selam">${ad ? t('Selâmün aleyküm {0}!', ad) : t('Selâmün aleyküm!')}</p>
           <p>${s ? t('Sıradaki durak: <b>{0}</b>', esc(s.ad)) : t('Bütün durakları bitirdin! Maşallah! 🎉')}</p>
           <div class="c-hedef"><span>${bugunY ? '✅' : '🎯'}</span>${bugunY ? t('Bugünkü hedef tamam! Yarın görüşürüz.') : t('Bugünkü hedef: 1 durak')}</div></div></section>
+        ${s ? `<button class="btn genis c-btn" data-durak="${s.id}">${yarim ? t('▶ Kaldığın yerden devam et') : t('▶ Devam et')}</button>` : ''}
         ${S().ayar.sesKontrol ? '' : `<section class="kart c-ses-kontrol"><h2>${t('🔊 Sesimi duyuyor musun?')}</h2><p>${t('Yönergeleri sesli okuyorum. Önce bir dene:')}</p>
           <div class="satir sola"><button class="btn ikincil" id="sesDene">${t('🔊 Dene')}</button><button class="btn" id="sesVar">${t('✓ Duyuyorum')}</button><button class="btn ikincil" id="sesYok">${t('✗ Duymuyorum')}</button></div><div id="sesYardim"></div></section>`}
         <div id="cOdev"></div>
-        ${s ? `<button class="btn genis c-btn" data-durak="${s.id}">${yarim ? t('▶ Kaldığın yerden devam et') : t('▶ Devam et')}</button>` : ''}
         ${(() => { const sd = DURAK.filter(d => d.ada === 'sure'), sir = sd.find(d => !yildiz(d.id)) || sd[0]; return sir && (!s || s.ada !== 'sure') ? `<button class="btn genis ikincil c-sure-kisa" data-durak="${sir.id}">📖 ${t('Sûreler Adası: {0}', esc(sir.ad))}</button>` : ''; })()}
         <div class="c-harita">${harita}</div>
         <p class="soluk ortala kucukyazi">${t('Kısa ve sık çalışmak en iyisi: her gün bir durak yeter.')}</p>

@@ -20,7 +20,10 @@
   <script src="js/dil.js"></script>
   <script src="js/surumler.js"></script>
   <script src="js/content.js"></script>
-  <script src="js/content-en.js"></script>
+  <script>
+    // İngilizce içerik yalnız İngilizcede yüklenir (Türkçe açılışı hafifletir)
+    if (window.DIL === 'en') document.write('<script src="js/content-en.js"><\/script>');
+  </script>
   <script src="js/ayahs.js"></script>
   <script src="js/tecvid-renk.js"></script>
   <script src="js/sureler.js"></script>
@@ -35,7 +38,16 @@
   <script src="js/soru-seviye.js"></script>
   <script src="js/cocuk.js"></script>
   <script src="js/app.js"></script>
-  <script type="module" src="js/bulut.js"></script>
+  <script>
+    // Hesap ve bulut (Firebase, ~900 KB) ilk açılışı yavaşlatmasın: daha önce giriş yapıldıysa hemen,
+    // yoksa uygulama açıldıktan sonra arka planda ya da Hesap/Sınıf ekranı açılınca yüklenir.
+    (function () {
+      function yukle() { if (window.__bulutYukleniyor) return; window.__bulutYukleniyor = true; var s = document.createElement('script'); s.type = 'module'; s.src = 'js/bulut.js'; document.body.appendChild(s); }
+      window.bulutYukle = yukle;
+      var girisli = false; try { girisli = localStorage.getItem('tecvid-ogren.bulut') === '1'; } catch (e) { }
+      if (girisli) yukle(); else window.addEventListener('load', function () { setTimeout(yukle, 4000); });
+    })();
+  </script>
   <script>
     // Web sürümü (iPhone / tarayıcı): çevrimdışı çalışsın diye service worker. Android uygulamasında gerekmez.
     if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) && location.protocol === 'https:')
