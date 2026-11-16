@@ -23,6 +23,8 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Türk hafızlar (Diyanet)": "Turkish hafiz reciters (Diyanet)",
+ "Türk hafızların kayıtları Diyanet İşleri Başkanlığı Kur'an portalındandır.": "Recordings of the Turkish reciters are from the Turkish Presidency of Religious Affairs (Diyanet) Qur'an portal.",
  "Sürüm {0}": "Version {0}",
  "🆕 Yenilikler": "🆕 What's new",
  "Yenilikler": "What's new",

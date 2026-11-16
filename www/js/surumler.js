@@ -13,6 +13,7 @@
       'Çocuk modu: seviye yoklaması ve "Biliyorum" ile ada atlama; harf tanışmada Kur\'an\'dan dinleme',
       'Çocuk sesleri: sessize al düğmesi, üst üste dokunmada seslerin binmemesi, besmele Husarî tilavetinden',
       'Bütün dinleme düğmelerinde ⏹ Durdur',
+      'Türk hafızlar: Hafız Davut Kaya, Osman Şahin, Mehmet Çevik (Diyanet Kur\'an portalı kayıtları)',
       'Sürüm numarası ve bu Yenilikler sayfası',
     ] },
     { s: '1.0.35', t: '2026-11-15', l: [

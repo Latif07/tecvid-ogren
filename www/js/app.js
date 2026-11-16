@@ -37,6 +37,10 @@
   const KARILER = [
     { id: 'husary_muallim', klasor: 'Husary_Muallim_128kbps', ad: DIL === 'en' ? 'Mahmoud Khalil al-Husary' : 'Mahmûd Halîl el-Husarî', tur: t('Öğretim (yavaş, tekrar için)') },
     { id: 'minshawy_teacher', klasor: 'Minshawy_Teacher_128kbps', ad: DIL === 'en' ? 'Muhammad Siddiq al-Minshawi' : 'Muhammed Sıddîk el-Minşâvî', tur: t('Öğretim (yavaş, tekrar için)') },
+    // Türk hafızlar: Diyanet İşleri Başkanlığı Kur'an portalının ayet ayet kayıtları (izin başvurusu yayından önce yapılacak)
+    { id: 'davut_kaya', klasor: 'ar_davutKaya', ad: 'Hafız Davut Kaya', tur: t('Türk hafızlar (Diyanet)') },
+    { id: 'osman_sahin', klasor: 'ar_osmanSahin', ad: 'Hafız Osman Şahin', tur: t('Türk hafızlar (Diyanet)') },
+    { id: 'mehmet_cevik', klasor: 'ar_mehmetcevik', ad: 'Hafız Mehmet Çevik', tur: t('Türk hafızlar (Diyanet)') },
     { id: 'husary', klasor: 'Husary_128kbps', ad: DIL === 'en' ? 'Mahmoud Khalil al-Husary' : 'Mahmûd Halîl el-Husarî', tur: t('Mürettel') },
     { id: 'minshawy', klasor: 'Minshawy_Murattal_128kbps', ad: DIL === 'en' ? 'Muhammad Siddiq al-Minshawi' : 'Muhammed Sıddîk el-Minşâvî', tur: t('Mürettel') },
     { id: 'abdulbasit', klasor: 'Abdul_Basit_Murattal_192kbps', ad: DIL === 'en' ? 'Abdul Basit Abdus-Samad' : 'Abdülbâsıt Abdüssamed', tur: t('Mürettel') },
@@ -210,7 +214,7 @@
 
   // ------------------------------------------------------------ ses
   const pad = (n, k = 3) => String(n).padStart(k, '0');
-  const ayetUrl = (r, klasor) => { const [s, a] = r.split(':').map(Number); return `https://everyayah.com/data/${klasor || kari().klasor}/${pad(s)}${pad(a)}.mp3`; };
+  const ayetUrl = (r, klasor) => { const [s, a] = r.split(':').map(Number), k = klasor || kari().klasor; return k.startsWith('ar_') ? `https://webdosya.diyanet.gov.tr/kuran/kuranikerim/Sound/${k}/${s}_${a}.mp3` : `https://everyayah.com/data/${k}/${pad(s)}${pad(a)}.mp3`; };
   const kelimeUrl = (r, w) => { const [s, a] = r.split(':').map(Number); return `https://audio.qurancdn.com/wbw/${pad(s)}_${pad(a)}_${pad(w)}.mp3`; };
   let ses = null;
   // ---- çalan düğme: çalarken "⏹ Durdur" olur, tekrar dokununca ses durur (bütün dinle düğmelerinde)
@@ -271,6 +275,7 @@
   const FS = () => window.capEklenti('Filesystem');
   const yerelYol = url => {
     let m = /everyayah\.com\/data\/([^/]+)\/(\d+\.mp3)$/.exec(url || ''); if (m) return `ea/${m[1]}/${m[2]}`;
+    m = /webdosya\.diyanet\.gov\.tr\/kuran\/kuranikerim\/Sound\/([^/]+)\/(\d+)_(\d+)\.mp3$/.exec(url || ''); if (m) return `ea/${m[1]}/${pad(+m[2])}${pad(+m[3])}.mp3`;
     m = /qurancdn\.com\/wbw\/([\d_]+\.mp3)$/.exec(url || ''); if (m) return `wbw/${m[1]}`;
     return null;
   };
@@ -2286,7 +2291,7 @@
       <article class="kart"><p>${t('Örneklerdeki ayetleri hangi kâriden dinlemek istersin? Dinlemek için ▶\'ye, seçmek için isme dokun.')}</p>
       ${benzersiz(KARILER.map(k => k.tur)).map(tur => `<h2 class="baslik">${esc(tur)}</h2><div class="secenek-liste">${KARILER.filter(k => k.tur === tur).map(k => `<button class="${k.id === kari().id ? 'aktif' : ''}" data-kari="${k.id}"><span>${esc(k.ad)}<small>${esc(k.tur)}</small></span>
         <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}">▶</span></button>`).join('')}</div>`).join('')}
-      <p class="soluk kucukyazi">${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')}</p></article></main>`;
+      <p class="soluk kucukyazi">${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')} ${t('Türk hafızların kayıtları Diyanet İşleri Başkanlığı Kur\'an portalındandır.')}</p></article></main>`;
     app.querySelectorAll('[data-kari]').forEach(b => b.onclick = e => {
       if (e.target.closest('[data-ses]')) return;
       S.ayar.kari = b.dataset.kari; kaydet(); toast(t('Kâri seçildi: ') + kari().ad); ciz();
