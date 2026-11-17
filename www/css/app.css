@@ -922,3 +922,13 @@ main.ez-ekran { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
 .ez-ayet .ayet { line-height: 2.05; }
 .ez-kart .kelime.gizli { display: inline-block; line-height: 1.25; padding: 4px 2px; vertical-align: middle; }
 .cip { min-width: 44px; justify-content: center; }
+/* Ezber çalış: mikrofon durumu ve "Bu ayeti tekrar oku" (17.11) */
+.ez-mik-kap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ez-mik-yazi { font-size: .82rem; font-weight: 700; color: var(--ana); min-height: 1.1em; }
+.ez-mik.kaydediyor { font-size: 1.5rem; }
+.ez-mik.kaydediyor + .ez-mik-yazi { color: var(--kotu); }
+.ez-mik.bekliyor { background: var(--soluk); border-color: var(--cizgi); font-size: 1.4rem; cursor: progress; }
+.ez-ayet-tekrar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 2px 0 8px; }
+.ez-ayet-tekrar button { min-height: 44px; padding: 0 16px; border-radius: 22px; font-weight: 700; font-size: .92rem; }
+.ez-yeniden { border: 1.5px solid var(--ana); background: var(--ana); color: #fff; }
+.ez-ayrinti { border: 1.5px solid var(--cizgi); background: var(--kart); color: var(--metin); }

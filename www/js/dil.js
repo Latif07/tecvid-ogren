@@ -23,6 +23,12 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "Renkli kelimelere dokunarak dinle; ayrıntı için \"Hataları gör\". Yapay zekâ yanılabilir; son söz hocanındır.": "Tap the coloured words to listen; for details, tap \"See mistakes\". AI can be wrong; your teacher has the final word.",
+ "Bu ayeti tekrar oku": "Recite this verse again",
+ "Hataları gör": "See mistakes",
+ "Bitirdiysen ⏹ düğmesine dokun.": "If you have finished, tap ⏹.",
+ "Hazırlanıyor…": "Preparing…",
+ "Oku": "Recite",
  "Bakarak": "Reading",
  "Ezberden": "By heart",
  "Bağla": "Connect",

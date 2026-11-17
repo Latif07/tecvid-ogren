@@ -27,6 +27,7 @@
       'Çocuk modu: besmele durakta bir kez (yazılı ve Husarî sesiyle); küçük telefonda "Devam et" üstte',
       'Ezber çalış: ezber artık kendi ekranında; 5 adım (Dinle, Bakarak, Yarısı gizli, Ezberden, Bağla), okudukça kelimeler açılır, sonuç aynı kartta, "Göz at"',
       'Ezber tekrarı: sûrenin ezberlenen kısmı gizli okunur; takılınan ayetler "zayıf" olur, yarın yine sorulur, tek tek çalışılabilir',
+      'Ezber çalış: okuma bitince mikrofon kendiliğinden kapanır (gürültülü ortamda ve son kelimede takılınca da); hatalı ayetin altında tek dokunuşla "Bu ayeti tekrar oku", hatalar "Hataları gör" altında; mikrofonun altında durum yazısı',
       'Ezber sekmesi sadeleşti: "Bugün" kartında tek Başla (yeni ders, yakın ve uzak tekrar sırayla), ilerleme halkalı Ezberlerim; hatim ve sayfa okuma "Sayfa ve hatim" ekranında',
     ] },
     { s: '1.0.35', t: '2026-11-15', l: [
