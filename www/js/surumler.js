@@ -25,6 +25,9 @@
       'Daha hızlı ilk açılış: hesap sistemi ve İngilizce içerik yalnız gerektiğinde yükleniyor; uzun sûreler daha hızlı açılıyor',
       'Yazılar: "Mahreç", "Hazırlık" bölümü, bölüm testinde doğru soru sayısı; yeni başlayana "0 gün seri" gösterilmiyor',
       'Çocuk modu: besmele durakta bir kez (yazılı ve Husarî sesiyle); küçük telefonda "Devam et" üstte',
+      'Ezber çalış: ezber artık kendi ekranında; 5 adım (Dinle, Bakarak, Yarısı gizli, Ezberden, Bağla), okudukça kelimeler açılır, sonuç aynı kartta, "Göz at"',
+      'Ezber tekrarı: sûrenin ezberlenen kısmı gizli okunur; takılınan ayetler "zayıf" olur, yarın yine sorulur, tek tek çalışılabilir',
+      'Ezber sekmesi sadeleşti: "Bugün" kartında tek Başla (yeni ders, yakın ve uzak tekrar sırayla), ilerleme halkalı Ezberlerim; hatim ve sayfa okuma "Sayfa ve hatim" ekranında',
     ] },
     { s: '1.0.35', t: '2026-11-15', l: [
       'Sûre sûre (ayet ayet) tecvid, hikâye tarzı kısa anlatım, günün sorusu',
