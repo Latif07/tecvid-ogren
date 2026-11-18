@@ -73,8 +73,14 @@ window.Bulut = {
     const FA = window.capEklenti('FirebaseAuthentication');
     if (!FA) throw new Error(yazi('Google girişi şu an kullanılamıyor.', 'Google sign-in is not available right now.'));
     let sonuc;
+    // Önce Android Credential Manager; "[16] Account reauth failed" gibi bir hatada eski Google Sign-In akışıyla bir kez daha denenir
+    // (@capacitor-firebase/authentication 7.2+: useCredentialManager seçeneği, varsayılan true)
     try { sonuc = await FA.signInWithGoogle(); }
-    catch (e) { throw new Error(/cancel/i.test(e && e.message) ? yazi('Google girişi iptal edildi.', 'Google sign-in was cancelled.') : yazi('Google girişi başarısız: ', 'Google sign-in failed: ') + (e && e.message)); }
+    catch (e1) {
+      if (/cancel/i.test(e1 && e1.message) && !/reauth/i.test(e1 && e1.message)) throw new Error(yazi('Google girişi iptal edildi.', 'Google sign-in was cancelled.'));
+      try { sonuc = await FA.signInWithGoogle({ useCredentialManager: false }); }
+      catch (e) { throw new Error(/cancel/i.test(e && e.message) ? yazi('Google girişi iptal edildi.', 'Google sign-in was cancelled.') : yazi('Google girişi başarısız: ', 'Google sign-in failed: ') + (e && e.message) + ' (' + (e1 && e1.message) + ')'); }
+    }
     const idToken = sonuc && sonuc.credential && sonuc.credential.idToken;
     if (!idToken) throw new Error(yazi('Google girişi tamamlanamadı.', 'Google sign-in could not be completed.'));
     try { return (await signInWithCredential(auth, GoogleAuthProvider.credential(idToken))).user; } catch (e) { throw new Error(turkce(e)); }

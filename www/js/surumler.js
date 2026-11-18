@@ -1,9 +1,12 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.39';
+  const SURUM = '1.0.40';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.40', t: '2026-11-18', durum: 'Test APK', l: [
+      'Google ile giriş: Android\'de "[16] Account reauth failed" hatasında eski Google giriş yöntemiyle kendiliğinden bir kez daha denenir; olmazsa iki hatanın yazısı da gösterilir',
+    ] },
     { s: '1.0.39', t: '2026-11-18', durum: 'Test APK', l: [
       'Düzeltme: çocuk modunda cezm, şedde ve med sorularında okunuş yerine "false" yazıyordu',
       'Çocuk modu yanlış cevapta: basılan seçenek kırmızı ve ✗, doğrusu yeşil; "Olmadı. Doğrusu yeşil olan, devam!"',
