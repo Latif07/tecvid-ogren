@@ -1,9 +1,12 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.40';
+  const SURUM = '1.0.41';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.41', t: '2026-11-18', durum: 'Web', l: [
+      'Okuyarak pekiştir: her dersin Örnekler bölümünün sonunda; dersin örnek kelimelerini kâriden dinle, kendin oku. Yapay zekâ yüzde, harf/hareke/med/tecvid dökümü ve "Nerede puan kaybettin?" gösterir; kâri ve senin okuyuşun yan yana dinlenir. Ses telefonda değerlendirilir, gönderilmez',
+    ] },
     { s: '1.0.40', t: '2026-11-18', durum: 'Test APK', l: [
       'Google ile giriş: Android\'de "[16] Account reauth failed" hatasında eski Google giriş yöntemiyle kendiliğinden bir kez daha denenir; olmazsa iki hatanın yazısı da gösterilir',
     ] },

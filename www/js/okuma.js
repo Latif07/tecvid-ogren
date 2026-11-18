@@ -318,5 +318,74 @@
     const d = await dinle(ses);
     return { heard: d.heard, kelimeler: listen(ref, d.heard, d.probs, d.times, opt), sure: ses.length / SR };
   }
-  window.Okuma = { MODEL_URL, hazir: () => !!oturum, modelAc, sesCoz, logMel, dinle, listen, opcodes, editops, fonetik, ayetRaporu };
+  // ------------------------------------------------------------------ kelime değerlendirmesi ("Okuyarak pekiştir")
+  // Ayetin fonetik referansından yalnız istenen kelimeler kesilir. Ayet ortasındaki kelime tek başına okununca sonda durulur
+  // (vakıf): son hareke düşer, üstün tenvin elife döner, kalkale harfinde kalkale olur. İki biçim de (geçiş/vakıf) denenir, iyi olan alınır.
+  const KALKALE = 'قطبجد', SESSIZ_DISI = new Set([...HARAKAT, ...Object.keys(LONG), 'ڇ', 'ں', '۾']);
+  // ibtida: kelime ayet ortasından tek başına okununca başındaki vasl hemzesi okunur (ٱلۡعَٰلَمِينَ → "el-âlemîn", ٱلدِّينِ → "ed-dîn")
+  function kelimeRef(ref, w0, w1, vakif, tenvin, ibtida) {
+    const bas = ref.sp[w0][0], son = ref.sp[w1][1];
+    let p = ref.p.slice(bas, son), on = 0;
+    if (ibtida && !p.startsWith('ء')) { p = ibtida + p; on = ibtida.length; }
+    if (vakif) {
+      let a = Array.from(p);
+      if (tenvin && a.length >= 2 && a[a.length - 1] === 'ن' && HARAKAT.has(a[a.length - 2])) { const h = a[a.length - 2]; a = a.slice(0, -2); if (h === 'َ') a.push('َ', 'ا'); }
+      else if (HARAKAT.has(a[a.length - 1])) a = a.slice(0, -1);
+      if (KALKALE.includes(a[a.length - 1])) a.push('ڇ');
+      p = a.join('');
+    }
+    const L = p.length;
+    const sp = ref.sp.slice(w0, w1 + 1).map(([x, y], i) => [i ? x - bas + on : 0, Math.min(y - bas + on, L)]); sp[sp.length - 1][1] = L;
+    const u = ref.u.filter(x => x[0] >= bas && x[1] <= son && x[1] - bas + on <= L).map(x => [x[0] - bas + on, x[1] - bas + on, x[2], x[3] - w0, ...x.slice(4)]);
+    return { p, sp, u };
+  }
+  // Puan: harf (her sessiz 2), hareke (her biri 1), med (her med 3), diğer tecvid (her kural yeri 3). Açık hata tam, ince hata yarım düşer.
+  const KAT_HARF = new Set(['letter', 'dropped', 'added', 'word']), KAT_DIGER = new Set(['ghunnah', 'idgham_ghunnah', 'ikhfa', 'iqlab', 'qalqalah', 'idgham', 'shadda']);
+  const notKategori = r => { r = r.replace(':uneven', ''); return KAT_HARF.has(r) ? 'harf' : r === 'vowel' ? 'hareke' : KAT_DIGER.has(r) ? 'diger' : /madd|Madd/.test(r) ? 'med' : 'diger'; };
+  // Harf ve hareke puanı duyulanla beklenenin hizalanmasından gelir (uzatma ve ğunne tekrarları sadeleştirilir); başka bir kelime okunursa düşük çıkar.
+  // Med ve diğer tecvid puanı kural yerlerinden gelir: açık hata tam, ince hata yarım düşer.
+  const sadele = l => { const o = []; for (const c of l) { if (LONG[c] || 'ڇںۛ۾'.includes(c)) continue; if (o.length && o[o.length - 1] === c) continue; o.push(c); } return o; };
+  function puanla(ref, kelimeler, heard) {
+    const E = sadele(Array.from(ref.p)), H = sadele(Array.from((heard || '').replace(/ /g, '')));
+    const sessiz = c => !HARAKAT.has(c);
+    const top = { harf: E.filter(sessiz).length * 2, hareke: E.filter(c => !sessiz(c)).length };
+    const kaz = { harf: 0, hareke: 0 }; let fazla = 0;
+    for (const [tag, i1, i2, j1, j2] of opcodes(E, H)) {
+      if (tag === 'equal') for (let i = i1; i < i2; i++) { if (sessiz(E[i])) kaz.harf += 2; else kaz.hareke += 1; }
+      else if (tag === 'insert' && i1 === E.length && j2 - j1 <= 2) continue;   // sonda nefes ya da kayıt sesi
+      else if (tag === 'insert' || (tag === 'replace' && j2 - j1 > i2 - i1)) fazla += (j2 - j1) - (tag === 'replace' ? i2 - i1 : 0);
+    }
+    // fazladan okunan sesler harf puanından düşer (başka/uzun bir şey okunduysa)
+    kaz.harf = Math.max(0, kaz.harf - fazla * 2);
+    const A = { med: 3, diger: 3 }, toplam = { med: 0, diger: 0 }, kayip = { med: 0, diger: 0 };
+    ref.u.forEach(x => { toplam[x[2] === 'madd' ? 'med' : 'diger'] += 3; });
+    kelimeler.forEach(w => w.notes.forEach(z => { const k = notKategori(z.rule); if (k === 'med' || k === 'diger') kayip[k] += A[k] * (z.severity === 'jali' ? 1 : 0.5); }));
+    const kat = {}; let t = 0, e = 0;
+    const ekle = (k, kz, tp) => { if (!tp) { kat[k] = null; return; } kz = Math.max(0, Math.min(tp, kz)); kat[k] = [Math.round(kz * 10) / 10, tp]; t += tp; e += kz; };
+    ekle('harf', kaz.harf, top.harf); ekle('hareke', kaz.hareke, top.hareke);
+    ekle('med', toplam.med - kayip.med, toplam.med); ekle('diger', toplam.diger - kayip.diger, toplam.diger);
+    return { yuzde: t ? Math.round(e / t * 100) : 0, kat };
+  }
+  async function kelimeRaporu(n, a, kelimeNo, sesBlob, opt = {}) {
+    const ref = (await fonetik(n))[a - 1]; if (!ref) throw new Error('fonetik yok');
+    const w0 = Math.min(...kelimeNo) - 1, w1 = Math.max(...kelimeNo) - 1, sonda = w1 === ref.sp.length - 1;
+    const ses = sesBlob instanceof Float32Array ? sesBlob : await sesCoz(sesBlob);
+    if (ses.length / SR > 15) throw new Error(EN() ? 'The recording is too long. Recite only the word.' : 'Kayıt çok uzun. Yalnız kelimeyi oku.');
+    if (ses.length / SR < 0.4) throw new Error(EN() ? 'The recording is too short.' : 'Kayıt çok kısa.');
+    const d = await dinle(ses);
+    // ayet sonundaki kelimenin referansı zaten vakıf biçiminde; ortadakinde iki biçim de denenir
+    // Vasl hemzesiyle başlayan kelime (ٱ): ال ise "ءَ", değilse üçüncü harfin harekesine göre "ءُ" ya da "ءِ"
+    const ilk = (opt.ilkKelime || '').replace(/[^\u0621-\u064A\u0671\u064E-\u0650]/g, '');
+    const ibtida = w0 > 0 && /^[\u0671]/.test(opt.ilkKelime || '') ? (/^\u0671\u0644/.test(ilk) ? 'ءَ' : /\u064F/.test(Array.from(ilk).filter(c => !/[\u064E-\u0650]/.test(c)).length >= 3 ? ilk.split(/(?=[\u0621-\u064A])/)[2] || '' : '') ? 'ءُ' : 'ءِ') : '';
+    const adaylar = [];
+    for (const vk of sonda ? [false] : [false, true]) for (const ib of ibtida ? ['', ibtida] : ['']) adaylar.push(kelimeRef(ref, w0, w1, vk, opt.tenvin, ib));
+    let en = null;
+    for (const r of adaylar) {
+      const kelimeler = listen(r, d.heard, d.probs, d.times, opt), puan = puanla(r, kelimeler, d.heard);
+      const ac = kelimeler.reduce((s, w) => s + w.notes.filter(z => z.severity === 'jali').length, 0);
+      if (!en || ac < en.ac || (ac === en.ac && puan.yuzde > en.puan.yuzde)) en = { ac, kelimeler, puan, ref: r };
+    }
+    return { heard: d.heard, kelimeler: en.kelimeler, puan: en.puan, sure: ses.length / SR };
+  }
+  window.Okuma = { MODEL_URL, hazir: () => !!oturum, modelAc, sesCoz, logMel, dinle, listen, opcodes, editops, fonetik, ayetRaporu, kelimeRaporu, puanla };
 })();

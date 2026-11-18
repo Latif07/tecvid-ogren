@@ -124,6 +124,7 @@
     if (a.muezzin || b.muezzin) { r.muezzin = {}; for (const id of new Set([...Object.keys(a.muezzin || {}), ...Object.keys(b.muezzin || {})])) { const x = (a.muezzin || {})[id], y = (b.muezzin || {})[id]; r.muezzin[id] = !x ? y : !y ? x : ((x.son || 0) >= (y.son || 0) ? x : y); } }
     const ha = a.hatim, hb = b.hatim; r.hatim = !ha ? hb || null : !hb ? ha : (ha.bas > hb.bas ? ha : hb.bas > ha.bas ? hb : (ha.sayfa >= hb.sayfa ? ha : hb));
     r.sonSayfa = a.sonSayfa || b.sonSayfa;
+    if (a.pekistir || b.pekistir) { r.pekistir = {}; for (const d of new Set([...Object.keys(a.pekistir || {}), ...Object.keys(b.pekistir || {})])) { const x = (a.pekistir || {})[d] || { k: {} }, y = (b.pekistir || {})[d] || { k: {} }; r.pekistir[d] = (x.t || 0) >= (y.t || 0) ? { k: Object.assign({}, y.k, x.k), t: x.t } : { k: Object.assign({}, x.k, y.k), t: y.t }; } }
     r.hocaBul = ((a.hocaBul || {}).t || 0) >= ((b.hocaBul || {}).t || 0) ? a.hocaBul || b.hocaBul : b.hocaBul;
     if (a.kuran || b.kuran) {   // Kur'an okuma: günlük sayfalar birleşir, yer imleri birleşir, kaldığın yer en yenisi
       const ka = a.kuran || {}, kb = b.kuran || {}; r.kuran = Object.assign({}, kb, ka, { gun: {}, imler: [] });
@@ -961,7 +962,9 @@
         ${ayetHTML(ex, false)}
         <p class="okunus">🗣️ <b>${esc(ex.oku)}</b></p><p class="soluk">${esc(ex.n)}</p>${sesButonlari(ex)}${kayitHTML(ex.r + '#' + ex.w.join('-'), ayetUrl(ex.r))}</article>`).join('') +
         `<p class="soluk ortala">${t('Sesler için internet gerekir. Tilavet: {0}.', esc(kari().ad))}</p>
-         <button class="btn genis" data-sekme="alistirma">${t('Alıştırmaya geç ›')}</button>`;
+         ${pkVar(u) ? `<section class="kart pk-giris"><h2>🎙️ ${t('Okuyarak pekiştir')}</h2><p>${t('Bu dersin {0} örnek kelimesini sen oku; yapay zekâ okuyuşunu ölçsün. Her kelimede yüzde, hata ve doğrusunu dinleme.', pkOrnekler(u).length)}</p>${(() => { const k = (S.pekistir || {})[id]; const y = k ? Object.values(k.k) : []; return y.length ? `<p class="soluk kucukyazi">${t('Son ortalaman: %{0} ({1} kelime)', Math.round(y.reduce((a, b) => a + b, 0) / y.length), y.length)}</p>` : ''; })()}
+           <button class="btn genis" data-git="pekistir|${id}|0">${t('Okumaya başla')}</button></section>` : ''}
+         <button class="btn genis ${pkVar(u) ? 'ikincil' : ''}" data-sekme="alistirma">${t('Alıştırmaya geç ›')}</button>`;
     } else if (sekme === 'alistirma') {
       icerik = `<article class="kart"><h2>${t('Alıştırma')}</h2><p>${t('Puan tutulmaz, istediğin kadar çöz. Her sorudan sonra açıklama görürsün. Yanlış yaptığın sorular tekrar listene eklenir.')}</p>
         <button class="btn genis" data-git="alistirmaBasla|${id}">${t('Alıştırmaya başla')}</button></article>`;
@@ -2116,6 +2119,100 @@
       ${medler.length ? `<p class="soluk kucukyazi">${t('Duyulan medler:')} <span class="ar-karisik">${medler.join(' · ')}</span></p>` : ''}
       <p class="soluk kucukyazi">${t('🔴 açık hata (lahn-i celî), 🟠 ince hata (lahn-i hafî). Yapay zekâ yanılabilir; son söz hocanındır.')}</p></div>`;
   }
+  // ------------------------------------------------------------ Okuyarak pekiştir (karar: claude/inceleme-2026-11-18-kelime-okuma-alistirmasi.md)
+  // Dersin örnek kelimeleri tek tek: kâriden dinle → oku → yüzde, kategori dökümü, konunun kuralı önce, "nerede kaybettin", iki kayıt yan yana.
+  // Kayıt telefonda kalır, gönderilmez. Sonuçlar S.pekistir[ders] = { k: { anahtar: yüzde }, t }.
+  const PK_ADET = 5;
+  const pkKelimeNo = ex => { const [a, b] = ex.w.length === 2 ? ex.w : [ex.w[0], ex.w[0]]; const l = []; for (let i = a; i <= b; i++) l.push(i); return l; };
+  const pkOrnekler = u => (u.ornek || []).filter(ex => ex.r && ex.w && AYAH[ex.r]).filter((ex, i, l) => l.findIndex(y => y.r === ex.r && y.w.join() === ex.w.join()) === i).slice(0, PK_ADET);
+  const pkVar = u => pkOrnekler(u).length >= 2;
+  let PK = null;   // { id, i, kayit: { url, blob }, sonuc, kayitci }
+  const PK_KAT = () => [['harf', t('Harfler ve mahreç')], ['hareke', t('Harekeler')], ['med', t('Med')], ['diger', t('Diğer tecvid kuralları')]];
+  EKRAN.pekistir = function (id, i) {
+    const u = unitById(id); if (!u) return geri();
+    const l = pkOrnekler(u); i = Math.min(Math.max(0, +i || 0), l.length);
+    if (!PK || PK.id !== id || PK.i !== i) { if (PK && PK.kayit) try { URL.revokeObjectURL(PK.kayit.url); } catch (e) { } PK = { id, i, kayit: null, sonuc: null }; }
+    const sonuclar = (S.pekistir && S.pekistir[id] && S.pekistir[id].k) || {};
+    // ---- seri sonu
+    if (i >= l.length) {
+      const yuz = l.map(ex => sonuclar[ex.r + '#' + ex.w.join('-')]).filter(x => x != null), ort = yuz.length ? Math.round(yuz.reduce((a, b) => a + b, 0) / yuz.length) : null;
+      app.innerHTML = `${ust(t('Okuyarak pekiştir'))}<main>
+        <section class="kart pk-son"><h2>${esc(u.ad)}</h2>${ort != null ? `<div class="pk-halka" style="--p:${ort}"><b>%${ort}</b></div><p>${t('{0} kelimenin ortalaması', yuz.length)}</p>` : `<p>${t('Hiç kelime okunmadı.')}</p>`}
+          <ul class="pk-liste">${l.map((ex, j) => { const y = sonuclar[ex.r + '#' + ex.w.join('-')]; return `<li><span class="ar">${esc(pkKelimeNo(ex).map(k => AYAH[ex.r].split(' ')[k - 1]).join(' ').replace(/\u06DE/g, ''))}</span><b class="${y == null ? 'soluk' : y >= 85 ? 'yesil' : y >= 60 ? 'turuncu' : 'kirmizi'}">${y == null ? '—' : '%' + y}</b><button class="link" data-pk-git="${j}">${t('Tekrar')}</button></li>`; }).join('')}</ul>
+          <p class="soluk kucukyazi">${t('Yapay zekâ yanılabilir; son söz hocanındır.')}</p>
+          <div class="satir"><button class="btn ikincil" data-pk-git="0">${t('Baştan oku')}</button><button class="btn" data-git-ders="${id}">${t('Alıştırmaya geç ›')}</button></div></section></main>`;
+      app.querySelectorAll('[data-pk-git]').forEach(b => b.onclick = () => { PK = null; ekranYigini[ekranYigini.length - 1] = ['pekistir', [id, +b.dataset.pkGit]]; ciz(); });
+      const dg = app.querySelector('[data-git-ders]'); if (dg) dg.onclick = () => { ekranYigini.pop(); ekranYigini[ekranYigini.length - 1] = ['ders', [id, 'alistirma']]; ciz(); };
+      return;
+    }
+    const ex = l[i], kn = pkKelimeNo(ex), kel = AYAH[ex.r].split(' ').map(k => k.replace(/\u06DE/g, '')), ofs = []; let o = 0; for (const k of kel) { ofs.push(o); o += k.length + 1; }
+    const kelimeYazi = kn.map(k => kelimeHTML(ex.r, kel[k - 1], ofs[k - 1])).join(' ');
+    const [n, a] = ex.r.split(':').map(Number), anahtar = ex.r + '#' + ex.w.join('-'), s = PK.sonuc;
+    let sonucHTML = '';
+    if (s && s.hata) sonucHTML = `<section class="kart pk-sonuc"><p class="hata">${esc(s.hata)}</p></section>`;
+    else if (s) {
+      const y = s.puan.yuzde, notlar = s.kelimeler.flatMap(w => w.notes.map(z => Object.assign({ w: w.index }, z)));
+      const konu = notlar.filter(z => KURAL_BOLUM[z.rule.replace(':uneven', '')] === id), diger = notlar.filter(z => !konu.includes(z));
+      const sirali = konu.concat(diger.sort((x, z) => (z.severity === 'jali') - (x.severity === 'jali'))).slice(0, 3);
+      const kelimeAr = wi => esc(kel[kn[Math.min(wi, kn.length - 1)] - 1]);
+      sonucHTML = `<section class="kart pk-sonuc ${y >= 85 ? 'iyi' : y >= 60 ? 'orta' : 'kotu'}" aria-live="polite">
+        <p class="pk-ust">${t('Ölçülen alanlardaki sonucun')}</p>
+        <div class="pk-halka" style="--p:${y}"><b>%${y}</b></div>
+        <p class="pk-yorum">${!notlar.length ? t('Temiz. Önce dinleyip sonra okumak işe yarıyor.') : konu.length ? t('Bu dersin konusunda düzeltilecek bir yer var.') : t('Konunun kuralı doğru; başka bir yerde küçük bir düzeltme var.')}</p>
+        ${sirali.length ? `<h3>${t('Nerede puan kaybettin?')}</h3>${sirali.map(z => `<div class="pk-hata ${z.severity === 'jali' ? 'acik' : ''}"><span class="ar">${kelimeAr(z.w)}</span><div><p>${esc(z.msg)}</p><small>${esc(kuralAdi(z.rule))} · ${z.severity === 'jali' ? t('açık hata') : t('ince hata')}</small></div></div>`).join('')}
+          <div class="satir"><button class="btn ikincil" id="pkKari2">▶ ${t('Kâriden dinle')}</button><button class="btn ikincil" id="pkBen2">▶ ${t('Senin okuyuşun')}</button></div>` : ''}
+        <details class="pk-ayrinti"><summary>${t('Ayrıntılı değerlendirme')}</summary>
+          ${PK_KAT().map(([k, ad]) => { const v = s.puan.kat[k]; return `<div class="pk-kat"><span>${ad}</span><b>${v ? `${v[0]} / ${v[1]}` : '—'}</b>${v ? `<i style="--p:${Math.round(v[0] / v[1] * 100)}"></i>` : ''}</div>`; }).join('')}
+          <p class="soluk kucukyazi">${t('"—": bu kelimede o alanda ölçülecek bir şey yok. Açık hata tam, ince hata yarım puan düşürür.')}</p></details>
+        <p class="soluk kucukyazi">${t('Yapay zekâ yanılabilir; son söz hocanındır.')}</p></section>`;
+    }
+    const kayitVar = !!(PK.kayit && PK.kayit.url);
+    app.innerHTML = `${ust(esc(u.ad), true, `<span class="pk-sayac">${i + 1}/${l.length}</span>`)}<div class="ilerleme"><div style="width:${Math.round(i / l.length * 100)}%"></div></div>
+      <main class="pk-ekran">
+        <section class="kart pk-kelime"><div class="ar pk-ar" dir="rtl" lang="ar">${kelimeYazi}</div><p class="okunus">🗣️ ${esc(ex.oku)}</p><p class="soluk kucukyazi">${esc(ex.n)}</p></section>
+        <div class="pk-dugmeler"><button class="btn ikincil" id="pkKari">🔊 ${t('Kâriden dinle')}</button>${kayitVar ? `<button class="btn ikincil" id="pkBen">▶ ${t('Senin okuyuşun')}</button>` : ''}</div>
+        ${s ? sonucHTML : `<p class="pk-yonerge">${t('Önce kâriden dinle, sonra 🎙️ düğmesine dokun ve kelimeyi kendi sesinle oku. Bitince tekrar dokun.')}</p>`}
+      </main>
+      <div class="pk-alt">${s ? `<button class="btn ikincil" id="pkTekrar">🎙️ ${t('Bir daha dene')}</button><button class="btn" id="pkDevam">${i + 1 < l.length ? t('Devam ›') : t('Bitir ✓')}</button>`
+        : `<button class="btn ikincil" id="pkAtla">${t('Atla')}</button><button class="btn pk-mik" id="pkOku">🎙️ ${t('Oku')}</button>`}</div>`;
+    const kariCal = b => arkaArka(kn.map(k => kelimeUrl(ex.r, k)), b), benCal = b => { if (PK.kayit) cal(PK.kayit.url, b); };
+    $('#pkKari').onclick = e => kariCal(e.currentTarget);
+    const pb = $('#pkBen'); if (pb) pb.onclick = e => benCal(e.currentTarget);
+    const k2 = $('#pkKari2'); if (k2) k2.onclick = e => kariCal(e.currentTarget);
+    const b2 = $('#pkBen2'); if (b2) b2.onclick = e => benCal(e.currentTarget);
+    const ileri = () => { PK = null; ekranYigini[ekranYigini.length - 1] = ['pekistir', [id, i + 1]]; ciz(); window.scrollTo(0, 0); };
+    const at = $('#pkAtla'); if (at) at.onclick = ileri;
+    const dv = $('#pkDevam'); if (dv) dv.onclick = ileri;
+    const kaydetBasla = async btn => {
+      if (PK.kayitci) { PK.kayitci.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+      let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofon iznini aç.')); }
+      sesDurdur(); O.modelAc().catch(() => { });
+      const parca = [], rec = new MediaRecorder(akis); PK.kayitci = rec;
+      btn.textContent = '⏹ ' + t('Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor');
+      const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 12000);
+      rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+      rec.onstop = async () => {
+        clearTimeout(z); akis.getTracks().forEach(x => x.stop()); PK.kayitci = null;
+        if (!document.body.contains(btn)) return;
+        btn.textContent = t('Değerlendiriliyor…'); btn.disabled = true; btn.classList.remove('kirmizi-btn', 'kaydediyor');
+        const blob = new Blob(parca, { type: rec.mimeType || 'audio/webm' });
+        if (PK.kayit) try { URL.revokeObjectURL(PK.kayit.url); } catch (e) { }
+        PK.kayit = { blob, url: URL.createObjectURL(blob) };
+        try {
+          const son = kel[kn[kn.length - 1] - 1], tenvin = /[ً-ࣰٍ-ࣲ]/.test(son);
+          PK.sonuc = await O.kelimeRaporu(n, a, kn, blob, { tenvin, ilkKelime: kel[kn[0] - 1] });
+          S.pekistir = S.pekistir || {}; const kayit = S.pekistir[id] = S.pekistir[id] || { k: {} };
+          kayit.k[anahtar] = PK.sonuc.puan.yuzde; kayit.t = simdi(); seriGuncelle(); kaydet();
+        } catch (e) { PK.sonuc = { hata: e.message || t('Değerlendirilemedi.') }; }
+        if (ekranYigini[ekranYigini.length - 1][0] === 'pekistir') { ciz(); setTimeout(() => { const r = $('.pk-sonuc'); if (r) r.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80); }
+      };
+      rec.start();
+    };
+    const ok_ = $('#pkOku'); if (ok_) ok_.onclick = e => kaydetBasla(e.currentTarget);
+    const tk = $('#pkTekrar'); if (tk) tk.onclick = e => { PK.sonuc = null; ciz(); const b = $('#pkOku'); if (b) kaydetBasla(b); };
+  };
   function raporKaydet(n, a, sonuc) {
     const K = sonuc.kelimeler, notlar = [];
     K.forEach(w => w.notes.forEach(z => notlar.push([w.index, z.rule, z.severity === 'jali' ? 'j' : 'k', z.msg])));
