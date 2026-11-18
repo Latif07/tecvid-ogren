@@ -20,7 +20,13 @@ jobs:
             ffmpeg -loglevel error -y -i ${k}_112004.mp3 -i ${k}_besmele.mp3 -i ${k}_113001.mp3 -i ${k}_113002.mp3 -i ${k}_113003.mp3 -filter_complex "[0:a][1:a][2:a][3:a][4:a]concat=n=5:v=0:a=1,aresample=16000" -ac 1 bagla_besmeleli_${k}.wav
             ffmpeg -loglevel error -y -i ${k}_112004.mp3 -i ${k}_113001.mp3 -i ${k}_113002.mp3 -i ${k}_113003.mp3 -filter_complex "[0:a][1:a][2:a][3:a]concat=n=4:v=0:a=1,aresample=16000" -ac 1 bagla_besmelesiz_${k}.wav
           done
-          rm -f *.mp3; ls -la
+          rm -f *.mp3
+          # Okuyarak pekiştir testi: ders örneklerindeki kelimelerin kelime kelime kâri kaydı (Quran.com)
+          for r in 108:3:1 114:1:4 102:4:1 101:9:1 6:36:1 1:2:4 1:4:3 1:5:4 107:5:5 112:1:4 113:1:4 111:1:5 112:3:2 112:3:4 109:3:2 2:3:8 97:1:2 98:8:2 50:22:8 1:4:1 113:2:3 1:7:2 114:5:4 109:6:2; do
+            IFS=: read s a w <<< "$r"; f=$(printf "%03d_%03d_%03d" $s $a $w)
+            curl -sSfL --retry 3 -o k.mp3 "https://audio.qurancdn.com/wbw/$f.mp3" && ffmpeg -loglevel error -y -i k.mp3 -ac 1 -ar 16000 kelime_$f.wav; rm -f k.mp3
+          done
+          ls -la
       - name: Dala koy
         run: |
           cd ses && git init -q -b test-ses && git add . && git -c user.name=bot -c user.email=bot@x commit -qm "Test sesleri" && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" test-ses
