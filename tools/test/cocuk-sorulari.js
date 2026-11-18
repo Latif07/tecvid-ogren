@@ -9,6 +9,9 @@ const { chromium } = require('playwright');
     // BOZ=1: telefondaki hatayı (okunuşta "false") yapay olarak geri getirir; test bunu yakalamalı
     if (process.env.BOZ) await p.route(/js\/cocuk\.js/, async r => { const res = await r.fetch(); const body = (await res.text()).replace(/const sessizHarf = h => [^;]+;/, 'const sessizHarf = h => false;'); r.fulfill({ response: res, body }); });
     await p.goto('http://localhost:8080/index.html'); await p.waitForTimeout(900);
+    // Gömülü olmayan sûreleri önce yükle (uygulamada durak açılınca yüklenir)
+    const yuklenemeyen = await p.evaluate(async () => { const T = window.__cocukTest, l = []; for (const d of T.DURAK.filter(d => d.tur === 'sure')) { if (!T.SR(d.n)) { try { await T.sureYukle(d.n); } catch (e) { l.push(d.n); } } } return l; });
+    if (yuklenemeyen.length) console.log('   ✗ yüklenemeyen sûre: ' + yuklenemeyen.join(', '));
     const r = await p.evaluate(([dil]) => {
       const T = window.__cocukTest, out = { n: 0, hata: [] };
       const KOTU = /\b(false|undefined|NaN|null)\b|\[object/;

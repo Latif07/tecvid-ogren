@@ -1171,7 +1171,7 @@
     app.innerHTML = `${ust(t('Testler'))}<main>
       <nav class="hizli iki"><button data-git="gecmis">📈<span>${t('Geçmiş ve ilerleme')}</span></button><button data-git="zayif">🎯<span>${t('Zayıf konular')}</span></button></nav>
       <article class="kart"><h2>${t('⚡ Hızlı test')}</h2><p>${t('Açık bölümlerden 5 karışık soru.')}</p><button class="btn" id="hizli">${t('Başla')}</button></article>
-      <article class="kart"><h2>${t('🎲 Karma test')}</h2><p>${t('Bölümleri ve soru sayısını sen seç.')}</p>
+      <article class="kart"><h2>${t('🔀 Karma test')}</h2><p>${t('Bölümleri ve soru sayısını sen seç.')}</p>
         <div class="secimler">${acik.map(u => `<label><input type="checkbox" value="${u.id}" checked> ${u.ikon} ${esc(u.ad)}</label>`).join('')}</div>
         <div class="satir sola"><label>${t('Soru sayısı:')} <select id="adet"><option>10</option><option selected>20</option><option>30</option><option>50</option></select></label></div>
         <button class="btn" id="karma">${t('Başla')}</button></article>
@@ -3539,7 +3539,7 @@
     d.onclick = kapat; setTimeout(kapat, kisa ? 1000 : 2600);
   }
   // Çocuk modu (cocuk.js) bağlanır
-  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: s_ => buyugeGec(s_), sureSes: n => sureSesDurum(n), ayetCal: (r, btn, bitince) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn, undefined, bitince), odevler: () => cocukOdevleri(), kelimeCal: (r, w, btn) => cal(kelimeUrl(r, w), btn) }) : null;
+  const COCUK = window.CocukModu ? window.CocukModu({ EKRAN, git, anaSayfa, ust, kaydet, bugun, seriGuncelle, toast, S: () => S, profil: AKTIF, ciz: () => ciz(), ekranDegistir, buyugeGec: s_ => buyugeGec(s_), sureSes: n => sureSesDurum(n), ayetCal: (r, btn, bitince) => cal(ayetUrl(r, 'Husary_Muallim_128kbps'), btn, undefined, bitince), odevler: () => cocukOdevleri(), sure: n => SURE(n), sureYukle: n => sureYukle(n), kelimeCal: (r, w, btn) => cal(kelimeUrl(r, w), btn) }) : null;
   // ------------------------------------------------------------ MEŞK MODU (özel: Ayarlar'dan açılır)
   // Geleneksel meşk: hoca parça parça okur, öğrenci tekrar eder, hata düzeltilir; parça yeterince doğru
   // okununca sonrakine geçilir, sonunda ayetin tamamı birlikte okunur.

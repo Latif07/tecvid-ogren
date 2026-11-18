@@ -1385,7 +1385,7 @@
  "Ana sayfa": "Home",
  "⚡ Hızlı test": "⚡ Quick test",
  "Açık bölümlerden 5 karışık soru.": "5 mixed questions from your open units.",
- "🎲 Karma test": "🎲 Mixed test",
+ "🔀 Karma test": "🔀 Mixed test",
  "Bölümleri ve soru sayısını sen seç.": "Choose the units and number of questions.",
  "Soru sayısı:": "Number of questions:",
  "🎯 Zayıf konular testi": "🎯 Weak topics test",

@@ -4,10 +4,12 @@
   const SURUM = '1.0.39';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
-    { s: '1.0.39', t: '2026-11-18', durum: 'Web', l: [
+    { s: '1.0.39', t: '2026-11-18', durum: 'Test APK', l: [
       'Düzeltme: çocuk modunda cezm, şedde ve med sorularında okunuş yerine "false" yazıyordu',
       'Çocuk modu yanlış cevapta: basılan seçenek kırmızı ve ✗, doğrusu yeşil; "Olmadı. Doğrusu yeşil olan, devam!"',
       'Çocuk modu İngilizcede de Türk camisindeki adlarla: üstün, esre, ötre, cezm, şedde, tenvin, med; soruda işaretin yeri de yazar (ör. "harfin üstünde küçük eğik çizgi")',
+      'Sûreler Adası 4 sûreden 23 sûreye çıktı: camideki öğrenci ezber çizelgesindeki sûreler, çizelgedeki sırayla (Fâtiha, Kevser, İhlâs, Kureyş, Fîl, Nasr, Felak, Nâs, Mâûn, Kâfirûn, Tebbet, Asr, Tîn, Kadr, Zilzâl, İnşirâh, Duhâ, Hümeze, Tekâsür, Kâria, Âdiyât, Alak, Beyyine); sûre adları her dilde Türkçe',
+      'Zar resmi kaldırıldı ("Karışık" durağında harekeli harfler, karma testte 🔀)',
       'Yoklama ("Biliyor muyum?") yıldız kazandırır: her doğru cevap bir yıldız; aynı yoklamada yalnız daha iyi sonuç yeni yıldız getirir',
     ] },
     { s: '1.0.38', t: '2026-11-18', durum: 'Test APK', l: [

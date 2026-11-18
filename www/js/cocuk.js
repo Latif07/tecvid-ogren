@@ -335,12 +335,19 @@
       if (i % 4 === 3 || i === HARF.length - 1) DURAK.push({ id: 'ht' + i, ada: 'harf', tur: 'tekrar', son: i, ad: t('Tekrar'), ikon: '🔁' });
     });
     [[0, 'k1'], [1, 'k2'], [2, 'k3']].forEach(([i, id]) => DURAK.push({ id, ada: 'hareke', tur: 'hareke', h: i, ad: HAREKE_AD[i], ikon: 'بَ بِ بُ'.split(' ')[i] }));
-    DURAK.push({ id: 'k4', ada: 'hareke', tur: 'hareke', h: -1, ad: t('Karışık'), ikon: '🎲' });
+    DURAK.push({ id: 'k4', ada: 'hareke', tur: 'hareke', h: -1, ad: t('Karışık'), ikon: 'بَ بِ بُ' });
     [['o1', 'hece', t('Hece'), 'بَتَ'], ['o2', 'cezm', t('Cezm'), 'بَتْ'], ['o3', 'tenvin', t('Tenvin'), 'بٌ'], ['o4', 'med', t('Med (uzatma)'), 'بَا'], ['o5', 'sedde', t('Şedde'), 'بَّ'], ['o7', 'isaret', t('Mushaftaki işaretler'), 'بۡ'], ['o6', 'karma', t('Büyük tekrar'), '🏆']]
       .forEach(([id, k, ad, ik]) => DURAK.push({ id, ada: 'okuma', tur: 'okuma', k, ad, ikon: ik }));
     // Sûreler Adası: namazda en çok okunan kısa sûreler
-    const SR = n => (window.SURELER || []).find(x => x.n === n);
-    [['s1', 1], ['s2', 112], ['s3', 113], ['s4', 114]].forEach(([id, n]) => { const x = SR(n); if (x) DURAK.push({ id, ada: 'sure', tur: 'sure', n, ad: EN ? x.en : x.tr, ikon: x.ar }); });
+    const SR = n => (window.SURELER || []).find(x => x.n === n) || (api.sure ? api.sure(n) : null);
+    // Sûreler Adası: camide ve okulda verilen "Öğrenci Ezber Çizelgesi"ndeki tam sûreler, çizelgedeki sırayla.
+    // Adlar her dilde Türkçe (çocuklar camide böyle duyar). Eski duraklar (s1–s4) kimliklerini korur; ilerleme kaybolmaz.
+    // Uygulamaya gömülü olmayan sûreler durak açılınca yüklenir.
+    const SURE_ADA = [[1, 'Fâtiha', 'الفاتحة', 's1'], [108, 'Kevser', 'الكوثر'], [112, 'İhlâs', 'الإخلاص', 's2'], [106, 'Kureyş', 'قريش'], [105, 'Fîl', 'الفيل'], [110, 'Nasr', 'النصر'],
+      [113, 'Felak', 'الفلق', 's3'], [114, 'Nâs', 'الناس', 's4'], [107, 'Mâûn', 'الماعون'], [109, 'Kâfirûn', 'الكافرون'], [111, 'Tebbet', 'المسد'], [103, 'Asr', 'العصر'], [95, 'Tîn', 'التين'],
+      [97, 'Kadr', 'القدر'], [99, 'Zilzâl', 'الزلزلة'], [94, 'İnşirâh', 'الشرح'], [93, 'Duhâ', 'الضحى'], [104, 'Hümeze', 'الهمزة'], [102, 'Tekâsür', 'التكاثر'], [101, 'Kâria', 'القارعة'],
+      [100, 'Âdiyât', 'العاديات'], [96, 'Alak', 'العلق'], [98, 'Beyyine', 'البينة']];
+    SURE_ADA.forEach(([n, ad, ar_, id]) => DURAK.push({ id: id || 's' + n, ada: 'sure', tur: 'sure', n, ad, ikon: ar_ }));
     const durakBul = id => DURAK.find(d => d.id === id);
     const C = () => { const s = S(); s.cocuk = s.cocuk || { d: {}, gun: {} }; s.cocuk.d = s.cocuk.d || {}; s.cocuk.gun = s.cocuk.gun || {}; return s.cocuk; };
     const yildiz = id => (C().d[id] && C().d[id].y) || 0;
@@ -463,12 +470,14 @@
       return secenekli({ soru: { cezm: t('Hangisinde cezm var?'), med: t('Hangisinde med (uzatma) işareti var?'), dik: t('Hangisinde dik üstün var?') }[tur], dogru: h + ISARET[tur], secenek: karistir(Object.values(ISARET).map(x => h + x)), arSec: true });
     }
     // Sûre oyunları: sıradaki ayet, eksik kelime, dinle-bul
-    function sureSorusu(n, tur, kac) {
-      const x = SR(n), A0 = x.ayet, k = rnd(A0.length - 1);
+    function sureSorusu(n, tur, kac, kSabit) {
+      const x = SR(n), A0 = x.ayet, k = kSabit != null ? kSabit : rnd(A0.length - 1);
       // seçeneklerde uzun ayetlerin yalnız başı gösterilir (okumayı yeni öğrenen çocuk için)
       const kisa = y => { const w = y.split(' '); return w.length > 4 ? w.slice(0, 3).join(' ') + ' …' : y; };
       const A = new Set(A0.map(kisa)).size === A0.length ? A0.map(kisa) : A0;
-      const baska = (haric, m) => karistir(A.map((_, i) => i).filter(i => !haric.includes(i))).slice(0, m);
+      // Aynı metinli ayetler (ör. Kâfirûn 3 ve 5) seçeneklerde iki kez çıkmaz; "sonra hangisi gelir" sorusu da onlarla sorulmaz (iki cevap olur)
+      const baska = (haric, m) => { const yasak = new Set(haric.map(i => A[i])), l = []; for (const i of karistir(A.map((_, j) => j))) { if (haric.includes(i) || yasak.has(A[i])) continue; yasak.add(A[i]); l.push(i); if (l.length === m) break; } return l; };
+      if (tur === 'sira') { const uygun = A0.slice(0, -1).map((_, i) => i).filter(i => A0.filter(y => y === A0[i]).length === 1); if (uygun.length) { const k2 = uygun[rnd(uygun.length)]; if (k2 !== k) return sureSorusu(n, tur, kac, k2); } }
       if (tur === 'sira') return secenekli({ soru: t('Bu ayetten sonra hangisi gelir?'), goster: ar(A0[k], 'ayet-k'), dogru: A[k + 1], secenek: karistir([A[k + 1], ...baska([k, k + 1], kac - 1).map(i => A[i])]), arSec: true, uzun: true });
       if (tur === 'eksik') {
         const w = A0[k].split(' '), j = rnd(w.length), tum = [...new Set(A0.join(' ').split(' '))].filter(y => y !== w[j]);
@@ -537,6 +546,9 @@
     const tanissiz = d => d.tur === 'tekrar' || d.id === 'k4' || d.id === 'o6';
     const yeniD = d => ({ id: d.id, adim: tanissiz(d) ? 'oyun' : 'tanis', sorular: sorularHazirla(d), i: 0, hata: 0 });   // { id, adim: 'tanis'|'ciz'|'oyun'|'bitti', sorular, i, hata, buSoruHata }
     function durakBaslat(id) {
+      const d0 = durakBul(id);
+      // Gömülü olmayan sûre: önce yüklenir (sorular sûre metninden üretilir)
+      if (d0 && d0.tur === 'sure' && !SR(d0.n) && api.sureYukle) { toast(t('Yükleniyor…')); api.sureYukle(d0.n).then(() => durakBaslat(id)).catch(() => toast(t('Sûre açılamadı. İnternet bağlantını kontrol et.'))); return; }
       const y = yarimDurak();
       D = y && y.id === id ? y : yeniD(durakBul(id));
       git('cocukDurak', id);
@@ -557,7 +569,7 @@
         return `<div class="c-tanis"><h2>${HAREKE_AD[i]}</h2><p>${anlat}</p><div class="c-ornekler">${ornek.map(h => `<div ${HarfSes.var('hr:' + h + ':' + i) ? `class="sesli" data-hses="hr:${h}:${i}" role="button"` : ''}>${ar(h + HAREKE[i], 'buyuk')}<b>${hece(h, i)}</b>${HarfSes.var('hr:' + h + ':' + i) ? '<small>🔊</small>' : ''}</div>`).join('')}</div></div>`;
       }
       if (d.tur === 'sure') {
-        const x = SR(d.n), giris = { 1: t('Kur\'an\'ın ilk sûresidir; adı “açılış” demektir. Namazda okunur.'), 112: t('Allah\'ın bir olduğunu ve hiçbir şeye muhtaç olmadığını anlatır.'), 113: t('Sabahın Rabbine, her türlü kötülükten sığınmayı öğretir.'), 114: t('İnsanların Rabbine, kalbe kötü düşünce fısıldayandan sığınmayı öğretir.') }[d.n];
+        const x = SR(d.n), giris = { 1: t('Kur\'an\'ın ilk sûresidir; adı “açılış” demektir. Namazda okunur.'), 112: t('Allah\'ın bir olduğunu ve hiçbir şeye muhtaç olmadığını anlatır.'), 113: t('Sabahın Rabbine, her türlü kötülükten sığınmayı öğretir.'), 114: t('İnsanların Rabbine, kalbe kötü düşünce fısıldayandan sığınmayı öğretir.') }[d.n] || '';
         const ind = api.sureSes ? api.sureSes(d.n) : null;
         return `<div class="c-tanis"><div class="c-sure-ad">${ar(x.ar)}</div><h2>${esc(d.ad)}</h2><p>${giris}</p><p class="soluk">${t('{0} ayet', x.ayet.length)}</p><p>${t('Önce dinleyeceğiz, sonra her ayeti sen tekrar edeceksin.')}</p>
           ${ind ? (ind.var >= ind.toplam ? `<p class="yesil kucukyazi">${t('✓ Sesler telefonda; internetsiz de çalar.')}</p>` : `<button class="btn ikincil" id="sureIndir">${t('📥 İnternetsiz dinlemek için indir')} (${ind.var}/${ind.toplam})</button>`) : ''}</div>`;
@@ -671,6 +683,10 @@
 
     EKRAN.cocukDurak = function (id) {
       const d = durakBul(id);
+      if (d.tur === 'sure' && !SR(d.n)) {   // sûre metni henüz yüklenmedi
+        document.getElementById('app').innerHTML = `${ust(esc(d.ad))}<main class="cocuk-ekran"><p class="soluk">${t('Yükleniyor…')}</p></main>`;
+        if (api.sureYukle) api.sureYukle(d.n).then(() => api.ciz()).catch(() => toast(t('Sûre açılamadı. İnternet bağlantını kontrol et.'))); return;
+      }
       if (!D || D.id !== id) D = yeniD(d);
       const app = document.getElementById('app');
       const adimlar = d.tur === 'harf' ? ['tanis', 'ciz', 'oyun', 'bitti'] : d.tur === 'sure' ? ['tanis', 'dinle', 'oyun', 'bitti'] : tanissiz(d) ? ['oyun', 'bitti'] : ['tanis', 'oyun', 'bitti'];
@@ -1059,7 +1075,7 @@
 
     // Yalnız yerel testte: soru üreticileri doğrudan denensin (seçeneklerde "false/undefined" var mı, doğru cevap seçenekte mi)
     if (location.hostname === 'localhost') window.__cocukY = () => Y;
-    if (location.hostname === 'localhost') window.__cocukTest = { yoklamaBaslat, sorularHazirla, yoklamaSorulari, DURAK, harekeSorusu, okumaSorusu, isaretSorusu, harfSorusu };
+    if (location.hostname === 'localhost') window.__cocukTest = { sureYukle: api.sureYukle, SR, yoklamaBaslat, sorularHazirla, yoklamaSorulari, DURAK, harekeSorusu, okumaSorusu, isaretSorusu, harfSorusu };
     return { Y: () => Y, gecildi, yoklamaBaslat, molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
