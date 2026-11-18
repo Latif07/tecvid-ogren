@@ -5,6 +5,7 @@
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
     { s: '1.0.36', t: '2026-11-18', durum: 'Test APK', l: [
+      'Uygulama olarak yükle (PWA): Android ve bilgisayarda Chrome\'da ana sayfada ve Profil\'de "Yükle" düğmesi; ana ekrana simge, tam ekran, internetsiz dersler',
       'Günlük hatırlatma: kısa bir ayet ya da hadis (kaynağıyla) ve bugünkü dersine davet; ilk açılışta bir kez sorulur, Ayarlar\'da "Deneme bildirimi gönder"',
       'Kur\'an metni Türkiye (Diyanet) mushafı yazımıyla: med işaretleri, esre-i memdûde, durak işaretleri; Hamdullah hattı. Ayarlardan Medine yazımı da seçilebilir',
       'Seviye tespiti ("Seni tanıyalım"): kısa test; bildiğin konuların bölümleri atlanır, doğru yerden başlarsın',

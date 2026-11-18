@@ -786,6 +786,24 @@
       <p>${t('Seçtiğin saatte kısa bir ayet ya da hadisle hatırlatırız. O gün zaten çalıştıysan gelmez.')}</p>
       <div class="satir sola"><button class="btn" id="hatirEvet">${t('Evet, akşam 20:00')}</button><button class="btn ikincil" id="hatirSaatSec">${t('Saati seç')}</button><button class="btn ikincil" id="hatirHayir">${t('Hayır')}</button></div></section>`;
   }
+  // PWA: Android/masaüstü Chrome'da "Uygulama olarak yükle" (beforeinstallprompt). APK'da ve zaten yüklüyse görünmez.
+  const yerelUygulama = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const pwaYuklu = () => window.__yuklendi || window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  const yuklenebilir = () => !!window.__yukleIstegi && !yerelUygulama() && !pwaYuklu();
+  async function pwaYukle() {
+    const e = window.__yukleIstegi; if (!e) return;
+    try { await e.prompt(); const s = await e.userChoice; if (s && s.outcome === 'accepted') { window.__yukleIstegi = null; toast(t('Yükleniyor… Ana ekranında Hüsn-i Kıraat simgesi görünecek.')); } } catch (x) { }
+    ciz();
+  }
+  function yukleKarti() {
+    let kapali = false; try { kapali = localStorage.getItem('tecvid-ogren.yukle') === '1'; } catch (e) { }
+    if (!yuklenebilir() || kapali) return '';
+    return `<section class="kart yukle-kart" style="margin-bottom:14px"><div class="yukle-ust"><img src="icons/icon-192.png" alt="" width="48" height="48"><div><h2>${t('📲 Uygulama olarak yükle')}</h2>
+      <p>${t('Ana ekranına simge eklenir; tam ekran açılır, dersler internetsiz de çalışır.')}</p></div></div>
+      <div class="satir sola"><button class="btn" id="pwaYukle">${t('Yükle')}</button><button class="btn ikincil" id="pwaSonra">${t('Sonra')}</button></div></section>`;
+  }
+  // Yükleme sinyali sonradan gelirse ana sayfa/profil yenilensin
+  window.addEventListener('yuklenebilir', () => { if (ekranYigini.length && ['ana', 'profil'].includes(ekranYigini[ekranYigini.length - 1][0])) ciz(); });
   function iosKurKarti() {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const kurulu = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
@@ -837,7 +855,7 @@
       <main>
         <p class="uygulama-alt">${t('Tecvidli Kur\'an okumayı adım adım öğren')}</p>
         <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
-        ${tanitimKarti()}${hatirlatmaKarti()}${haftaOzetKarti()}${gunlukKarti()}${yarimKarti()}
+        ${tanitimKarti()}${yukleKarti()}${hatirlatmaKarti()}${haftaOzetKarti()}${gunlukKarti()}${yarimKarti()}
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>${t('tamam')}</small></div>
           <div><p class="buyukyazi">${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</p>
@@ -868,6 +886,8 @@
       const ok = await hatirlatmaKur(true); if (!ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); } else toast(t('Hatırlatma kuruldu: her gün {0}', '20:00')); ciz(); };
     const hss = $('#hatirSaatSec'); if (hss) hss.onclick = () => { S.ayar.hatirSoruldu = true; kaydet(); git('ayarlar'); };
     const hh = $('#hatirHayir'); if (hh) hh.onclick = () => { S.ayar.hatirSoruldu = true; kaydet(); toast(t('İstersen Ayarlar > Günlük hatırlatma\'dan açabilirsin.')); ciz(); };
+    const py = $('#pwaYukle'); if (py) py.onclick = pwaYukle;
+    const ps = $('#pwaSonra'); if (ps) ps.onclick = () => { try { localStorage.setItem('tecvid-ogren.yukle', '1'); } catch (e) { } toast(t('İstersen Profil > Uygulama olarak yükle\'den yükleyebilirsin.')); ciz(); };
     const ik = $('#iosKapat'); if (ik) ik.onclick = () => { try { localStorage.setItem('tecvid-ogren.ios', '1'); } catch (e) { } ciz(); };
     const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
   };
@@ -2736,8 +2756,10 @@
         ${satir('okumaRaporu', '🎤', t('Okuma raporu'), t('Okuyuşundaki hatalar ve gelişimin'))}
         ${satir('sinif', '👨‍🏫', t('Sınıf (hoca–öğrenci)'), ogrSiniflari().length ? ogrSiniflari().map(c => esc(c.sinifAd || c.kod)).join(', ') : t('Katıl ya da sınıf aç'))}
         ${satir('ayarlar', '⚙️', t('Ayarlar'), t('Dil, tema, yazı boyutu, kâri, hatırlatma, yedek'))}
+        ${yuklenebilir() ? `<button class="bolum" id="profilYukle"><span class="ikon">📲</span><span class="bad"><small>${t('Ana ekrana simge; tam ekran, internetsiz')}</small>${t('Uygulama olarak yükle')}</span><span class="rozet">›</span></button>` : ''}
         ${FS() ? satir('indir', '📥', t('İnternetsiz ses'), t('Sesleri telefona indir')) : ''}
       </div></main>`;
+    const pyk = $('#profilYukle'); if (pyk) pyk.onclick = pwaYukle;
   };
 
   EKRAN.ayarlar = function () {

@@ -932,3 +932,7 @@ main.ez-ekran { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
 .ez-ayet-tekrar button { min-height: 44px; padding: 0 16px; border-radius: 22px; font-weight: 700; font-size: .92rem; }
 .ez-yeniden { border: 1.5px solid var(--ana); background: var(--ana); color: #fff; }
 .ez-ayrinti { border: 1.5px solid var(--cizgi); background: var(--kart); color: var(--metin); }
+.yukle-ust { display: flex; gap: 12px; align-items: flex-start; }
+.yukle-ust img { border-radius: 12px; flex: none; }
+.yukle-ust h2 { margin: 0 0 4px; }
+.yukle-ust p { margin: 0 0 8px; }

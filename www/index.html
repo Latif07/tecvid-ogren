@@ -16,6 +16,11 @@
 </head>
 <body>
   <div id="app"></div>
+  <script>
+    // PWA: Chrome "yüklenebilir" sinyalini sayfa açılır açılmaz verebilir; uygulama yüklenmeden yakalanır, düğmeyle gösterilir
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__yukleIstegi = e; window.dispatchEvent(new Event('yuklenebilir')); });
+    window.addEventListener('appinstalled', function () { window.__yukleIstegi = null; window.__yuklendi = true; window.dispatchEvent(new Event('yuklenebilir')); });
+  </script>
   <script src="js/capacitor.js"></script>
   <script src="js/dil.js"></script>
   <script src="js/surumler.js"></script>

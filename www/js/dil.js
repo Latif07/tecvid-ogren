@@ -23,6 +23,13 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+ "📲 Uygulama olarak yükle": "📲 Install as an app",
+ "Ana ekranına simge eklenir; tam ekran açılır, dersler internetsiz de çalışır.": "An icon is added to your home screen; it opens full screen and lessons work offline.",
+ "Yükle": "Install",
+ "Uygulama olarak yükle": "Install as an app",
+ "Ana ekrana simge; tam ekran, internetsiz": "Home screen icon; full screen, offline",
+ "Yükleniyor… Ana ekranında Hüsn-i Kıraat simgesi görünecek.": "Installing… The Husn-i Qiraat icon will appear on your home screen.",
+ "İstersen Profil > Uygulama olarak yükle'den yükleyebilirsin.": "You can install it later from Profile > Install as an app.",
  "Harf Yolculuğu seni bekliyor": "Your Letter Journey is waiting",
  "Bugün bir durak, bir yıldız": "One stop, one star today",
  "Bugün Kur'an'a 5 dakika ayır": "Give 5 minutes to the Qur'an today",

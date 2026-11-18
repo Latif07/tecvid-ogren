@@ -1,7 +1,7 @@
 {
   "name": "Hüsn-i Kıraat",
   "short_name": "Hüsn-i Kıraat",
-  "description": "Kur'an-ı Kerim'i tecvidli okumayı adım adım öğreten, testlerle pekiştiren uygulama",
+  "description": "Kur'an-ı Kerim'i tecvidli okumayı adım adım öğreten uygulama: dersler, renkli tecvid, kâri sesleri, yapay zekâ ile okuma kontrolü, ezber ve çocuklar için Harf Yolculuğu.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -10,7 +10,45 @@
   "theme_color": "#0f5a47",
   "lang": "tr",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./",
+  "categories": [
+    "education",
+    "books"
+  ],
+  "screenshots": [
+    {
+      "src": "icons/ekran-1.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ana sayfa"
+    },
+    {
+      "src": "icons/ekran-2.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ezber çalış"
+    },
+    {
+      "src": "icons/ekran-3.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ders"
+    }
   ]
 }
