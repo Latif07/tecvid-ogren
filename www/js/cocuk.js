@@ -628,7 +628,7 @@
 
     function soruHTML(q) {
       if (q.tip === 'hafiza') return `<div class="c-hafiza n${q.kartlar.length}">${q.kartlar.map((h, i) => `<button class="c-kutu c-kart-kapali" data-hk="${i}" aria-label="${t('Kart {0}', i + 1)}"><span class="on">⭐</span><span class="arka">${ar(h)}</span></button>`).join('')}</div>`;
-      if (q.tip === 'yagmur') return `<div class="c-yagmur ${azHareket() ? 'durgun' : ''}" aria-live="polite"><div class="c-yagmur-say"><b>0 / 3</b></div></div>`;
+      if (q.tip === 'yagmur') return `<div class="c-yagmur ${azHareket() || kucuk() ? 'durgun' : ''}" aria-live="polite"><div class="c-yagmur-say"><b>0 / 3</b></div></div>`;
       if (q.tip === 'dizi') return `<p class="soluk ortala">${t('Elif-Ba\'daki sırayla: önce gelen harfe önce dokun.')}</p><div class="c-tren">${q.dizi.map(() => '<span class="c-vagon"></span>').join('')}<span class="c-lokomotif">🚂</span></div>
         <div class="c-kutular">${q.kutular.map((h, i) => `<button class="c-kutu" data-k="${i}" data-h="${h}">${ar(h)}</button>`).join('')}</div>`;
       if (q.tip === 'eslestir') return `<div class="c-eslestir"><div>${q.harfler.map(h => `<button class="c-kutu" data-eh="${h}">${ar(h)}</button>`).join('')}</div><div>${q.adlar.map(h => `<button class="c-kutu c-ad" data-ea="${h}">${esc(adi(h))}</button>`).join('')}</div></div>`;
@@ -680,13 +680,13 @@
       else {
         const y = D.yildiz; const kalan = DURAK.indexOf(d) + 1 < DURAK.length ? DURAK[DURAK.indexOf(d) + 1] : null;
         const m = mujde(DURAK.indexOf(d));
-        balon = y === 3 ? t('Mükemmel! Üç yıldız!') : y === 2 ? t('Çok güzel! İki yıldız!') : t('Bitirdin! Tekrar oynarsan daha çok yıldız kazanırsın.');
+        balon = y === 3 ? t('Mükemmel! Üç yıldız!') : y === 2 ? t('Çok güzel! İki yıldız!') : t('Bitirdin, aferin! İstersen bir daha oyna, daha çok yıldız topla.');
         const mola = molaZamani(); if (mola) { molaGosterildi = true; balon = t('Bugünlük çok güzel çalıştın! Biraz dinlenelim mi?'); }
         govde = `<article class="kart c-kart c-bitti"><div class="c-yildizlar buyuk">${[1, 2, 3].map(n => `<span class="${n <= y ? 'dolu' : ''}" style="--g:${n * .18}s">★</span>`).join('')}</div>
-          <h2>${esc(OVGU())}</h2>${D.yeniCikartma ? `<p class="c-yeni-cikartma">${t('Yeni çıkartma kazandın:')} <span>${D.yeniCikartma}</span></p>` : ''}</article>
-          ${m}
+          <h2>${y === 1 ? t('Bitirdin, aferin!') : esc(OVGU())}</h2>${D.yeniCikartma ? `<p class="c-yeni-cikartma">${t('Yeni çıkartma kazandın:')} <span>${D.yeniCikartma}</span></p>` : ''}</article>
+          <div class="satir c-bitti-dugmeler">${kalan ? `<button class="btn ikincil" data-git="ana">${t('Haritaya dön')}</button><button class="btn" id="cSonraki">${t('Sonraki durak ›')}</button>` : `<button class="btn" data-git="ana">${t('Haritaya dön')}</button>`}</div>
           ${mola ? `<article class="kart c-mola">${MASKOT(56, 'don')}<div><b>${t('Mola zamanı 🌿')}</b><p>${t('Gözlerini dinlendir, biraz su iç. İstersen yarın kaldığın yerden devam ederiz.')}</p></div></article>` : ''}
-          <div class="satir">${kalan ? `<button class="btn ikincil" data-git="ana">${t('Haritaya dön')}</button><button class="btn" id="cSonraki">${t('Sonraki durak ›')}</button>` : `<button class="btn" data-git="ana">${t('Haritaya dön')}</button>`}</div>
+          ${m}
           ${!kalan ? `<article class="kart c-kart"><h2>${t('🎓 Harf yolculuğunu bitirdin!')}</h2><p>${t('Artık tecvid derslerine hazırsın. Bir büyüğünle birlikte derslere geçebilirsin.')}</p><button class="btn genis" id="cBuyuge">${t('📘 Tecvid derslerine geç')}</button></article>` : ''}`;
       }
       app.innerHTML = `${ust(esc(d.ad), true, sessizDugme())}<div class="ilerleme c-ilerleme"><div style="width:${ilerle}%"></div></div>
@@ -812,7 +812,8 @@
       }
     }
     function durakBitir(d) {
-      const y = D.hata === 0 ? 3 : D.hata <= 2 ? 2 : 1;
+      // 4–6 yaşta daha yumuşak: 1 hatayla da üç yıldız (karar: cocuk-testi-2026-11-18)
+      const y = kucuk() ? (D.hata <= 1 ? 3 : D.hata <= 3 ? 2 : 1) : (D.hata === 0 ? 3 : D.hata <= 2 ? 2 : 1);
       const c = C(), onceki = c.d[d.id] || { y: 0, n: 0 }, oncekiToplam = toplamYildiz();
       c.d[d.id] = { y: Math.max(onceki.y || 0, y), n: (onceki.n || 0) + 1, t: Date.now() };
       const ek = Math.max(0, c.d[d.id].y - (onceki.y || 0)); c.gun[bugun()] = (c.gun[bugun()] || 0) + Math.max(1, ek);

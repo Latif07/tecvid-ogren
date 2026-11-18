@@ -4,12 +4,13 @@
   const SURUM = '1.0.38';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
-    { s: '1.0.38', t: '2026-11-18', durum: 'Web', l: [
+    { s: '1.0.38', t: '2026-11-18', durum: 'Test APK', l: [
       'Ana sayfa sadeleşti: tek ana yol "Bugünkü dersim"; sıradaki adım ve Başla düğmesi kartın içinde; Müfredat ve İlerleme ince satır',
       'Sûre ekranı: ilk ayet ilk ekranda; tekrar sayısı, renkler, kâri, okunuş, meal ve kural arama ⚙️ altında',
       'Ayarlar kısaldı: bölümler açılır-kapanır',
       '"Kendini dene": ders sayfalarında soru yalnız son sayfada; ayet ayet tecvidde kurallar açık, isteyen "Kendini dene"yi açar; günün sorusu ana sayfanın altında',
       'Hoca ödevi: hoca sınıfa "her gün N sayfa Kur\'an" verir; öğrencinin günlük hedefi bundan az olamaz; okunan sayfalar sınıf ekranında ve raporda (bugün, 7 gün)',
+      'Çocuk modu (çocuk testi): durak sonunda "Sonraki durak" yıldızların hemen altında; tek yıldızda "Bitirdin, aferin!"; düğmeler en az 48 px; 4–6 yaşta harf yağmuru yerinde durur ve 1 hatayla da üç yıldız; Yıldızlarım\'da yazılar büyüdü; kısa ekranda "Hadi çizelim" hep görünür',
       'Ezber: önceki sûreye bağlama. Sûrenin ilk dersinde, önceki sûre ezberdeyse Bağla adımı onun son ayetinden başlar (ör. İhlâs 4 → Felak 1–3); araya besmele okunsa da okunmasa da takip eder',
     ] },
     { s: '1.0.37', t: '2026-11-18', durum: 'Web', l: [

@@ -23,6 +23,8 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+    "Bitirdin, aferin!": "You finished, well done!",
+    "Bitirdin, aferin! İstersen bir daha oyna, daha çok yıldız topla.": "You finished, well done! Play again if you like and collect more stars.",
     "7 gün": "7 days",
     "Açarsan her ayette önce soruyu sen cevaplarsın.": "If on, you answer a question first on every verse.",
     "Bir sûre seç, ayet ayet ilerle: önce dinle, sonra ayetteki bütün tecvid kurallarını kelime kelime gör ve dinle. İstersen \"Kendini dene\"yi aç; kuralları görmeden önce sen bul.": "Choose a surah and go verse by verse: listen first, then see and hear every tajweed rule word by word. Turn on \"Test yourself\" if you want to find the rule before you see it.",

@@ -1055,3 +1055,16 @@ body:has(.ko-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ez-bag-rozet { padding: 2px 8px; border-radius: 10px; font-weight: 650; }
 .ez-bag-rozet.onceki { background: var(--iyi-bg); color: var(--iyi); }
 .ez-bag-rozet.yeni { background: var(--altin-acik); color: #7a5a17; }
+
+/* ---------- Çocuk testi kararları (cocuk-testi-2026-11-18) ---------- */
+.c-hoparlor { width: 48px; height: 48px; }
+.c-tekrar { min-height: 48px; padding: 8px 14px; font-size: .88rem; }
+.c-tekrar.tamam { min-width: 48px; }
+.oku-goster { min-height: 44px; min-width: 48px; padding: 4px 14px; }
+.cocuk-ekran small, .cocuk-ekran .c-istat small, .cocuk-ekran .c-hafta small, .cocuk-ekran .c-album > div small { font-size: 13px; }
+.cocuk-ekran .c-album > div small { white-space: normal; line-height: 1.1; }
+.c-bitti-dugmeler { margin: 4px 0 14px; }
+@media (max-width: 380px) { body.cocuk-modu .ust h1 { font-size: 1rem; } }
+@media (max-height: 700px) { .c-dev-harf .ar, .c-tanis .ar.dev { font-size: 4.4rem; line-height: 1.2; } .c-tanis h2 { margin: 2px 0; } }
+/* Durakta ilerleme düğmesi kaydırmadan görünsün (kısa ekranlı telefonlar) */
+.cocuk-ekran #cIleri, .cocuk-ekran #cOyuna { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 3; box-shadow: 0 6px 18px rgba(0, 0, 0, .18); }
