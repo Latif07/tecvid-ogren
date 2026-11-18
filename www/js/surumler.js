@@ -1,9 +1,18 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.41';
+  const SURUM = '1.0.42';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.42', t: '2026-11-18', durum: 'Web', l: [
+      'Harf kartları: 28 harf 17 mahrece göre; her harfin kartında üstün/esre/ötre hâlleri, mahreci, ağız hareketi videosu, sıfatları, karıştırılan harf, Kur\'an\'dan kelimeler (🎤 Sen oku) ve ilgili dersler. Müfredat → Mahreç ve sıfat',
+      'Etkileşimli mahreç şeması: numaraya dokun, o mahrecin harflerini gör',
+      'Kur\'an okuma: 🎙️ Takip. Sen okudukça okuduğun yer işaretlenir, kaldığın yer kaydedilir, sayfa bitince sonraki sayfa açılır. Ayet menüsünde "Buradan takip et"',
+      'Kur\'an okuma: "Durak grupları" görünümü (Aa menüsü): vakıf işaretine kadar olan kelimeler aynı renkte altı çizili',
+      'Sûre listesinden açılan sayfada başlık açılan sûrenin adı; sayfa doğrudan o sûreye kayar. Aramada "İkra", "Tebbet", "Yâsîn" gibi adlar da bulunur',
+      'Dualar bölümü (Ezber → Dualar): Sübhâneke, tesbihler, Ettehiyyâtü, Salli-Bârik, Rabbenâ, kunut, Âmentü, Rabbi yessir; gizleyerek ezber',
+      'Çocuk modu, Sûreler Adası: duraklarda sûre adı Türkçe (İngilizcede İngilizce); "🎙️ Bana oku": çocuk ayeti okur, uygulama dinler',
+    ] },
     { s: '1.0.41', t: '2026-11-18', durum: 'Web', l: [
       'Okuyarak pekiştir: her dersin Örnekler bölümünün sonunda; dersin örnek kelimelerini kâriden dinle, kendin oku. Yapay zekâ yüzde, harf/hareke/med/tecvid dökümü ve "Nerede puan kaybettin?" gösterir; kâri ve senin okuyuşun yan yana dinlenir. Ses telefonda değerlendirilir, gönderilmez',
     ] },

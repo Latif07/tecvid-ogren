@@ -347,7 +347,11 @@
       [113, 'Felak', 'الفلق', 's3'], [114, 'Nâs', 'الناس', 's4'], [107, 'Mâûn', 'الماعون'], [109, 'Kâfirûn', 'الكافرون'], [111, 'Tebbet', 'المسد'], [103, 'Asr', 'العصر'], [95, 'Tîn', 'التين'],
       [97, 'Kadr', 'القدر'], [99, 'Zilzâl', 'الزلزلة'], [94, 'İnşirâh', 'الشرح'], [93, 'Duhâ', 'الضحى'], [104, 'Hümeze', 'الهمزة'], [102, 'Tekâsür', 'التكاثر'], [101, 'Kâria', 'القارعة'],
       [100, 'Âdiyât', 'العاديات'], [96, 'Alak', 'العلق'], [98, 'Beyyine', 'البينة']];
-    SURE_ADA.forEach(([n, ad, ar_, id]) => DURAK.push({ id: id || 's' + n, ada: 'sure', tur: 'sure', n, ad, ikon: ar_ }));
+    // Adlar Türkçede camide söylendiği gibi, İngilizcede İngilizce (durakta Arapça ad yerine bu yazılır; çocuklar okuyabilsin)
+    const SURE_EN = { 1: 'Al-Fatiha', 108: 'Al-Kawthar', 112: 'Al-Ikhlas', 106: 'Quraysh', 105: 'Al-Fil', 110: 'An-Nasr', 113: 'Al-Falaq', 114: 'An-Nas', 107: "Al-Ma'un", 109: 'Al-Kafirun', 111: 'Al-Masad',
+      103: "Al-'Asr", 95: 'At-Tin', 97: 'Al-Qadr', 99: 'Az-Zalzalah', 94: 'Ash-Sharh', 93: 'Ad-Duha', 104: 'Al-Humazah', 102: 'At-Takathur', 101: "Al-Qari'ah", 100: "Al-'Adiyat", 96: "Al-'Alaq", 98: 'Al-Bayyinah' };
+    const SURE_TR_TAM = { 96: 'Alak (İkra)', 94: 'İnşirâh', 111: 'Tebbet' };
+    SURE_ADA.forEach(([n, ad, ar_, id]) => { const yerel = EN ? SURE_EN[n] || ad : SURE_TR_TAM[n] || ad; DURAK.push({ id: id || 's' + n, ada: 'sure', tur: 'sure', n, ad: yerel, ar: ar_, ikon: yerel }); });
     const durakBul = id => DURAK.find(d => d.id === id);
     const C = () => { const s = S(); s.cocuk = s.cocuk || { d: {}, gun: {} }; s.cocuk.d = s.cocuk.d || {}; s.cocuk.gun = s.cocuk.gun || {}; return s.cocuk; };
     const yildiz = id => (C().d[id] && C().d[id].y) || 0;
@@ -681,6 +685,44 @@
       Sesli.sus(); api.ayetCal('1:1', btn, () => { if (document.body.contains(btn)) Sesli.dugmeyle(btn, kalan); });
     }
 
+    let BANA = null;
+    async function banaOku(d, i, btn) {
+      if (BANA) { if (BANA.btn === btn) BANA.rec.stop(); return; }
+      const a = i + 1, x = SR(d.n), kelime = x.ayet[i].split(' ').length, kutu = document.getElementById('cOkuSonuc' + i);
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Bir büyüğünden telefon ayarlarından izin vermesini iste.')); }
+      Sesli.sus(); if (window.sesDurdur) window.sesDurdur();
+      const parca = [], rec = new MediaRecorder(akis); BANA = { rec, btn };
+      btn.textContent = '⏹ ' + t('Bitti'); btn.classList.add('kayitta');
+      kutu.hidden = false; kutu.innerHTML = `<p>🎙️ ${t('Dinliyorum… Ayeti oku, bitince ⏹ düğmesine dokun.')}</p>`;
+      const sure = Math.min(30, Math.round(kelime * 1.4 + 4)), zaman = setTimeout(() => rec.state !== 'inactive' && rec.stop(), sure * 1000);
+      rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+      rec.onstop = async () => {
+        clearTimeout(zaman); akis.getTracks().forEach(z => z.stop()); BANA = null;
+        btn.textContent = '🎙️ ' + t('Bana oku'); btn.classList.remove('kayitta'); btn.disabled = true;
+        kutu.innerHTML = `<p class="soluk">${t('Dinledim, bakıyorum…')}</p>`;
+        try {
+          const s = await api.ayetOku(d.n, a, new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
+          const K = s.kelimeler || [], takilan = K.map((w, j) => [w, j]).filter(([w]) => w.notes.some(z => z.severity === 'jali'));
+          const duyulmadi = !s.heard || s.heard.length < 3;
+          if (duyulmadi) kutu.innerHTML = `<p>${t('Sesini duyamadım. Telefonu biraz yaklaştırıp bir daha oku.')}</p>`;
+          else if (!takilan.length) {
+            kutu.innerHTML = `<p class="c-oku-iyi">🌟 ${esc(OVGU())} ${t('Çok güzel okudun!')}</p>`;
+            if (!D.tekrar[i]) { D.tekrar[i] = true; durakSakla(); const tb = app_().querySelector(`[data-tekrar="${i}"]`); if (tb) { tb.classList.add('tamam'); tb.textContent = '✓'; tb.closest('.c-ayet').classList.add('tamam'); } }
+            tik(true); Konfeti.patlat(btn, 18);
+          } else {
+            const l = takilan.slice(0, 3);
+            kutu.innerHTML = `<p>${takilan.length <= 2 ? t('Güzel! Şu kelimeyi bir daha dinleyelim, sonra yine oku:') : t('Hadi önce ayeti bir daha dinleyelim, sonra birlikte okuyalım 🙂')}</p>
+              ${takilan.length <= 2 ? `<div class="c-oku-kelimeler">${l.map(([w, j]) => `<button class="c-oku-kelime" data-okk="${j + 1}">▶ ${ar(x.ayet[i].split(' ')[j] || '')}</button>`).join('')}</div>` : `<button class="btn ikincil" data-okayet="${d.n}:${a}">▶ ${t('Ayeti dinle')}</button>`}`;
+            kutu.querySelectorAll('[data-okk]').forEach(z => z.onclick = () => api.kelimeCal(`${d.n}:${a}`, +z.dataset.okk, z));
+            kutu.querySelectorAll('[data-okayet]').forEach(z => z.onclick = () => api.ayetCal(z.dataset.okayet, z));
+          }
+        } catch (e) { kutu.innerHTML = `<p class="soluk">${t('Şimdi bakamadım. İnternet bağlantısıyla bir daha dene.')}</p>`; }
+        btn.disabled = false;
+      };
+      rec.start();
+    }
+    const app_ = () => document.getElementById('app');
+
     EKRAN.cocukDurak = function (id) {
       const d = durakBul(id);
       if (d.tur === 'sure' && !SR(d.n)) {   // sûre metni henüz yüklenmedi
@@ -707,7 +749,8 @@
         govde = `<article class="kart c-kart c-sure">${d.n !== 1 ? `<div class="c-ayet besmele-satir"><button class="c-oynat" data-ayet="1:1" aria-label="${t('Dinle')}">▶</button>${ar(BESMELE)}</div>` : ''}
           ${x.ayet.map((a, i) => `<div class="c-ayet ${D.tekrar[i] ? 'tamam' : ''}"><button class="c-oynat" data-ayet="${d.n}:${i + 1}" aria-label="${t('Dinle')}">▶</button>
             <div class="c-ayet-ic">${ar(a)}${OK[d.n + ':' + (i + 1)] ? okuGizli(OK[d.n + ':' + (i + 1)]) : ''}</div>
-            <button class="c-tekrar ${D.tekrar[i] ? 'tamam' : ''}" data-tekrar="${i}">${D.tekrar[i] ? '✓' : t('Tekrar ettim')}</button></div>`).join('')}
+            <div class="c-ayet-dug"><button class="c-tekrar ${D.tekrar[i] ? 'tamam' : ''}" data-tekrar="${i}">${D.tekrar[i] ? '✓' : t('Tekrar ettim')}</button>${api.ayetOku && window.MediaRecorder ? `<button class="c-bana" data-bana="${i}">🎙️ ${t('Bana oku')}</button>` : ''}</div></div>
+            <div class="c-oku-sonuc" id="cOkuSonuc${i}" hidden></div>`).join('')}
           <p class="soluk kucukyazi">${t('Ses için internet gerekir (ya da sesleri telefona indir). Okunuş yaklaşıktır; doğrusunu kâriden dinle.')}</p></article>
           <button class="btn genis c-btn" id="cOyuna">${t('Hadi oynayalım 🎯')}</button>`;
       }
@@ -736,6 +779,9 @@
       app.querySelectorAll('[data-ayet]').forEach(b => b.onclick = () => api.ayetCal(b.dataset.ayet, b));
       app.querySelectorAll('[data-oku]').forEach(b => b.onclick = () => { b.outerHTML = `<b class="oku-acik">${b.dataset.oku}</b>`; });
       app.querySelectorAll('[data-tekrar]').forEach(b => b.onclick = () => { const i = +b.dataset.tekrar; D.tekrar[i] = !D.tekrar[i]; if (D.tekrar[i]) { tik(true); Konfeti.patlat(b, 14); } durakSakla(); b.classList.toggle('tamam', !!D.tekrar[i]); b.textContent = D.tekrar[i] ? '✓' : t('Tekrar ettim'); b.closest('.c-ayet').classList.toggle('tamam', !!D.tekrar[i]); });
+      // "Bana oku": çocuk ayeti okur, yapay zekâ dinler (telefonda; ses gönderilmez). Kırmızı yok, puan yok (Dr. Elif):
+      // doğruysa övgü ve ✓, değilse takıldığı kelimeyi dinletip bir daha denemeye çağırır.
+      app.querySelectorAll('[data-bana]').forEach(b => b.onclick = () => banaOku(d, +b.dataset.bana, b));
       const si = document.getElementById('sureIndir'); if (si) si.onclick = () => { api.sureSes(d.n).indir(); si.disabled = true; si.textContent = t('İndiriliyor…'); };
       const co = document.getElementById('cOyuna'); if (co) co.onclick = () => { D.adim = 'oyun'; api.ciz(); window.scrollTo(0, 0); };
       if (sessiz()) { /* kendiliğinden ses yok */ } else if (sq && sq.ses) setTimeout(() => HarfSes.cal(sq.ses, app.querySelector('.c-goster [data-hses]') || hop), 250); else if (sq && sq.ayetSes) setTimeout(() => api.ayetCal(sq.ayetSes, app.querySelector('[data-ayet]')), 250); else if (D.sonSoylenen !== suan + D.adim && !(sq && sq.yk && soylenenYonerge.has(sq.yk))) { D.sonSoylenen = suan + D.adim; if (sq && sq.yk) soylenenYonerge.add(sq.yk); setTimeout(() => { if (Sesli.acik && document.body.contains(hop)) balonSoyle(hop, sesliMetin); }, 200); }
@@ -963,7 +1009,7 @@
           const y = yildiz(d.id), ac = acik(d), simdi = s && s.id === d.id;
           harita += `<div class="c-durak-satir"><div class="c-durak-yer" style="--x:${KAYMA[k++ % KAYMA.length]}px">
             <button class="c-durak ${y ? 'tamam' : ac ? 'acik' : 'kilit'} ${simdi ? 'simdi' : ''}" data-durak="${d.id}" ${ac ? '' : 'disabled'} aria-label="${esc(d.ad)}" style="--ada:${a.renk}">
-              <span class="c-durak-ic">${/[؀-ۿ]/.test(d.ikon) ? ar(d.ikon, d.ikon.length > 4 ? 'uzun-ikon' : '') : d.ikon}</span>
+              <span class="c-durak-ic">${d.tur === 'sure' ? `<span class="c-durak-sure">${esc(d.ad)}</span>` : /[؀-ۿ]/.test(d.ikon) ? ar(d.ikon, d.ikon.length > 4 ? 'uzun-ikon' : '') : d.ikon}</span>
               ${y ? `<span class="c-mini-yildiz">${'★'.repeat(y)}${'☆'.repeat(3 - y)}</span>` : gecildi(d.ada) ? '<span class="c-atlandi">✓</span>' : ac ? '' : '<span class="c-kilit">🔒</span>'}
             </button>${simdi ? `<div class="c-burada">${MASKOT(40, 'zipla')}</div>` : ''}</div></div>`;
         });
