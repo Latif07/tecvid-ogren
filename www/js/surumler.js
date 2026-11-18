@@ -1,9 +1,17 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.37';
+  const SURUM = '1.0.38';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.38', t: '2026-11-18', durum: 'Web', l: [
+      'Ana sayfa sadeleşti: tek ana yol "Bugünkü dersim"; sıradaki adım ve Başla düğmesi kartın içinde; Müfredat ve İlerleme ince satır',
+      'Sûre ekranı: ilk ayet ilk ekranda; tekrar sayısı, renkler, kâri, okunuş, meal ve kural arama ⚙️ altında',
+      'Ayarlar kısaldı: bölümler açılır-kapanır',
+      '"Kendini dene": ders sayfalarında soru yalnız son sayfada; ayet ayet tecvidde kurallar açık, isteyen "Kendini dene"yi açar; günün sorusu ana sayfanın altında',
+      'Hoca ödevi: hoca sınıfa "her gün N sayfa Kur\'an" verir; öğrencinin günlük hedefi bundan az olamaz; okunan sayfalar sınıf ekranında ve raporda (bugün, 7 gün)',
+      'Ezber: önceki sûreye bağlama. Sûrenin ilk dersinde, önceki sûre ezberdeyse Bağla adımı onun son ayetinden başlar (ör. İhlâs 4 → Felak 1–3); araya besmele okunsa da okunmasa da takip eder',
+    ] },
     { s: '1.0.37', t: '2026-11-18', durum: 'Web', l: [
       'Kur\'an okuma: Kur\'an sekmesinin başında "Kaldığın yer" (sûre, ayet, sayfa, cüz) ve "Devam et"; okurken ekrandaki ayet kendiliğinden kaydedilir',
       'Günlük okuma hedefi: varsayılan 5 sayfa (1, 2, 5, 10, 20 ya da yok); "Okudum" denince ya da sayfada 30 sn kalınca sayılır; hedef dolunca tebrik',

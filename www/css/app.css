@@ -1019,3 +1019,39 @@ body:has(.ko-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .hb-neden { margin: 6px 0 10px; }
 .hb-secenek { display: flex; gap: 10px; align-items: center; min-height: 44px; margin: 8px 2px; }
 .hb-secenek input { width: 22px; height: 22px; }
+
+/* ---------- Sûre ekranı üst çubuğu ---------- */
+.sure-ust { padding: 10px 12px; }
+.sure-cubuk { display: flex; gap: 8px; align-items: center; }
+.sure-cubuk .btn { margin: 0; white-space: nowrap; padding-left: 12px; padding-right: 12px; }
+.sure-cubuk #hepsi { flex: 1; }
+.sure-ayar-btn { flex: 0 0 48px; min-width: 48px; padding: 0; font-size: 1.15rem; }
+.sure-ayar-btn.aktif { background: var(--iyi-bg); }
+.sure-not { margin: 8px 0 0; }
+.sure-cubuk .btn:not(.sure-ayar-btn) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 390px) { .sure-cubuk { gap: 6px; } .sure-cubuk .btn:not(.sure-ayar-btn) { font-size: .9rem; padding-left: 10px; padding-right: 10px; } .sure-ayar-btn { flex-basis: 44px; min-width: 44px; } }
+
+/* ---------- Ana sayfa: tek ana yol ---------- */
+.gunluk-siradaki { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.gunluk-siradaki > span { flex: 1; font-weight: 600; font-size: .95rem; }
+.gunluk-kart .gunluk-basla { margin: 0; background: #fff; color: var(--ust-bg); border-color: #fff; min-height: 46px; padding: 0 18px; white-space: nowrap; }
+.ana-satirlar { margin-top: 14px; }
+.halka.kucuk { width: 44px; height: 44px; }
+.halka.kucuk b { font-size: .72rem; }
+
+/* ---------- Ayarlar: açılır-kapanır bölümler ---------- */
+.ayar-bolum { padding: 0; }
+.ayar-bolum > summary { list-style: none; cursor: pointer; display: flex; align-items: center; min-height: 56px; padding: 6px 16px; }
+.ayar-bolum > summary::-webkit-details-marker { display: none; }
+.ayar-bolum > summary h2 { margin: 0; font-size: 1.02rem; flex: 1; }
+.ayar-bolum > summary::after { content: "›"; font-size: 1.4rem; color: var(--soluk); transition: transform .2s; }
+.ayar-bolum[open] > summary::after { transform: rotate(90deg); }
+.ayar-bolum[open] { padding-bottom: 14px; }
+.ayar-bolum > :not(summary) { margin-left: 16px; margin-right: 16px; }
+.stc-dene { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; flex-wrap: wrap; }
+.stc-dene small { flex: 1; min-width: 160px; font-size: .8rem; }
+/* Ezber: önceki sûreye bağlama */
+.ez-bag-et { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--soluk); margin: 6px 0 2px; }
+.ez-bag-rozet { padding: 2px 8px; border-radius: 10px; font-weight: 650; }
+.ez-bag-rozet.onceki { background: var(--iyi-bg); color: var(--iyi); }
+.ez-bag-rozet.yeni { background: var(--altin-acik); color: #7a5a17; }

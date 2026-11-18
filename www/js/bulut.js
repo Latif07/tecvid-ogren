@@ -113,7 +113,7 @@ window.Bulut = {
 function profilDoc(pid) { return !pid || pid === 'p1' ? doc(db, 'users', kullanici.uid) : doc(db, 'users', kullanici.uid, 'profiller', pid); }
 
 // ---------------------------------------------------------------- sınıflar (hoca–öğrenci)
-// classes/{kod}: { hocaUid, ad, odev?, olusturma }   classes/{kod}/ogrenciler/{uid}: { ad, ozet, guncelleme }
+// classes/{kod}: { hocaUid, ad, odev?, okuma?: { sayfa, verildi }, olusturma }   classes/{kod}/ogrenciler/{uid}: { ad, ozet, guncelleme }
 const KOD_HARF = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const yeniKod = () => Array.from({ length: 6 }, () => KOD_HARF[Math.floor(Math.random() * KOD_HARF.length)]).join('');
 function girisGerekli() { hazirMi(); if (!kullanici) throw new Error(yazi('Önce giriş yapmalısın.', 'You need to sign in first.')); }
@@ -152,6 +152,8 @@ Object.assign(window.Bulut, {
     try { const q = await getDocs(collection(db, 'classes', kod, 'ogrenciler')); return q.docs.map(d => Object.assign({ uid: d.id }, d.data(), { guncelleme: d.data().guncelleme ? d.data().guncelleme.toMillis() : null })); } catch (e) { throw agHatasi(e); }
   },
   async odevVer(kod, odev) { girisGerekli(); try { await updateDoc(doc(db, 'classes', kod), { odev: odev || null }); } catch (e) { throw agHatasi(e); } },
+  // Günlük Kur'an okuma ödevi: { sayfa, verildi } ya da null
+  async okumaOdevVer(kod, okuma) { girisGerekli(); try { await updateDoc(doc(db, 'classes', kod), { okuma: okuma || null }); } catch (e) { throw agHatasi(e); } },
   async ogrenciCikar(kod, uid) { girisGerekli(); try { await deleteDoc(doc(db, 'classes', kod, 'ogrenciler', uid)); } catch (e) { throw agHatasi(e); } },
   // Ezber dinletme: classes/{kod}/dinletme/{id} = { ogrUid, ad, n, a1, a2, ses (base64), mime, tarih, puan?, not? }
   async dinletGonder(kod, v) {
