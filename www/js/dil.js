@@ -23,6 +23,10 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+    "Her doğru cevap bir yıldız. {0} yıldız kazandın!": "One star for every right answer. You earned {0} stars!",
+    "Bu yoklamadan daha önce {0} yıldız almıştın. Daha çok doğru yaparsan yeni yıldız kazanırsın.": "You already got {0} stars from this check. Get more right answers to earn new stars.",
+    "Yoklama 8 kısa sorudur; her doğru cevap bir yıldız kazandırır. Bilen çocuk her şeyi baştan yapmak zorunda kalmaz. Sonradan da haritadaki “⚡ Biliyorum” düğmesiyle yapılabilir.": "The check is 8 short questions; every right answer earns a star. A child who already knows doesn’t have to start from the beginning. It can also be done later with the “⚡ I know this” button on the map.",
+    "Olmadı. Doğrusu yeşil olan, devam!": "Not quite. The green one is right. Keep going!",
     "Bitirdin, aferin!": "You finished, well done!",
     "Bitirdin, aferin! İstersen bir daha oyna, daha çok yıldız topla.": "You finished, well done! Play again if you like and collect more stars.",
     "7 gün": "7 days",

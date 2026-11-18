@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.38';
+  const SURUM = '1.0.39';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.39', t: '2026-11-18', durum: 'Web', l: [
+      'Düzeltme: çocuk modunda cezm, şedde ve med sorularında okunuş yerine "false" yazıyordu',
+      'Çocuk modu yanlış cevapta: basılan seçenek kırmızı ve ✗, doğrusu yeşil; "Olmadı. Doğrusu yeşil olan, devam!"',
+      'Çocuk modu İngilizcede de Türk camisindeki adlarla: üstün, esre, ötre, cezm, şedde, tenvin, med; soruda işaretin yeri de yazar (ör. "harfin üstünde küçük eğik çizgi")',
+      'Yoklama ("Biliyor muyum?") yıldız kazandırır: her doğru cevap bir yıldız; aynı yoklamada yalnız daha iyi sonuç yeni yıldız getirir',
+    ] },
     { s: '1.0.38', t: '2026-11-18', durum: 'Test APK', l: [
       'Ana sayfa sadeleşti: tek ana yol "Bugünkü dersim"; sıradaki adım ve Başla düğmesi kartın içinde; Müfredat ve İlerleme ince satır',
       'Sûre ekranı: ilk ayet ilk ekranda; tekrar sayısı, renkler, kâri, okunuş, meal ve kural arama ⚙️ altında',

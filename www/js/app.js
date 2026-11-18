@@ -133,7 +133,8 @@
     }
     if (a.mesk || b.mesk) { r.mesk = Object.assign({}, b.mesk || {}, a.mesk || {}); for (const k of Object.keys(r.mesk)) { const x = (a.mesk || {})[k] || {}, y = (b.mesk || {})[k] || {}; r.mesk[k] = { p: Math.max(x.p || 0, y.p || 0), tamam: !!(x.tamam || y.tamam), t: Math.max(x.t || 0, y.t || 0) }; } }
     if (a.cocuk || b.cocuk) {   // çocuk modu: durak başına en iyi yıldız, gün başına en çok yıldız
-      const ca = a.cocuk || {}, cb = b.cocuk || {}; r.cocuk = { d: {}, gun: {} };
+      const ca = a.cocuk || {}, cb = b.cocuk || {}; r.cocuk = Object.assign({}, cb, ca, { d: {}, gun: {} });   // seviye, renk, hata vb. korunur
+      if (ca.gec || cb.gec) r.cocuk.gec = Object.assign({}, cb.gec, ca.gec); if (ca.yk || cb.yk) { r.cocuk.yk = {}; for (const k of new Set([...Object.keys(ca.yk || {}), ...Object.keys(cb.yk || {})])) r.cocuk.yk[k] = Math.max((ca.yk || {})[k] || 0, (cb.yk || {})[k] || 0); }
       for (const k of new Set([...Object.keys(ca.d || {}), ...Object.keys(cb.d || {})])) { const x = (ca.d || {})[k] || {}, y = (cb.d || {})[k] || {}; r.cocuk.d[k] = { y: Math.max(x.y || 0, y.y || 0), n: Math.max(x.n || 0, y.n || 0), t: Math.max(x.t || 0, y.t || 0) }; }
       for (const k of new Set([...Object.keys(ca.gun || {}), ...Object.keys(cb.gun || {})])) r.cocuk.gun[k] = Math.max((ca.gun || {})[k] || 0, (cb.gun || {})[k] || 0);
     }

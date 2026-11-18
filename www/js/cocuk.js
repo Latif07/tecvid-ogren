@@ -3,7 +3,22 @@
  * patlatılmaz/parçalanmaz; konfeti harfin etrafında patlar, harfler sepete özenle taşınır. */
 (function () {
   'use strict';
-  const t = window.t, DIL = window.DIL, EN = DIL === 'en';
+  const DIL = window.DIL, EN = DIL === 'en';
+  // Çocuk modu İngilizcede de Türk camilerinde kullanılan adlarla konuşur (üstün, esre, ötre, cezm, şedde, tenvin, med):
+  // yurt dışındaki Türk camisine giden çocuklar bu adları bilir; Arapça terimler (fatḥah, sukūn…) onlara yabancı.
+  const COCUK_EN = {
+    'Üstün': 'Üstün', 'Esre': 'Esre', 'Ötre': 'Ötre', 'Cezm': 'Cezm', 'Tenvin': 'Tenvin', 'Şedde': 'Şedde', 'Med (uzatma)': 'Med (making it long)',
+    'Hangisinde cezm var?': 'Which one has a cezm?', 'Hangisinde med (uzatma) işareti var?': 'Which one has the med (long) sign?',
+    'İkisi de cezm': 'Both have cezm', 'Med işareti: uzat': 'Med sign: make it long',
+    'Ötre harfin üstünde küçük bir vav gibidir.': 'Ötre looks like a tiny vav (و) on top of the letter.',
+    'Harfin üstündeki küçük <b>vav</b> gibi işarete <b>ötre</b> denir. Harfe “u” sesi verir.': 'The tiny <b>vav</b>-like mark on top of a letter is called <b>ötre</b>. It gives the letter a “u” sound.',
+    'Harfin üstündeki küçük yuvarlağa <b>cezm</b> denir. Cezmli harf, kendinden önceki harfle birlikte okunur.': 'The tiny circle on top of a letter is called <b>cezm</b>. A letter with cezm is read together with the letter before it.',
+    'İki üstün, iki esre ya da iki ötreye <b>tenvin</b> denir. Okurken sona “n” sesi eklenir.': 'Two üstün, two esre or two ötre are called <b>tenvin</b>. You add an “n” sound at the end.',
+    '{0} hangisinde?': 'Which one has {0}?',
+    'harfin üstünde küçük eğik çizgi': 'a little slanted line on top of the letter', 'harfin altında küçük eğik çizgi': 'a little slanted line under the letter', 'harfin üstünde küçük vav (و) gibi': 'like a tiny vav (و) on top of the letter',
+    'Üstünden sonra elif, esreden sonra ye, ötreden sonra vav gelirse ses <b>uzatılır</b>.': 'If elif comes after üstün, ye after esre or vav after ötre, the sound is made <b>long</b>.',
+  };
+  const t = (s, ...a) => { if (!(EN && COCUK_EN[s])) return window.t(s, ...a); let r = COCUK_EN[s]; a.forEach((x, i) => { r = r.split('{' + i + '}').join(x); }); return r; };
 
   // ------------------------------------------------------------ konfeti (kendi çizimimiz, internetsiz)
   const Konfeti = (function () {
@@ -255,12 +270,15 @@
   const BENZER = [['ب', 'ت', 'ث', 'ن', 'ي'], ['ج', 'ح', 'خ'], ['د', 'ذ'], ['ر', 'ز'], ['س', 'ش'], ['ص', 'ض'], ['ط', 'ظ'], ['ع', 'غ'], ['ف', 'ق'], ['ك', 'ل'], ['م', 'ه', 'و'], ['ا', 'لا']];
   const HAREKE = ['َ', 'ِ', 'ُ'], TENVIN = ['ً', 'ٍ', 'ٌ'], MED = ['ا', 'ي', 'و'], CEZM = 'ْ', SEDDE = 'ّ';
   const HAREKE_AD = [t('Üstün'), t('Esre'), t('Ötre')];
+  // Soruda işaretin nerede olduğu da yazılır (çocuk adı unutmuş olabilir)
+  const HAREKE_YER = () => [t('harfin üstünde küçük eğik çizgi'), t('harfin altında küçük eğik çizgi'), t('harfin üstünde küçük vav (و) gibi')];
   const INCE = ['ب', 'ت', 'ث', 'ج', 'د', 'ذ', 'ز', 'س', 'ش', 'ف', 'ك', 'ل', 'م', 'ن', 'و', 'ه', 'ي'];
   function hece(h, i) {
     const b = BILGI[h]; if (EN) { if (h === 'ا') return b[6][i]; if (b[6]) return b[6][i]; return b[4] + ['a', 'i', 'u'][i]; }
     if (b[5]) return b[5][i]; return b[3] + (b[2] ? ['a', 'ı', 'u'] : ['e', 'i', 'u'])[i];
   }
-  const sessiz = h => EN ? BILGI[h][4] : BILGI[h][3];
+  // Harfin harekesiz (cezmli) okunuşu. Adı 'sessiz' değil: çocuk modundaki sessize alma düğmesi aynı adı kullanıyor.
+  const sessizHarf = h => EN ? BILGI[h][4] : BILGI[h][3];
   const uzun = i => EN ? ['ā', 'ī', 'ū'][i] : ['â', 'î', 'û'][i];
 
   // ------------------------------------------------------------ yardımcılar
@@ -331,7 +349,9 @@
     const gecildi = ada => !!(C().gec && C().gec[ada]);
     const tamam = d => yildiz(d.id) > 0 || gecildi(d.ada);
     const acik = d => { const i = DURAK.indexOf(d); return i === 0 || d.ada === 'sure' || tamam(DURAK[i - 1]) || tamam(d); };
-    const toplamYildiz = () => DURAK.reduce((a, d) => a + yildiz(d.id), 0);
+    // Yoklama yıldızları (c.yk[ada] = en iyi doğru sayısı) da toplamda sayılır: bildiğini gösteren çocuk da ödüllenir
+    const yoklamaYildiz = () => Object.values(C().yk || {}).reduce((a, v) => a + (+v || 0), 0);
+    const toplamYildiz = () => DURAK.reduce((a, d) => a + yildiz(d.id), 0) + yoklamaYildiz();
     const siradaki = () => DURAK.find(d => !yildiz(d.id) && !gecildi(d.ada)) || null;
     const CIKARTMA = ['⭐', '🌙', '🌸', '🌷', '🌻', '🍀', '🌈', '☀️', '🕌', '📖', '🏮', '💎', '🌴', '🍎', '🍇', '🍊', '⛰️', '🌊', '❄️', '🔭', '🎈', '🧭', '🪁', '🏆'];
     const CIKARTMA_ADIM = 5;   // her 5 yıldızda bir çıkartma
@@ -395,7 +415,7 @@
     }
     function harekeSorusu(tur, i, h) {
       h = h || sec1(HAREKE_HARF);
-      if (tur === 'yer') return secenekli({ yk: 'yer' + i, soru: t('{0} hangisinde?', `<b>${HAREKE_AD[i]}</b>`), dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true, ipucu: [t('Üstün harfin üstünde eğik bir çizgidir.'), t('Esre harfin altında eğik bir çizgidir.'), t('Ötre harfin üstünde küçük bir vav gibidir.')][i] });
+      if (tur === 'yer') return secenekli({ yk: 'yer' + i, soru: t('{0} hangisinde?', `<b>${HAREKE_AD[i]}</b>`) + `<small class="c-soru-acik">${HAREKE_YER()[i]}</small>`, sesli: t('{0} hangisinde?', HAREKE_AD[i]) + ' ' + HAREKE_YER()[i] + '.', dogru: h + HAREKE[i], secenek: karistir(HAREKE.map(x => h + x)), arSec: true, ipucu: [t('Üstün harfin üstünde eğik bir çizgidir.'), t('Esre harfin altında eğik bir çizgidir.'), t('Ötre harfin üstünde küçük bir vav gibidir.')][i] });
       // aynı harekeli 3 farklı harf (okunuşları birbirinden farklı olmalı)
       const harfler = [h]; for (const x of karistir(HAREKE_HARF)) { if (harfler.length >= 3) break; if (!harfler.some(y => hece(y, i) === hece(x, i))) harfler.push(x); }
       if (tur === 'oku') return secenekli({ yk: 'oku', soru: IKON_OKU + t('Bu nasıl okunur?'), sesli: t('Bu nasıl okunur?'), goster: ar(h + HAREKE[i], 'dev'), dogru: hece(h, i), secenek: karistir(harfler.map(x => hece(x, i))) });
@@ -414,16 +434,16 @@
         return v;
       }
       if (k === 'cezm') {
-        const v = [P(a + HAREKE[i] + b + CEZM, hece(a, i) + sessiz(b)), P(a + HAREKE[(i + 1) % 3] + b + CEZM, hece(a, (i + 1) % 3) + sessiz(b)), P(a + HAREKE[i] + b + HAREKE[j], hece(a, i) + '-' + hece(b, j)), P(a + HAREKE[(i + 2) % 3] + b + CEZM, hece(a, (i + 2) % 3) + sessiz(b))];
+        const v = [P(a + HAREKE[i] + b + CEZM, hece(a, i) + sessizHarf(b)), P(a + HAREKE[(i + 1) % 3] + b + CEZM, hece(a, (i + 1) % 3) + sessizHarf(b)), P(a + HAREKE[i] + b + HAREKE[j], hece(a, i) + '-' + hece(b, j)), P(a + HAREKE[(i + 2) % 3] + b + CEZM, hece(a, (i + 2) % 3) + sessizHarf(b))];
         return v;
       }
       if (k === 'tenvin') return [i, (i + 1) % 3, (i + 2) % 3].map(x => P(a + TENVIN[x], hece(a, x) + 'n')).concat([P(a + HAREKE[i], hece(a, i))]);
       if (k === 'med') {
-        const m = x => P(a + HAREKE[x] + MED[x], sessiz(a) + uzun(x));
+        const m = x => P(a + HAREKE[x] + MED[x], sessizHarf(a) + uzun(x));
         return [m(i), m((i + 1) % 3), P(a + HAREKE[i], hece(a, i)), m((i + 2) % 3)];
       }
       if (k === 'sedde') {
-        const s = (x, y) => P(a + HAREKE[x] + b + SEDDE + HAREKE[y], hece(a, x) + sessiz(b) + '-' + hece(b, y));
+        const s = (x, y) => P(a + HAREKE[x] + b + SEDDE + HAREKE[y], hece(a, x) + sessizHarf(b) + '-' + hece(b, y));
         return [s(i, j), s((i + 1) % 3, j), P(a + HAREKE[i] + b + HAREKE[j], hece(a, i) + '-' + hece(b, j)), s(i, (j + 1) % 3)];
       }
       return okumaParcasi(sec1(['hece', 'cezm', 'tenvin', 'med', 'sedde']));
@@ -564,10 +584,10 @@
       const h = [];
       for (let n = 0; n < m.length; n++) {
         const [x, isr] = m[n], hi = HAREKE.findIndex(y => isr.includes(y)), ti = TENVIN.findIndex(y => isr.includes(y)), sonra = m[n + 1];
-        if (isr.includes(SEDDE)) { if (h.length) h[h.length - 1] += sessiz(x); h.push(hece(x, hi)); continue; }
+        if (isr.includes(SEDDE)) { if (h.length) h[h.length - 1] += sessizHarf(x); h.push(hece(x, hi)); continue; }
         if (ti >= 0) { h.push(hece(x, ti) + 'n'); continue; }
-        if (isr.includes(CEZM)) { if (h.length) h[h.length - 1] += sessiz(x); continue; }
-        if (hi >= 0 && sonra && !sonra[1] && MED[hi] === sonra[0]) { h.push(sessiz(x) + uzun(hi)); n++; continue; }
+        if (isr.includes(CEZM)) { if (h.length) h[h.length - 1] += sessizHarf(x); continue; }
+        if (hi >= 0 && sonra && !sonra[1] && MED[hi] === sonra[0]) { h.push(sessizHarf(x) + uzun(hi)); n++; continue; }
         if (hi >= 0) h.push(hece(x, hi));
       }
       return h.join('-');
@@ -727,7 +747,7 @@
     function yanlisCevap(el, ipucu, dogru, secilen) {
       if (bekle()) return; kilitBit = Date.now() + 900;
       D.hata++;
-      if (dogru && secilen && HARF.includes(dogru) && HARF.includes(secilen)) { const c = C(); c.hata = c.hata || {}; const k = dogru + '|' + secilen; c.hata[k] = (c.hata[k] || 0) + 1; kaydet(); } tik(false); el.classList.remove('salla'); void el.offsetWidth; el.classList.add('salla', 'soluk-sec');
+      if (dogru && secilen && HARF.includes(dogru) && HARF.includes(secilen)) { const c = C(); c.hata = c.hata || {}; const k = dogru + '|' + secilen; c.hata[k] = (c.hata[k] || 0) + 1; kaydet(); } tik(false); el.classList.remove('salla', 'yanlis'); void el.offsetWidth; el.classList.add('salla', 'yanlis'); setTimeout(() => { el.classList.remove('yanlis'); el.classList.add('soluk-sec'); }, 900);
       // İpucu yazıda hep görünür; sesle yalnızca o sorudaki ilk yanlışta söylenir
       const ilk = D.yanlisSoru !== D.i; D.yanlisSoru = D.i;
       konus(t('Bir daha dene 🙂') + (ipucu ? ' ' + ipucu : ''), ilk ? undefined : false);
@@ -852,7 +872,9 @@
         const gecti = Y.dogru >= YOKLAMA_GEC, a = ADALAR.find(x => x.id === ada);
         balon = gecti ? t('Maşallah, bunları biliyorsun!') : t('Sorun değil! Birlikte tekrar edelim.');
         const okur = gecti && ada === 'okuma' && !kucuk();
-        govde = `<article class="kart c-kart c-bitti"><div class="c-yoklama-sonuc">${MASKOT(80, gecti ? 'don' : 'zipla')}<div><h2>${gecti ? t('{0} açıldı!', esc(a.ad)) : esc(a.ad)}</h2>
+        const yk = Y.kazanc ? `<div class="c-yoklama-yildiz"><span>⭐ +${Y.kazanc}</span><p>${t('Her doğru cevap bir yıldız. {0} yıldız kazandın!', Y.kazanc)}</p>${Y.yeniCikartma ? `<p class="c-yeni-cikartma">${t('Yeni çıkartma kazandın:')} <span>${Y.yeniCikartma}</span></p>` : ''}</div>`
+          : Y.dogru ? `<div class="c-yoklama-yildiz"><p>${t('Bu yoklamadan daha önce {0} yıldız almıştın. Daha çok doğru yaparsan yeni yıldız kazanırsın.', Y.onceki)}</p></div>` : '';
+        govde = `<article class="kart c-kart c-bitti">${yk}<div class="c-yoklama-sonuc">${MASKOT(80, gecti ? 'don' : 'zipla')}<div><h2>${gecti ? t('{0} açıldı!', esc(a.ad)) : esc(a.ad)}</h2>
             <p>${gecti ? t('{0} sorudan {1} tanesini bildin. Bu adayı geçtin; istersen yine de oynayıp yıldız toplayabilirsin.', n, Y.dogru) : t('{0} sorudan {1} tanesini bildin. Bu adayı baştan, oynayarak öğrenelim; çok kolay olacak!', n, Y.dogru)}</p></div></div></article>
           ${okur ? `<article class="kart c-kart"><h2>${t('📖 Kur\'an okuyabiliyorsun!')}</h2><p>${t('Sûreler Adası seni bekliyor. İstersen bir büyüğünle birlikte tecvid derslerine de geçebilirsin.')}</p>
             <div class="satir"><button class="btn" data-git-durak="s1">${t('📖 Sûreler Adası')}</button><button class="btn ikincil" id="yTecvid">${t('📘 Tecvid derslerine geç')}</button></div></article>` : ''}
@@ -868,20 +890,30 @@
       if (!sessiz() && !(sq && sq.yk && soylenenYonerge.has(sq.yk))) { if (sq && sq.yk) soylenenYonerge.add(sq.yk); setTimeout(() => { if (document.body.contains(hop) && Sesli.acik) Sesli.dugmeyle(hop, sq ? sq.sesli : balon.replace(/<[^>]+>/g, '')); }, 200); }
       app.querySelectorAll('[data-git-durak]').forEach(b => b.onclick = () => { const id = b.dataset.gitDurak; Y = null; D = yeniD(durakBul(id)); api.ekranDegistir('cocukDurak', id); });
       const yt = document.getElementById('yTecvid'); if (yt) yt.onclick = () => api.buyugeGec('okur');
-      if (Y.bitti) { if (Y.dogru >= YOKLAMA_GEC) setTimeout(() => Konfeti.kutla(), 150); return; }
+      if (Y.bitti) { if (Y.dogru >= YOKLAMA_GEC || Y.kazanc) setTimeout(() => Konfeti.kutla(), 150); return; }
       let cevaplandi = false;
       app.querySelectorAll('.c-secenek').forEach(b => b.onclick = () => {
         if (cevaplandi) return; cevaplandi = true;
         const dogru = sq.secenek[+b.dataset.i] === sq.dogru;
         app.querySelectorAll('.c-secenek').forEach(x => { x.disabled = true; if (sq.secenek[+x.dataset.i] === sq.dogru) x.classList.add('dogru'); });
-        if (dogru) { Y.dogru++; tik(true); Konfeti.patlat(b, 14); } else b.classList.add('soluk-sec');
-        konus(dogru ? esc(OVGU()) : t('Doğrusu bu, devam!'), false);
+        // Yanlışta: basılan seçenek kırmızı ve ✗, doğrusu yeşil; çocuk ikisini de görsün diye biraz daha beklenir
+        if (dogru) { Y.dogru++; tik(true); Konfeti.patlat(b, 14); } else { tik(false); b.classList.add('yanlis'); }
+        konus(dogru ? esc(OVGU()) : t('Olmadı. Doğrusu yeşil olan, devam!'), false);
         setTimeout(() => {
           if (Y.i + 1 < n) { Y.i++; api.ciz(); return; }
           Y.bitti = true;
-          if (Y.dogru >= YOKLAMA_GEC) { const c = C(); c.gec = c.gec || {}; for (const x of YOKLAMA_ADA) { c.gec[x] = c.gec[x] || Date.now(); if (x === ada) break; } kaydet(); }
+          const c = C();
+          if (Y.dogru >= YOKLAMA_GEC) { c.gec = c.gec || {}; for (const x of YOKLAMA_ADA) { c.gec[x] = c.gec[x] || Date.now(); if (x === ada) break; } }
+          // Her doğru cevap bir yıldız (karar: cocuk-testi-2026-11-18, yoklama yıldızı). Ada başına en iyi sonuç tutulur;
+          // aynı yoklamaya yeniden girilirse yalnız artış eklenir (yıldız biriktirmek için tekrar tekrar girilmesin).
+          c.yk = c.yk || {}; const onceToplam = toplamYildiz(), onceki = c.yk[ada] || 0;
+          Y.kazanc = Math.max(0, Y.dogru - onceki); Y.onceki = onceki; c.yk[ada] = Math.max(onceki, Y.dogru);
+          c.gun[bugun()] = (c.gun[bugun()] || 0) + Math.max(1, Y.kazanc);
+          const yeniToplam = toplamYildiz();
+          Y.yeniCikartma = Math.floor(yeniToplam / CIKARTMA_ADIM) > Math.floor(onceToplam / CIKARTMA_ADIM) ? CIKARTMA[Math.min(CIKARTMA.length - 1, Math.floor(yeniToplam / CIKARTMA_ADIM) - 1)] : null;
+          seriGuncelle(); kaydet();
           api.ciz(); window.scrollTo(0, 0);
-        }, 900);
+        }, dogru ? 900 : 2000);
       });
     };
     // İlk açılış (çocuk profili): ne kadar biliyor?
@@ -891,7 +923,7 @@
       app.innerHTML = `${ust(t('Nereden başlayalım?'), false)}<main class="cocuk-ekran">
         <div class="c-maskot-satir">${MASKOT(64, 'zipla')}<div class="c-balon"><span class="c-balon-yazi">${p.ad ? t('{0} ne kadar biliyor?', esc(p.ad)) : t('Ne kadar biliyorsun?')}</span></div></div>
         <div class="yas-kartlar">${sec.map(([k, ik, ad, alt]) => `<button class="yas-kart" data-cseviye="${k}"><span>${ik}</span><b>${ad}</b><small>${alt}</small></button>`).join('')}</div>
-        <p class="soluk kucukyazi">${t('Yoklama 8 kısa sorudur, puan verilmez. Bilen çocuk her şeyi baştan yapmak zorunda kalmaz. Sonradan da haritadaki “⚡ Biliyorum” düğmesiyle yapılabilir.')}</p></main>`;
+        <p class="soluk kucukyazi">${t('Yoklama 8 kısa sorudur; her doğru cevap bir yıldız kazandırır. Bilen çocuk her şeyi baştan yapmak zorunda kalmaz. Sonradan da haritadaki “⚡ Biliyorum” düğmesiyle yapılabilir.')}</p></main>`;
       app.querySelectorAll('[data-cseviye]').forEach(b => b.onclick = () => {
         C().seviye = b.dataset.cseviye; kaydet();
         if (b.dataset.cseviye === 'yeni') return anaSayfa();
@@ -1025,6 +1057,9 @@
       });
     };
 
+    // Yalnız yerel testte: soru üreticileri doğrudan denensin (seçeneklerde "false/undefined" var mı, doğru cevap seçenekte mi)
+    if (location.hostname === 'localhost') window.__cocukY = () => Y;
+    if (location.hostname === 'localhost') window.__cocukTest = { yoklamaBaslat, sorularHazirla, yoklamaSorulari, DURAK, harekeSorusu, okumaSorusu, isaretSorusu, harfSorusu };
     return { Y: () => Y, gecildi, yoklamaBaslat, molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
