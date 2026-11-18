@@ -1,9 +1,17 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.36';
+  const SURUM = '1.0.37';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.37', t: '2026-11-18', durum: 'Web', l: [
+      'Kur\'an okuma: Kur\'an sekmesinin başında "Kaldığın yer" (sûre, ayet, sayfa, cüz) ve "Devam et"; okurken ekrandaki ayet kendiliğinden kaydedilir',
+      'Günlük okuma hedefi: varsayılan 5 sayfa (1, 2, 5, 10, 20 ya da yok); "Okudum" denince ya da sayfada 30 sn kalınca sayılır; hedef dolunca tebrik',
+      'Yer imleri: ayet numarasına dokun, 3 renkten birini seç; "Yer imleri" listesinden o ayete dön',
+      'Üç görünüm (Mushaf, Modern, Meal ile) ve üç sayfa rengi (Açık, Sepya, Gece); Arapça yazı boyu, renkli tecvid, sayfaya git',
+      'Ayet menüsü: dinle, meal, tecvidini çalış, yer imi; "Dinle" ile sayfadaki ayetler sırayla okunur; kaydırarak sayfa çevirme',
+      'Bütün sûreler listesi okuma ekranını o sûrenin sayfasında açar',
+    ] },
     { s: '1.0.36', t: '2026-11-18', durum: 'Test APK', l: [
       'Uygulama olarak yükle (PWA): Android ve bilgisayarda Chrome\'da ana sayfada ve Profil\'de "Yükle" düğmesi; ana ekrana simge, tam ekran, internetsiz dersler',
       'Günlük hatırlatma: kısa bir ayet ya da hadis (kaynağıyla) ve bugünkü dersine davet; ilk açılışta bir kez sorulur, Ayarlar\'da "Deneme bildirimi gönder"',

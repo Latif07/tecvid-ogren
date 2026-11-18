@@ -124,6 +124,12 @@
     if (a.muezzin || b.muezzin) { r.muezzin = {}; for (const id of new Set([...Object.keys(a.muezzin || {}), ...Object.keys(b.muezzin || {})])) { const x = (a.muezzin || {})[id], y = (b.muezzin || {})[id]; r.muezzin[id] = !x ? y : !y ? x : ((x.son || 0) >= (y.son || 0) ? x : y); } }
     const ha = a.hatim, hb = b.hatim; r.hatim = !ha ? hb || null : !hb ? ha : (ha.bas > hb.bas ? ha : hb.bas > ha.bas ? hb : (ha.sayfa >= hb.sayfa ? ha : hb));
     r.sonSayfa = a.sonSayfa || b.sonSayfa;
+    if (a.kuran || b.kuran) {   // Kur'an okuma: günlük sayfalar birleşir, yer imleri birleşir, kaldığın yer en yenisi
+      const ka = a.kuran || {}, kb = b.kuran || {}; r.kuran = Object.assign({}, kb, ka, { gun: {}, imler: [] });
+      for (const d of new Set([...Object.keys(ka.gun || {}), ...Object.keys(kb.gun || {})])) r.kuran.gun[d] = benzersiz([...((ka.gun || {})[d] || []), ...((kb.gun || {})[d] || [])]);
+      const im = new Map(); [...(kb.imler || []), ...(ka.imler || [])].forEach(x => { const o = im.get(x.n + ':' + x.a); if (!o || (x.t || 0) >= (o.t || 0)) im.set(x.n + ':' + x.a, x); }); r.kuran.imler = [...im.values()];
+      r.kuran.son = ((ka.son || {}).t || 0) >= ((kb.son || {}).t || 0) ? ka.son || kb.son : kb.son;
+    }
     if (a.mesk || b.mesk) { r.mesk = Object.assign({}, b.mesk || {}, a.mesk || {}); for (const k of Object.keys(r.mesk)) { const x = (a.mesk || {})[k] || {}, y = (b.mesk || {})[k] || {}; r.mesk[k] = { p: Math.max(x.p || 0, y.p || 0), tamam: !!(x.tamam || y.tamam), t: Math.max(x.t || 0, y.t || 0) }; } }
     if (a.cocuk || b.cocuk) {   // çocuk modu: durak başına en iyi yıldız, gün başına en çok yıldız
       const ca = a.cocuk || {}, cb = b.cocuk || {}; r.cocuk = { d: {}, gun: {} };
@@ -730,6 +736,9 @@
     const [ad, arg] = ekranYigini[ekranYigini.length - 1];
     // Ekran değişince sûrenin "tamamını dinle" çalması dursun
     const anahtar = ad + '|' + JSON.stringify(arg);
+    document.querySelectorAll('.ko-menu').forEach(x => x.remove());
+    if (koSure && anahtar !== ciz.son) { koSure.iptal = true; koSure = null; if (ses) { ses.pause(); ses = null; } }
+    if (ad !== 'sayfa') clearTimeout(EKRAN.sayfa && EKRAN.sayfa._zaman);
     if (sureCalma && anahtar !== ciz.son) { sureCalma.iptal = true; sureCalma = null; if (ses) { ses.pause(); ses = null; } }
     if (anahtar !== ciz.son && window.Konfeti) window.Konfeti.durdur();
     if (anahtar !== ciz.son && window.Sesli) window.Sesli.sus();
@@ -1605,22 +1614,22 @@
     indirmeGoster();
   };
 
-  const sureSatir = (x, adet) => { const ok = (S.sure || {})[x.n]; return `<button class="bolum" data-git="sure|${x.n}" data-ara="${esc(trSade(x.n + ' ' + x.tr + ' ' + x.en))}"><span class="ikon" style="font-size:.8rem;width:28px;color:var(--soluk)">${x.n}</span><span class="bad"><small>${t('{0} ayet', adet)}</small>${esc(sureAdi(x))}</span><span class="ar" style="font-size:1.35rem;line-height:1.2">${esc(x.ar)}</span>${ok && ok.en != null ? `<span class="rozet ok">✓ ${yuzdeStr(ok.en)}</span>` : ''}</button>`; };
+  const sureSatir = (x, adet, oku) => { const ok = (S.sure || {})[x.n]; return `<button class="bolum" data-git="${oku && M.sayfa.length ? `sayfa|${sayfaBul(x.n, 1)}|${x.n}:1` : `sure|${x.n}`}" data-ara="${esc(trSade(x.n + ' ' + x.tr + ' ' + x.en))}"><span class="ikon" style="font-size:.8rem;width:28px;color:var(--soluk)">${x.n}</span><span class="bad"><small>${t('{0} ayet', adet)}</small>${esc(sureAdi(x))}</span><span class="ar" style="font-size:1.35rem;line-height:1.2">${esc(x.ar)}</span>${ok && ok.en != null ? `<span class="rozet ok">✓ ${yuzdeStr(ok.en)}</span>` : ''}</button>`; };
   EKRAN.sureler = function () {
     app.innerHTML = `${ust(t('Kur\'an-ı Kerîm'))}<main>
-      <p class="soluk">${t('Önce dinle, sonra oku. Kelimeye dokunursan o kelimeyi dinlersin.')}</p>
+      ${M.sayfa.length ? koUstKarti() : ''}
       <button class="btn genis" data-git="sureTecvidSec">${t('🧭 Sûre sûre tecvid (ayet ayet)')}</button>
       <button class="btn genis ikincil" data-git="kuralAra">${t('🔍 Bütün Kur\'an\'da kural ara')}</button>
-      <h2 class="baslik">${t('Uygulama sûreleri')}</h2>
+      <h2 class="baslik">${t('Tecvid çalışılacak sûreler')}</h2>
       <div class="bolumler">${SURELER.map(x => sureSatir(x, x.ayet.length)).join('')}</div>
-      <h2 class="baslik">${t('Bütün sûreler')}</h2>
+      <h2 class="baslik">${t('Bütün sûreler')} <small class="soluk">· ${t('okumak için')}</small></h2>
       <div class="form"><input id="sureAra" type="search" placeholder="${t('Sûre ara (ad ya da numara)')}"></div>
       <div class="bolumler" id="tumSureler" style="margin-top:10px"><p class="soluk">${t('Yükleniyor…')}</p></div>
     </main>`;
     kuranIndex().then(l => {
       const yer = $('#tumSureler'); if (!yer) return;
       if (!l) { yer.innerHTML = `<p class="hata">${t('Sûre listesi açılamadı.')}</p>`; return; }
-      yer.innerHTML = l.map(x => sureSatir(x, x.a)).join('');
+      yer.innerHTML = l.map(x => sureSatir(x, x.a, true)).join('');
       $('#sureAra').oninput = e => { const q = trSade(e.target.value.trim()); yer.querySelectorAll('[data-ara]').forEach(b => { b.hidden = q && !b.dataset.ara.includes(q); }); };
     });
   };
@@ -1865,7 +1874,7 @@
           <div class="satir sola">${[30, 60, 90, 180].map(g => `<button class="btn ikincil" data-hatim="${g}">${t('{0} gün', g)}</button>`).join('')}</div>`}
       </article>
       <div class="bolumler">
-        <button class="bolum" data-git="sayfa|${S.sonSayfa || 1}"><span class="ikon">📄</span><span class="bad"><small>${t('Mushaf, 604 sayfa · {0}. sayfadan devam', S.sonSayfa || 1)}</small>${t('Sayfa sayfa oku')}</span><span class="rozet">›</span></button>
+        <button class="bolum" data-git="sayfa|${S.sonSayfa || 1}${KO().son && KO().son.n ? '|' + KO().son.n + ':' + KO().son.a : ''}"><span class="ikon">📄</span><span class="bad"><small>${t('Mushaf, 604 sayfa · {0}. sayfadan devam', S.sonSayfa || 1)}</small>${t('Sayfa sayfa oku')}</span><span class="rozet">›</span></button>
         <button class="bolum" id="sayfaYoklama"><span class="ikon">🧩</span><span class="bad"><small>${t('Ezberlediğin sayfalardan')}</small>${t('Sayfa başı / sonu yoklaması')}</span><span class="rozet">›</span></button>
       </div></main>`;
     $('#sayfaYoklama').onclick = sayfaYoklamaBaslat;
@@ -2538,41 +2547,178 @@
   };
 
   // Sayfa sayfa okuma (Medine mushafı)
-  EKRAN.sayfa = function (p) {
+  // ------------------------------------------------------------ Kur'an okuma (karar: claude/toplanti-2026-11-18-kuran-okuma-ve-hocami-bul.md)
+  // S.kuran = { hedef: günlük sayfa (0: yok), gun: { 'YYYY-MM-DD': [okunan sayfalar] }, son: { n, a, p }, imler: [{ n, a, renk, t }], gorunum, tema }
+  // Görünüm: mushaf (sayfa, kâğıt) · modern (ayet ayet büyük) · meal (ayet + meal). Tema: acik · sepya · gece.
+  // Sayfa "okundu" sayılır: "Okudum" denince ya da sayfada en az 30 sn kalınınca. Kaldığın yer: ekrandaki ilk ayet.
+  const KO = () => { const k = S.kuran = S.kuran || {}; for (const [a, v] of Object.entries({ hedef: 5, gorunum: 'mushaf', tema: 'acik' })) if (k[a] == null) k[a] = v; k.gun = k.gun || {}; k.imler = k.imler || []; return k; };
+  const koBugun = () => (KO().gun[bugun()] || []).length;
+  const KO_RENK = ['altin', 'yesil', 'mavi'];
+  let koSure = null, koSonKayit = null;
+  function koSayfaOkundu(p, sessiz) {
+    const k = KO(), g = bugun(), l = k.gun[g] = k.gun[g] || [];
+    if (l.includes(p)) return false;
+    l.push(p); Object.keys(k.gun).sort().slice(0, -60).forEach(d => delete k.gun[d]);   // son 60 gün tutulur
+    seriGuncelle(); kaydet();
+    if (k.hedef && l.length === k.hedef) { toast(t('Bugünkü hedef tamam: {0} sayfa. Allah kabul etsin!', k.hedef)); if (window.Konfeti) window.Konfeti.patlat($('.ko-serit') || app, 18); }
+    else if (!sessiz) toast(t('Sayfa {0} okundu ✓', p));
+    hatirlatmaKur(false);
+    return true;
+  }
+  function koSonKaydet(n, a, p) {
+    const k = KO(); if (k.son && k.son.n === n && k.son.a === a && k.son.p === p) return;
+    k.son = { n, a, p, t: simdi() }; S.sonSayfa = p;
+    clearTimeout(koSonKayit); koSonKayit = setTimeout(kaydet, 700);
+  }
+  const koImBul = (n, a) => KO().imler.find(x => x.n === n && x.a === a);
+  // Kur'an sekmesinin başı: kaldığın yer, bugünkü hedef, yer imleri
+  function koUstKarti() {
+    const k = KO(), son = k.son || (S.sonSayfa ? { p: S.sonSayfa } : null), bu = koBugun(), h = k.hedef;
+    const yuzde = h ? Math.min(100, Math.round(bu / h * 100)) : 0;
+    const devam = son
+      ? `<button class="ko-devam" data-git="sayfa|${son.p}|${son.n ? son.n + ':' + son.a : ''}"><span class="ko-devam-ikon" aria-hidden="true">📖</span><span class="ko-devam-yazi"><small>${t('Kaldığın yer')}</small><b>${son.n ? `${esc(sureNoAdi(son.n))} ${son.a}` : t('Sayfa {0}', son.p)}</b><small>${t('Sayfa {0}', son.p)} · ${t('Cüz {0}', cuzBul(...(son.n ? [son.n, son.a] : M.sayfa[son.p - 1] || [1, 1])))}</small></span><span class="ko-devam-ok">${t('Devam et ›')}</span></button>`
+      : `<button class="ko-devam" data-git="sayfa|1|1:1"><span class="ko-devam-ikon" aria-hidden="true">📖</span><span class="ko-devam-yazi"><b>${t('Kur\'an okumaya başla')}</b><small>${t('Fâtiha · Sayfa 1')}</small></span><span class="ko-devam-ok">${t('Başla ›')}</span></button>`;
+    return `<section class="kart ko-ust">${devam}
+      <div class="ko-ust-alt">
+        ${h ? `<div class="ko-hedef" title="${t('Bugünkü hedef')}"><span class="ko-halka" style="--p:${yuzde}"><b>${bu}/${h}</b></span><span><b>${bu >= h ? t('Bugünkü hedef tamam') : t('Bugün {0} sayfa kaldı', h - bu)}</b><small>${t('Günlük hedef: {0} sayfa', h)}</small></span></div>` : `<div class="ko-hedef"><span><b>${t('Bugün {0} sayfa okudun', bu)}</b><small>${t('Günlük hedef yok')}</small></span></div>`}
+        <button class="ko-imler" data-git="yerImleri">🔖 ${t('Yer imleri')}${k.imler.length ? ` <span class="rozet">${k.imler.length}</span>` : ''}</button>
+      </div></section>`;
+  }
+  EKRAN.yerImleri = function () {
+    const k = KO(), l = k.imler.slice().sort((x, y) => y.t - x.t);
+    const eksik = benzersiz(l.map(x => x.n)).filter(n => !SURE(n));
+    if (eksik.length) { app.innerHTML = `${ust(t('Yer imleri'))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; Promise.all(eksik.map(sureYukle)).then(() => { if (ekranYigini[ekranYigini.length - 1][0] === 'yerImleri') ciz(); }).catch(() => { }); return; }
+    app.innerHTML = `${ust(t('Yer imleri'))}<main>
+      ${l.length ? `<div class="bolumler">${l.map(x => { const y = SURE(x.n), metin = y ? y.ayet[x.a - 1].split(' ').slice(0, 6).join(' ') : '';
+        return `<div class="ko-im ko-im-${x.renk}"><button class="ko-im-git" data-git="sayfa|${sayfaBul(x.n, x.a)}|${x.n}:${x.a}"><span class="ko-im-nokta" aria-hidden="true"></span><span class="bad"><small>${t('Sayfa {0}', sayfaBul(x.n, x.a))} · ${tarihStr(x.t).slice(0, 10)}</small>${esc(sureNoAdi(x.n))} ${x.a}<span class="ar ko-im-ar" dir="rtl" lang="ar">${esc(metin)}…</span></span></button><button class="ko-im-sil" data-im-sil="${x.n}:${x.a}" aria-label="${t('Yer imini sil')}">✕</button></div>`; }).join('')}</div>`
+        : `<p class="soluk">${t('Henüz yer imin yok. Okurken ayet numarasına dokun ve 🔖 Yer imi\'ni seç.')}</p>`}</main>`;
+    app.querySelectorAll('[data-im-sil]').forEach(b => b.onclick = () => { const [n, a] = b.dataset.imSil.split(':').map(Number); k.imler = k.imler.filter(x => !(x.n === n && x.a === a)); kaydet(); ciz(); });
+  };
+  // Okuma ekranı: sayfa sayfa; üç görünüm, üç tema
+  EKRAN.sayfa = function (p, hedef) {
     p = Math.min(604, Math.max(1, +p || 1));
-    const ay = sayfaAyetleri(p);
-    const eksik = benzersiz(ay.map(r => r[0])).filter(n => !SURE(n));
     if (!M.sayfa.length) { app.innerHTML = `${ust(t('Sayfa'))}<main><p class="hata">${t('Sayfa bilgisi yüklenemedi.')}</p></main>`; return; }
-    if (eksik.length) {
+    const k = KO(), gor = k.gorunum, ay = sayfaAyetleri(p), sureler_ = benzersiz(ay.map(r => r[0]));
+    const eksik = sureler_.filter(n => !SURE(n)), mealEksik = gor === 'meal' ? sureler_.filter(n => !MEAL[(DIL === 'en' ? 'en' : 'tr') + n]) : [];
+    if (eksik.length || mealEksik.length) {
       app.innerHTML = `${ust(t('Sayfa {0}', p))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`;
-      Promise.all(eksik.map(sureYukle)).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'sayfa' && +ek[1][0] === p) ciz(); }).catch(() => { app.querySelector('main').innerHTML = `<p class="hata">${t('Sûre açılamadı.')}</p>`; });
+      Promise.all([...eksik.map(sureYukle), ...mealEksik.map(n => mealYukle(n).catch(() => null))]).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'sayfa' && +ek[1][0] === p) ciz(); })
+        .catch(() => { const m = app.querySelector('main'); if (m) m.innerHTML = `<p class="hata">${t('Sûre açılamadı.')}</p>`; });
       return;
     }
-    S.sonSayfa = p; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
-    const [n0, a0] = ay[0];
-    let html = '', onceki = null;
-    ay.forEach(([n, a]) => {
-      const x = SURE(n);
-      if (n !== onceki) { if (onceki !== null) html += '</div>'; if (a === 1) html += `<div class="sure-baslik"><span class="ar">${esc(x.ar)}</span> · ${esc(sureAdi(x))}</div>${n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : ''}`; html += '<div class="ayet sayfa-metin" dir="rtl" lang="ar">'; onceki = n; }
-      const r = `${n}:${a}`; let o = 0;
-      html += x.ayet[a - 1].split(' ').map((w, wi) => { const h = `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${kelimeHTML(r, w, o)}</span>`; o += w.length + 1; return h; }).join(' ') + ` <span class="ayet-no" data-ayet-sayfa="${n}:${a}">﴿${a.toLocaleString('ar-EG')}﴾</span> `;
-    });
-    html += '</div>';
+    const [n0, a0] = ay[0], mealK = n => MEAL[(DIL === 'en' ? 'en' : 'tr') + n];
+    const kelimeler = (n, a) => { const r = `${n}:${a}`; let o = 0; return SURE(n).ayet[a - 1].split(' ').map((w, wi) => { const h_ = `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${kelimeHTML(r, w, o)}</span>`; o += w.length + 1; return h_; }).join(' '); };
+    const noDugme = (n, a) => { const im = koImBul(n, a); return `<button class="ayet-no ko-no ${im ? 'ko-im-' + im.renk : ''}" data-ko-ayet="${n}:${a}" aria-label="${t('{0} {1}. ayet', esc(sureNoAdi(n)), a)}">﴿${a.toLocaleString('ar-EG')}﴾</button>`; };
+    const sureBasi = n => `<div class="sure-baslik"><span class="ar">${esc(SURE(n).ar)}</span> · ${esc(sureAdi(SURE(n)))}</div>${n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : ''}`;
+    let govde = '';
+    if (gor === 'mushaf') {
+      let onceki = null;
+      ay.forEach(([n, a]) => {
+        if (n !== onceki) { if (onceki !== null) govde += '</div>'; if (a === 1) govde += sureBasi(n); govde += `<div class="ayet ko-mushaf" dir="rtl" lang="ar">`; onceki = n; }
+        govde += `<span class="ko-a" data-ayet="${n}:${a}">${kelimeler(n, a)}</span> ${noDugme(n, a)} `;
+      });
+      govde += '</div>';
+    } else {
+      ay.forEach(([n, a]) => {
+        if (a === 1) govde += sureBasi(n);
+        const meal = gor === 'meal' && mealK(n) ? mealK(n)[a - 1] : '';
+        govde += `<div class="ko-ayet ko-a" data-ayet="${n}:${a}"><div class="ayet" dir="rtl" lang="ar">${kelimeler(n, a)} ${noDugme(n, a)}</div>${meal ? `<p class="ko-meal"><span class="ko-meal-no">${a}.</span> ${esc(meal)}</p>` : ''}</div>`;
+      });
+    }
+    const bu = koBugun(), h = k.hedef, okundu = (k.gun[bugun()] || []).includes(p);
     const hd = hatimDurum(), hatimSirasi = hd && !hd.bitti && hd.h.sayfa + 1 === p;
-    app.innerHTML = `${ust(t('Sayfa {0}', p) + ' · ' + t('Cüz {0}', cuzBul(n0, a0)))}<main>
-      <div class="satir" style="margin-bottom:8px"><button class="btn ikincil" data-git-yer="${p + 1}" ${p >= 604 ? 'disabled' : ''}>${t('‹ Sonraki')}</button>
-        <input id="sayfaGit" type="number" min="1" max="604" value="${p}" style="width:84px;text-align:center;font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)">
-        <button class="btn ikincil" data-git-yer="${p - 1}" ${p <= 1 ? 'disabled' : ''}>${t('Önceki ›')}</button></div>
-      <article class="kart sayfa-kart">${html}</article>
-      <p class="soluk kucukyazi ortala">${t('Ayet numarasına dokununca o ayeti dinlersin; kelimeye dokununca kelimeyi.')}</p>
-      ${hatimSirasi ? `<button class="btn genis" id="okudum">${t('✓ Okudum, sonraki sayfa')}</button>` : `<button class="btn genis ikincil" data-git-yer="${p + 1}" ${p >= 604 ? 'disabled' : ''}>${t('Sonraki sayfa ›')}</button>`}
-      <div class="bolumler" style="margin-top:12px">${benzersiz(ay.map(r => r[0])).map(n => `<button class="bolum" data-git="sure|${n}"><span class="ikon">🕌</span><span class="bad"><small>${t('Sûre sayfasında aç')}</small>${esc(sureNoAdi(n))}</span><span class="rozet">›</span></button>`).join('')}</div>
-    </main>`;
-    const yer = q => { ekranYigini[ekranYigini.length - 1] = ['sayfa', [q]]; ciz(); window.scrollTo(0, 0); };
-    app.querySelectorAll('[data-git-yer]').forEach(b => b.onclick = () => yer(+b.dataset.gitYer));
-    $('#sayfaGit').onchange = e => yer(+e.target.value);
-    app.querySelectorAll('[data-ayet-sayfa]').forEach(b => b.onclick = () => { const [n, a] = b.dataset.ayetSayfa.split(':'); cal(ayetUrl(`${n}:${a}`), null, ayetUrl(`${n}:${a}`, KARILER[0].klasor)); });
-    const ok = $('#okudum'); if (ok) ok.onclick = () => { S.hatim.sayfa = p; seriGuncelle(); kaydet(); if (p >= 604) { toast(t('Hatmi bitirdin. Allah kabul etsin! 🤲')); ciz(); } else yer(p + 1); };
+    app.innerHTML = `${ust(`${esc(sureNoAdi(n0))} · ${t('Sayfa {0}', p)}`, true, `<button class="hesapbtn ko-ayar-btn" id="koAyar" aria-label="${t('Görünüm')}">Aa</button>`)}
+      <div class="ko-serit"><span>${t('Cüz {0}', cuzBul(n0, a0))}</span>${h ? `<span class="ko-serit-bar" aria-label="${t('Bugün {0}/{1} sayfa', bu, h)}"><i style="width:${Math.min(100, Math.round(bu / h * 100))}%"></i></span><span>${t('Bugün {0}/{1}', bu, h)}</span>` : `<span>${t('Bugün {0} sayfa', bu)}</span>`}<button class="ko-dinle" id="koDinle">▶ ${t('Dinle')}</button></div>
+      <main class="oku-ekran tema-${k.tema} gor-${gor}" id="okuEkran">
+        <article class="ko-sayfa">${govde}<p class="ko-sayfa-no">${p}</p></article>
+        ${gor === 'meal' ? `<p class="soluk kucukyazi ortala">${DIL === 'en' ? t('Meal: Saheeh International (tanzil.net).') : t('Meal: Diyanet İşleri Başkanlığı (tanzil.net). Meal, ayetin anlamını anlamaya yardım eder; Kur\'an\'ın kendisi Arapça metindir.')}</p>` : ''}
+        <p class="soluk kucukyazi ortala">${t('Ayet numarasına dokun: dinle, yer imi koy, meale bak.')}</p>
+      </main>
+      <div class="ko-alt"><button class="btn ikincil" data-ko-git="${p - 1}" ${p <= 1 ? 'disabled' : ''}>‹ ${t('Önceki')}</button>
+        <button class="btn ko-ileri" id="koIleri" ${p >= 604 && okundu ? 'disabled' : ''}>${okundu ? t('Sonraki sayfa') : t('Okudum · Sonraki')} ›</button></div>`;
+    const git_ = (q, hd_) => { if (q < 1 || q > 604) return; ekranYigini[ekranYigini.length - 1] = ['sayfa', [q, hd_ || '']]; ciz(); window.scrollTo(0, 0); };
+    app.querySelectorAll('[data-ko-git]').forEach(b => b.onclick = () => git_(+b.dataset.koGit));
+    $('#koIleri').onclick = () => {
+      koSayfaOkundu(p, true);
+      if (hatimSirasi) { S.hatim.sayfa = p; kaydet(); if (p >= 604) { toast(t('Hatmi bitirdin. Allah kabul etsin! 🤲')); ciz(); return; } }
+      if (p < 604) git_(p + 1); else ciz();
+    };
+    // Sayfada 30 sn kalınca okunmuş sayılır (hızlıca geçmek sayılmaz)
+    clearTimeout(EKRAN.sayfa._zaman);
+    if (!okundu) EKRAN.sayfa._zaman = setTimeout(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'sayfa' && +ek[1][0] === p && koSayfaOkundu(p, true)) { const s_ = $('.ko-serit'); if (s_) ciz(); } }, 30000);
+    // Kaldığın yer: ekranın üst kısmındaki ilk ayet
+    const ayetEller = [...app.querySelectorAll('.ko-a')];
+    const yerBul = () => { if (Date.now() < (EKRAN.sayfa._yoksay || 0)) return; const ust_ = 110; let sec = ayetEller[0]; for (const el of ayetEller) { const r = el.getBoundingClientRect(); if (r.bottom > ust_) { sec = el; break; } } if (sec) { const [n, a] = sec.dataset.ayet.split(':').map(Number); koSonKaydet(n, a, p); } };
+    window.removeEventListener('scroll', EKRAN.sayfa._kaydir); EKRAN.sayfa._kaydir = () => { if (ekranYigini[ekranYigini.length - 1][0] !== 'sayfa') return window.removeEventListener('scroll', EKRAN.sayfa._kaydir); clearTimeout(EKRAN.sayfa._kz); EKRAN.sayfa._kz = setTimeout(yerBul, 250); };
+    window.addEventListener('scroll', EKRAN.sayfa._kaydir, { passive: true });
+    EKRAN.sayfa._yoksay = 0;
+    if (hedef) { const el = app.querySelector(`.ko-a[data-ayet="${hedef}"]`); if (el) { EKRAN.sayfa._yoksay = Date.now() + 1500; setTimeout(() => { el.scrollIntoView({ block: 'center' }); el.classList.add('ko-vurgu'); setTimeout(() => el.classList.remove('ko-vurgu'), 2200); }, 60); const [n, a] = String(hedef).split(':').map(Number); koSonKaydet(n, a, p); } }
+    else if (k.son && k.son.p === p && k.son.n) { const el = app.querySelector(`.ko-a[data-ayet="${k.son.n}:${k.son.a}"]`); if (el && (k.son.n !== n0 || k.son.a !== a0)) { EKRAN.sayfa._yoksay = Date.now() + 1000; setTimeout(() => { const y = el.getBoundingClientRect().top + scrollY - 120; window.scrollTo(0, Math.max(0, y)); }, 30); } }
+    else koSonKaydet(n0, a0, p);
+    // Kaydırarak sayfa çevirme (mushaf gibi: sağa kaydır → sonraki sayfa)
+    const ekran = $('#okuEkran'); let dx0 = null, dy0 = null;
+    ekran.addEventListener('touchstart', e => { const t_ = e.touches[0]; dx0 = t_.clientX; dy0 = t_.clientY; }, { passive: true });
+    ekran.addEventListener('touchend', e => { if (dx0 === null) return; const t_ = e.changedTouches[0], dx = t_.clientX - dx0, dy = t_.clientY - dy0; dx0 = null; if (Math.abs(dx) > 80 && Math.abs(dy) < 60) git_(dx > 0 ? p + 1 : p - 1); }, { passive: true });
+    // Sayfayı dinle: sayfadaki ayetler sırayla
+    $('#koDinle').onclick = ev => {
+      const btn = ev.currentTarget;
+      if (koSure) { koSure.iptal = true; koSure = null; sesDurdur(); btn.textContent = '▶ ' + t('Dinle'); app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan')); return; }
+      const is = { iptal: false }; koSure = is; btn.textContent = '⏹ ' + t('Durdur'); let j = 0;
+      const bitir = () => { if (koSure === is) koSure = null; if (document.body.contains(btn)) btn.textContent = '▶ ' + t('Dinle'); app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan')); };
+      const sonraki = () => {
+        if (is.iptal || !document.body.contains(btn)) return bitir();
+        app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan'));
+        if (j >= ay.length) return bitir();
+        const [n, a] = ay[j++], el = app.querySelector(`.ko-a[data-ayet="${n}:${a}"]`); if (el) { el.classList.add('calan'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        const au = new Audio(sesKaynak(ayetUrl(`${n}:${a}`))); ses = au; au.playbackRate = S.ayar.hiz || 1;
+        au.onended = () => setTimeout(sonraki, 300); au.onerror = () => { bitir(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); }; au.play().catch(bitir);
+      };
+      sesDurdur(); sonraki();
+    };
+    // Ayet menüsü: dinle, yer imi (3 renk), meal, tecvidini çalış
+    app.querySelectorAll('[data-ko-ayet]').forEach(b => b.onclick = async ev => {
+      ev.stopPropagation(); document.querySelectorAll('.ko-menu').forEach(x => x.remove());
+      const [n, a] = b.dataset.koAyet.split(':').map(Number), im = koImBul(n, a);
+      const m = document.createElement('div'); m.className = 'ko-menu kart'; m.setAttribute('role', 'dialog');
+      m.innerHTML = `<p class="ko-menu-baslik">${esc(sureNoAdi(n))} ${a}</p>
+        <div class="ko-menu-dugmeler"><button data-km="dinle">▶ ${t('Dinle')}</button><button data-km="meal">📖 ${t('Meal')}</button><button data-km="tecvid">🎨 ${t('Tecvidini çalış')}</button></div>
+        <p class="kucukyazi soluk" style="margin:8px 0 4px">${t('Yer imi')}</p>
+        <div class="ko-menu-renk">${KO_RENK.map(rk => `<button class="ko-renk ko-im-${rk} ${im && im.renk === rk ? 'aktif' : ''}" data-km-renk="${rk}" aria-label="${t('Yer imi')} ${rk}"></button>`).join('')}${im ? `<button data-km="imsil">${t('Kaldır')}</button>` : ''}</div>
+        <div class="ko-menu-meal" hidden></div>`;
+      document.body.appendChild(m);
+      const r = b.getBoundingClientRect(); m.style.top = Math.min(innerHeight - 230, Math.max(70, r.bottom + 6)) + 'px';
+      const kapat = () => { m.remove(); document.removeEventListener('click', disari, true); };
+      const disari = e => { if (!m.contains(e.target)) kapat(); }; setTimeout(() => document.addEventListener('click', disari, true), 0);
+      m.querySelector('[data-km="dinle"]').onclick = () => cal(ayetUrl(`${n}:${a}`), null, ayetUrl(`${n}:${a}`, KARILER[0].klasor));
+      m.querySelector('[data-km="tecvid"]').onclick = () => { kapat(); git('sureTecvid', n, a); };
+      m.querySelector('[data-km="meal"]').onclick = async () => { const y = m.querySelector('.ko-menu-meal'); y.hidden = false; y.textContent = t('Yükleniyor…'); try { const ml = await mealYukle(n); y.innerHTML = `<p>${esc(ml[a - 1] || '')}</p><p class="kucukyazi soluk">${DIL === 'en' ? 'Saheeh International' : t('Diyanet İşleri Başkanlığı meali')}</p>`; } catch (e) { y.textContent = t('Meal açılamadı.'); } };
+      m.querySelectorAll('[data-km-renk]').forEach(x => x.onclick = () => { const rk = x.dataset.kmRenk; k.imler = k.imler.filter(y => !(y.n === n && y.a === a)); k.imler.push({ n, a, renk: rk, t: simdi() }); kaydet(); kapat(); toast(t('Yer imi eklendi: {0} {1}', sureNoAdi(n), a)); b.className = `ayet-no ko-no ko-im-${rk}`; });
+      const sil = m.querySelector('[data-km="imsil"]'); if (sil) sil.onclick = () => { k.imler = k.imler.filter(y => !(y.n === n && y.a === a)); kaydet(); kapat(); b.className = 'ayet-no ko-no'; toast(t('Yer imi kaldırıldı')); };
+    });
+    // Görünüm menüsü
+    $('#koAyar').onclick = () => {
+      document.querySelectorAll('.ko-menu').forEach(x => x.remove());
+      const m = document.createElement('div'); m.className = 'ko-menu ko-ayar kart'; m.setAttribute('role', 'dialog');
+      const sec = (ad, deger, l) => `<p class="kucukyazi soluk ko-menu-et">${ad}</p><div class="ko-secim">${l.map(([v, yazi]) => `<button class="${deger === v ? 'aktif' : ''}" data-ka="${v}">${yazi}</button>`).join('')}</div>`;
+      m.innerHTML = `<p class="ko-menu-baslik">${t('Görünüm')}</p>
+        <div data-grup="gorunum">${sec(t('Okuma'), k.gorunum, [['mushaf', t('Mushaf')], ['modern', t('Modern')], ['meal', t('Meal ile')]])}</div>
+        <div data-grup="tema">${sec(t('Sayfa rengi'), k.tema, [['acik', t('Açık')], ['sepya', t('Sepya')], ['gece', t('Gece')]])}</div>
+        <div data-grup="ar">${sec(t('Arapça yazı'), S.ayar.arYazi || 1, [[0.85, 'ع−'], [1, 'ع'], [1.2, 'ع+'], [1.4, 'ع++']])}</div>
+        <div data-grup="renkli">${sec(t('Renkli tecvid'), S.ayar.renkli ? 1 : 0, [[1, t('Açık')], [0, t('Kapalı')]])}</div>
+        <div data-grup="hedef">${sec(t('Günlük hedef'), k.hedef, [[1, '1'], [2, '2'], [5, '5'], [10, '10'], [20, '20'], [0, t('Yok')]])}</div>
+        <p class="kucukyazi soluk ko-menu-et">${t('Sayfaya git')}</p><div class="satir sola"><input id="koSayfaGit" type="number" min="1" max="604" value="${p}" inputmode="numeric" aria-label="${t('Sayfaya git')}"><button class="btn ikincil" id="koSayfaTamam">${t('Git')}</button></div>
+        <div class="satir sola" style="margin-top:10px"><button class="btn ikincil" data-git="sure|${n0}">${t('Bu sûrede tecvid çalış')}</button><button class="btn ikincil" data-git="hatim">${t('Hatim takvimi')}</button></div>`;
+      document.body.appendChild(m);
+      const kapat = () => { m.remove(); document.removeEventListener('click', disari, true); };
+      const disari = e => { if (!m.contains(e.target) && e.target.id !== 'koAyar') kapat(); }; setTimeout(() => document.addEventListener('click', disari, true), 0);
+      m.querySelectorAll('[data-git]').forEach(x => x.addEventListener('click', kapat));
+      m.querySelector('#koSayfaTamam').onclick = () => { const q = +m.querySelector('#koSayfaGit').value; if (q >= 1 && q <= 604) { kapat(); git_(q); } };
+      m.querySelectorAll('[data-grup] [data-ka]').forEach(x => x.onclick = () => {
+        const g = x.closest('[data-grup]').dataset.grup, v = x.dataset.ka;
+        if (g === 'gorunum') k.gorunum = v; else if (g === 'tema') k.tema = v; else if (g === 'ar') { S.ayar.arYazi = +v; temaUygula(); } else if (g === 'renkli') S.ayar.renkli = v === '1'; else if (g === 'hedef') { k.hedef = +v; hatirlatmaKur(false); }
+        kaydet(); kapat(); ciz();
+      });
+    };
   };
   let sureCalma = null;
   EKRAN.sure = function (n, filtre, mod, hedef) {
@@ -2873,7 +3019,7 @@
     const basliklar = cocukMu()
       ? [t('Harf Yolculuğu seni bekliyor'), t('Bugün bir durak, bir yıldız'), t('Bugün Kur\'an\'a 5 dakika ayır')]
       : [siradaki ? t('Bugünkü dersin: {0}', siradaki.ad) : t('Bugün bir sûre dinle ve oku'), t('Bugün Kur\'an\'a 10 dakika ayır'),
-        vade ? t('Tekrar zamanı: {0} soru seni bekliyor', vade) : t('Bir ayet oku, bir kural öğren'), ezVade ? t('Ezber tekrarın seni bekliyor') : t('Bugün bir ayet ezberle')];
+        vade ? t('Tekrar zamanı: {0} soru seni bekliyor', vade) : t('Bir ayet oku, bir kural öğren'), ezVade ? t('Ezber tekrarın seni bekliyor') : t('Bugün bir ayet ezberle')].concat(KO().hedef ? [t('Bugünkü Kur\'an okuman: {0} sayfa', KO().hedef)] : []);
     const sozler = hatirlatmaSozleri(), soz = sozler[i % Math.max(1, sozler.length)];
     const en = DIL === 'en', yazi = soz && (en ? soz.en : soz.tr), kun = soz && (en ? soz.ken : soz.ktr);
     // içinde tırnak olan (ör. “Rabbim, ilmimi artır!”) metin ikinci kez tırnağa alınmaz; "…" âyetin bir kısmı olduğunu gösterir, korunur
@@ -3748,7 +3894,7 @@
     } else if (a.tur === 'sinav') { GUNLUK_ADIM = { i, ekran: 'sinavGiris' }; git('sinavGiris', a.id); }
     else if (a.tur === 'ders') { GUNLUK_ADIM = { i, ekran: 'ders' }; git('ders', a.id); }
     else if (a.tur === 'ezber') { GUNLUK_ADIM = { i, ekran: 'ezber' }; git('ezber'); }
-    else if (a.tur === 'kuran') { GUNLUK_ADIM = { i, ekran: 'sayfa' }; git('sayfa', S.sonSayfa || 1); }
+    else if (a.tur === 'kuran') { GUNLUK_ADIM = { i, ekran: 'sayfa' }; const son = KO().son; git('sayfa', son ? son.p : S.sonSayfa || 1, son && son.n ? son.n + ':' + son.a : ''); }
   }
   // ders / sayfa / ezber ekranının üstüne "günlük ders" şeridi
   function gunlukSerit(ad) {
