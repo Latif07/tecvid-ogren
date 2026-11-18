@@ -1,0 +1,246 @@
+{
+ "aciklama": "Hocamı bul: kârilerin Fâtiha (1:1-1:7) ses ölçüleri. tools/kari-ses.js ile üretildi (GitHub Actions: kari-ses.yml); elle düzenlemeyin.",
+ "tarih": "2026-11-18",
+ "kariler": {
+  "husary_muallim": {
+   "perde": 19.16,
+   "pes": 16.64,
+   "tiz": 20.89,
+   "aralik": 4.26,
+   "sure": 32.9,
+   "hz": 166
+  },
+  "minshawy_teacher": {
+   "perde": 23.66,
+   "pes": 20.34,
+   "tiz": 34.95,
+   "aralik": 14.61,
+   "sure": 59.7,
+   "hz": 216
+  },
+  "davut_kaya": {
+   "perde": 22.77,
+   "pes": 17.89,
+   "tiz": 25.16,
+   "aralik": 7.28,
+   "sure": 52.6,
+   "hz": 205
+  },
+  "osman_sahin": {
+   "perde": 21.24,
+   "pes": 19.75,
+   "tiz": 23.43,
+   "aralik": 3.68,
+   "sure": 42.4,
+   "hz": 188
+  },
+  "mehmet_cevik": {
+   "perde": 17.79,
+   "pes": 17.24,
+   "tiz": 21.23,
+   "aralik": 3.99,
+   "sure": 40,
+   "hz": 154
+  },
+  "husary": {
+   "perde": 14.34,
+   "pes": 11.41,
+   "tiz": 17.71,
+   "aralik": 6.3,
+   "sure": 39.1,
+   "hz": 126
+  },
+  "minshawy": {
+   "perde": 20.92,
+   "pes": 18.63,
+   "tiz": 23.19,
+   "aralik": 4.56,
+   "sure": 32.7,
+   "hz": 184
+  },
+  "abdulbasit": {
+   "perde": 20.44,
+   "pes": 17.2,
+   "tiz": 29.38,
+   "aralik": 12.18,
+   "sure": 29.5,
+   "hz": 179
+  },
+  "alafasy": {
+   "perde": 18.01,
+   "pes": 15.2,
+   "tiz": 22.21,
+   "aralik": 7.01,
+   "sure": 41.9,
+   "hz": 156
+  },
+  "sudais": {
+   "perde": 27.57,
+   "pes": 25.2,
+   "tiz": 30,
+   "aralik": 4.8,
+   "sure": 31.8,
+   "hz": 270
+  },
+  "maher": {
+   "perde": 15.74,
+   "pes": 13.92,
+   "tiz": 18.83,
+   "aralik": 4.91,
+   "sure": 27.6,
+   "hz": 137
+  },
+  "ghamadi": {
+   "perde": 23.64,
+   "pes": 20.09,
+   "tiz": 26.78,
+   "aralik": 6.7,
+   "sure": 38.7,
+   "hz": 215
+  },
+  "husary_mujawwad": {
+   "perde": 16.39,
+   "pes": 13.12,
+   "tiz": 23.73,
+   "aralik": 10.6,
+   "sure": 53.1,
+   "hz": 142
+  },
+  "minshawy_mujawwad": {
+   "perde": 23.39,
+   "pes": 18.28,
+   "tiz": 28.46,
+   "aralik": 10.18,
+   "sure": 86.1,
+   "hz": 212
+  },
+  "abdulbasit_mujawwad": {
+   "perde": 20.49,
+   "pes": 15.52,
+   "tiz": 22.84,
+   "aralik": 7.32,
+   "sure": 57.1,
+   "hz": 180
+  },
+  "mustafa_ismail": {
+   "perde": 21.9,
+   "pes": 19.16,
+   "tiz": 24.62,
+   "aralik": 5.46,
+   "sure": 30,
+   "hz": 195
+  },
+  "tablawi": {
+   "perde": 19.47,
+   "pes": 17.15,
+   "tiz": 31.21,
+   "aralik": 14.06,
+   "sure": 40.1,
+   "hz": 169
+  },
+  "hudhaify": {
+   "perde": 19.01,
+   "pes": 15.34,
+   "tiz": 29.48,
+   "aralik": 14.14,
+   "sure": 44.5,
+   "hz": 165
+  },
+  "ayyoub": {
+   "perde": 16.08,
+   "pes": 14.54,
+   "tiz": 20.37,
+   "aralik": 5.83,
+   "sure": 44.9,
+   "hz": 139
+  },
+  "shatri": {
+   "perde": 14.42,
+   "pes": 11.91,
+   "tiz": 18.05,
+   "aralik": 6.14,
+   "sure": 48,
+   "hz": 127
+  },
+  "shuraym": {
+   "perde": 19.48,
+   "pes": 17.18,
+   "tiz": 20.94,
+   "aralik": 3.76,
+   "sure": 30.9,
+   "hz": 169
+  },
+  "rifai": {
+   "perde": 28.03,
+   "pes": 24.19,
+   "tiz": 29.32,
+   "aralik": 5.13,
+   "sure": 35.5,
+   "hz": 278
+  },
+  "jibreel": {
+   "perde": 19.88,
+   "pes": 17.28,
+   "tiz": 22.75,
+   "aralik": 5.47,
+   "sure": 28.8,
+   "hz": 173
+  },
+  "basfar": {
+   "perde": 18.33,
+   "pes": 14.67,
+   "tiz": 21.88,
+   "aralik": 7.2,
+   "sure": 37.3,
+   "hz": 159
+  },
+  "juhany": {
+   "perde": 23.21,
+   "pes": 10.76,
+   "tiz": 23.31,
+   "aralik": 12.55,
+   "sure": 35.1,
+   "hz": 210
+  },
+  "ajamy": {
+   "perde": 23.94,
+   "pes": 23.61,
+   "tiz": 27.03,
+   "aralik": 3.43,
+   "sure": 33.4,
+   "hz": 219
+  },
+  "dussary": {
+   "perde": 19.58,
+   "pes": 17.76,
+   "tiz": 21.87,
+   "aralik": 4.11,
+   "sure": 40.8,
+   "hz": 170
+  },
+  "qatami": {
+   "perde": 14.17,
+   "pes": 11.3,
+   "tiz": 17.31,
+   "aralik": 6.01,
+   "sure": 37.7,
+   "hz": 125
+  },
+  "budair": {
+   "perde": 18.77,
+   "pes": 16.65,
+   "tiz": 20.27,
+   "aralik": 3.62,
+   "sure": 36.4,
+   "hz": 163
+  },
+  "bukhatir": {
+   "perde": 22.46,
+   "pes": 20.54,
+   "tiz": 24.26,
+   "aralik": 3.72,
+   "sure": 40.2,
+   "hz": 201
+  }
+ }
+}

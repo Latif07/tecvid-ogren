@@ -124,6 +124,7 @@
     if (a.muezzin || b.muezzin) { r.muezzin = {}; for (const id of new Set([...Object.keys(a.muezzin || {}), ...Object.keys(b.muezzin || {})])) { const x = (a.muezzin || {})[id], y = (b.muezzin || {})[id]; r.muezzin[id] = !x ? y : !y ? x : ((x.son || 0) >= (y.son || 0) ? x : y); } }
     const ha = a.hatim, hb = b.hatim; r.hatim = !ha ? hb || null : !hb ? ha : (ha.bas > hb.bas ? ha : hb.bas > ha.bas ? hb : (ha.sayfa >= hb.sayfa ? ha : hb));
     r.sonSayfa = a.sonSayfa || b.sonSayfa;
+    r.hocaBul = ((a.hocaBul || {}).t || 0) >= ((b.hocaBul || {}).t || 0) ? a.hocaBul || b.hocaBul : b.hocaBul;
     if (a.kuran || b.kuran) {   // Kur'an okuma: günlük sayfalar birleşir, yer imleri birleşir, kaldığın yer en yenisi
       const ka = a.kuran || {}, kb = b.kuran || {}; r.kuran = Object.assign({}, kb, ka, { gun: {}, imler: [] });
       for (const d of new Set([...Object.keys(ka.gun || {}), ...Object.keys(kb.gun || {})])) r.kuran.gun[d] = benzersiz([...((ka.gun || {})[d] || []), ...((kb.gun || {})[d] || [])]);
@@ -2871,6 +2872,7 @@
   EKRAN.kariSec = function () {
     const ornek = '1:1';
     app.innerHTML = `${ust(t('Kâri seç'))}<main>
+      ${cocukMu() ? '' : `<button class="bolum" data-git="hocamiBul"><span class="ikon">🔎</span><span class="bad"><small>${t('Fâtiha\'yı oku, sesine en yakın kâriyi bul')}</small>${t('Hocamı bul')}</span><span class="rozet">›</span></button>`}
       <article class="kart"><p>${t('Örneklerdeki ayetleri hangi kâriden dinlemek istersin? Dinlemek için ▶\'ye, seçmek için isme dokun.')}</p>
       ${benzersiz(KARILER.map(k => k.tur)).map(tur => `<h2 class="baslik">${esc(tur)}</h2><div class="secenek-liste">${KARILER.filter(k => k.tur === tur).map(k => `<button class="${k.id === kari().id ? 'aktif' : ''}" data-kari="${k.id}"><span>${esc(k.ad)}<small>${esc(k.tur)}</small></span>
         <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}">▶</span></button>`).join('')}</div>`).join('')}
@@ -2879,6 +2881,99 @@
       if (e.target.closest('[data-ses]')) return;
       S.ayar.kari = b.dataset.kari; kaydet(); toast(t('Kâri seçildi: ') + kari().ad); ciz();
     });
+  };
+
+  // ------------------------------------------------------------ Hocamı bul (karar: claude/toplanti-2026-11-18-kuran-okuma-ve-hocami-bul.md)
+  // Kullanıcı Fâtiha'yı okur; perde (oktavdan bağımsız), ses aralığı ve okuma süresi telefonda ölçülür, kârilerin aynı
+  // ölçüleriyle (data/kari-ses.json, tools/kari-ses.js) karşılaştırılır. Ses kaydı saklanmaz, gönderilmez; yalnız 3 sayı kalır.
+  let HB_KAYIT = null, HB_VERI = null;
+  function hbYukle() {
+    const js = window.HocaBul ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'js/hocabul.js'; s.onload = ok; s.onerror = () => no(new Error(t('Yüklenemedi. İnternet bağlantını kontrol et.'))); document.head.appendChild(s); });
+    const veri = HB_VERI ? Promise.resolve(HB_VERI) : fetch('data/kari-ses.json').then(r => { if (!r.ok) throw new Error(t('Kâri bilgisi yüklenemedi.')); return r.json(); }).then(j => (HB_VERI = j));
+    return Promise.all([js, veri]);
+  }
+  async function hbCoz(blob) {   // kayıt → 16 kHz mono
+    const AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), buf = await blob.arrayBuffer();
+    const ab = await new Promise((ok, no) => { const p = ac.decodeAudioData(buf, ok, no); if (p && p.then) p.then(ok, no); }); try { ac.close(); } catch (e) { }
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext, oac = new OAC(1, Math.max(1, Math.ceil(ab.duration * 16000)), 16000);
+    const src = oac.createBufferSource(); src.buffer = ab; src.connect(oac.destination); src.start(); return (await oac.startRendering()).getChannelData(0);
+  }
+  function hbSonuclar(u, mucevved) {
+    const v = (HB_VERI && HB_VERI.kariler) || {};
+    // Öğretim kayıtlarında kârinin arasında tekrar eden sesler olabilir; ölçü karışmasın diye karşılaştırmaya katılmaz
+    const prof = KARILER.filter(k => v[k.id] && !['husary_muallim', 'minshawy_teacher'].includes(k.id) && (mucevved || !/mujawwad/i.test(k.id))).map(k => Object.assign({ id: k.id }, v[k.id]));
+    const hepsi = window.HocaBul.enYakin(u, prof, prof.length), l = [], adlar = new Set();
+    for (const x of hepsi) { const k = KARILER.find(y => y.id === x.kari.id); if (adlar.has(k.ad)) continue; adlar.add(k.ad); l.push(Object.assign({ k }, x)); if (l.length === 3) break; }
+    return l;
+  }
+  function hbAciklama(x) {
+    const p = Math.abs(x.perdeFark), l = [];
+    l.push(p < 1 ? t('Perden çok yakın') : p < 2.5 ? t('Perden yakın') : x.perdeFark > 0 ? t('Senin perden biraz daha tiz') : t('Senin perden biraz daha pes'));
+    if (x.oktav) l.push(x.oktav > 0 ? t('sesin bir oktav tiz; bu doğal, aynı perdede okursun') : t('sesin bir oktav pes; bu doğal, aynı perdede okursun'));
+    const h = x.hizOran; l.push(h > 0.87 && h < 1.15 ? t('hızın benzer') : h >= 1.15 ? t('o senden yavaş okuyor') : t('o senden hızlı okuyor'));
+    if (Math.abs(x.aralikFark) >= 3) l.push(x.aralikFark > 0 ? t('sesin daha çok iniş çıkış yapıyor') : t('onun sesi daha çok iniş çıkış yapıyor'));
+    return l.join(' · ');
+  }
+  EKRAN.hocamiBul = function () {
+    const son = S.hocaBul, mucevved = !!(S.ayar.hbMucevved);
+    app.innerHTML = `${ust(t('Hocamı bul'))}<main>
+      <article class="kart"><p>${t('Fâtiha\'yı baştan sona oku; sesinin perdesine ve okuma hızına en yakın 3 kâriyi bulalım. Kendi perdende okuyan bir kâriyi dinleyip taklit etmek daha kolaydır.')}</p>
+        <p class="soluk kucukyazi">${t('Bu öneri yalnız sesin perdesine ve hızına göredir; okuyuşun ya da kârinin güzelliği hakkında bir hüküm değildir.')}</p>
+        <p class="soluk kucukyazi">🔒 ${t('Kaydın telefonda ölçülür, hiçbir yere gönderilmez ve saklanmaz.')}</p></article>
+      <article class="kart"><div class="ayet hb-fatiha" dir="rtl" lang="ar" id="hbMetin"><span class="soluk">${t('Yükleniyor…')}</span></div>
+        <div class="satir"><button class="btn genis" id="hbOku">🎤 ${son ? t('Tekrar oku') : t('Okumaya başla')}</button></div>
+        <p class="soluk kucukyazi ortala" id="hbDurum">${t('Sessiz bir yerde, her zamanki sesinle oku. Bitince "Bitir"e dokun.')}</p></article>
+      <div id="hbSonuc"></div>
+      <label class="hb-secenek"><input type="checkbox" id="hbMuc" ${mucevved ? 'checked' : ''}> ${t('Mücevved (makamlı) kayıtları da kat')}</label>
+    </main>`;
+    const metin = () => { const x = SURE(1); if (!x) return; const yer = $('#hbMetin'); if (yer) yer.innerHTML = x.ayet.map((a, i) => `${esc(a)} <span class="ayet-no">﴿${(i + 1).toLocaleString('ar-EG')}﴾</span>`).join(' '); };
+    if (SURE(1)) metin(); else sureYukle(1).then(metin).catch(() => { });
+    const goster = () => {
+      const yer = $('#hbSonuc'); if (!yer || !S.hocaBul) return;
+      hbYukle().then(() => {
+        const u = S.hocaBul, l = hbSonuclar(u, !!S.ayar.hbMucevved);
+        if (!l.length) { yer.innerHTML = `<p class="hata">${t('Kâri bilgisi yüklenemedi.')}</p>`; return; }
+        yer.innerHTML = `<h2 class="baslik">${t('Sesine en yakın 3 kâri')}</h2>
+          ${l.map(x => `<article class="kart hb-kari"><div class="hb-kari-ust"><div><b>${esc(x.k.ad)}</b><small class="soluk">${esc(x.k.tur)}</small></div>${x.k.id === kari().id ? `<span class="rozet ok">✓ ${t('Kârin')}</span>` : ''}</div>
+            <p class="hb-neden">${hbAciklama(x)}</p>
+            <div class="satir sola"><button class="btn ikincil" data-hb-dinle="${x.k.id}">▶ ${t('Dinle')}</button>${x.k.id === kari().id ? '' : `<button class="btn" data-hb-sec="${x.k.id}">${t('Bunu kârim yap')}</button>`}</div></article>`).join('')}
+          <p class="soluk kucukyazi">${t('Senin ölçülerin: ortanca perde yaklaşık {0} Hz · Fâtiha\'yı {1} sn\'de okudun (duraklar hariç).', u.hz, Math.round(u.sure))}</p>`;
+        yer.querySelectorAll('[data-hb-dinle]').forEach(b => b.onclick = () => { const k = KARILER.find(y => y.id === b.dataset.hbDinle); cal(ayetUrl('1:2', k.klasor), b); });
+        yer.querySelectorAll('[data-hb-sec]').forEach(b => b.onclick = () => { S.ayar.kari = b.dataset.hbSec; kaydet(); toast(t('Kâri seçildi: ') + kari().ad); goster(); });
+      }).catch(e => { yer.innerHTML = `<p class="hata">${esc(e.message)}</p>`; });
+    };
+    hbYukle().catch(() => { }); goster();
+    $('#hbMuc').onchange = e => { S.ayar.hbMucevved = e.target.checked; kaydet(); goster(); };
+    $('#hbOku').onclick = async ev => {
+      const btn = ev.currentTarget, durum = $('#hbDurum');
+      if (HB_KAYIT) { HB_KAYIT.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+      hbYukle().catch(() => { });
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofon iznini aç.')); }
+      const parca = [], rec = new MediaRecorder(akis); HB_KAYIT = rec; const bas = Date.now();
+      btn.textContent = '⏹ ' + t('Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor'); durum.textContent = t('🎙️ Dinliyorum… Fâtiha\'yı oku, bitince "Bitir"e dokun.');
+      const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 120000);
+      rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+      rec.onstop = async () => {
+        clearTimeout(z); akis.getTracks().forEach(x => x.stop()); HB_KAYIT = null;
+        btn.textContent = '🎤 ' + t('Tekrar oku'); btn.classList.remove('kirmizi-btn', 'kaydediyor');
+        if (!document.body.contains(durum)) return;
+        if (Date.now() - bas < 8000) { durum.textContent = t('Çok kısa oldu. Fâtiha\'nın tamamını, yedi ayeti oku.'); return; }
+        durum.textContent = t('Sesin ölçülüyor…');
+        try {
+          await hbYukle(); const ses = await hbCoz(new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
+          await new Promise(r => setTimeout(r, 30));
+          const o = window.HocaBul.ozellik(ses);
+          if (!o) { durum.textContent = t('Sesin net duyulamadı. Telefonu biraz yaklaştırıp sessiz bir yerde tekrar dene.'); return; }
+          const kSure = Object.values(HB_VERI.kariler).map(x => x.sure).sort((a, b) => a - b), enKisa = kSure[0] || 20;
+          if (o.sure < enKisa * 0.55) { durum.textContent = t('Fâtiha\'nın tamamını okumamışsın gibi görünüyor. Hızı doğru ölçmek için yedi ayetin hepsini oku.'); return; }
+          S.hocaBul = { perde: o.perde, aralik: o.aralik, sure: o.sure, hz: o.hz, t: simdi() }; kaydet();
+          durum.textContent = t('Sessiz bir yerde, her zamanki sesinle oku. Bitince "Bitir"e dokun.'); goster();
+          setTimeout(() => { const y = $('#hbSonuc'); if (y) y.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+        } catch (e) { durum.textContent = e.message || t('Ölçülemedi.'); }
+      };
+      rec.start();
+    };
   };
 
   EKRAN.profil = function () {
@@ -2900,6 +2995,7 @@
         ${satir('harfSesleri', '🎙️', t('Harf seslerini kaydet'), t('Hoca sesiyle çocuk modundaki “Dinle” oyunları'))}
         ${satir('hesap', '☁️', k ? t('Hesabım') : t('Giriş yap / Hesap aç'), k ? esc(k.email || '') : t('İlerlemen kaybolmasın'))}
         ${satir('okumaRaporu', '🎤', t('Okuma raporu'), t('Okuyuşundaki hatalar ve gelişimin'))}
+        ${cocukMu() ? '' : satir('hocamiBul', '🔎', t('Hocamı bul'), t('Fâtiha\'yı oku, sesine en yakın kâriyi bul'))}
         ${satir('sinif', '👨‍🏫', t('Sınıf (hoca–öğrenci)'), ogrSiniflari().length ? ogrSiniflari().map(c => esc(c.sinifAd || c.kod)).join(', ') : t('Katıl ya da sınıf aç'))}
         ${satir('ayarlar', '⚙️', t('Ayarlar'), t('Dil, tema, yazı boyutu, kâri, hatırlatma, yedek'))}
         ${yuklenebilir() ? `<button class="bolum" id="profilYukle"><span class="ikon">📲</span><span class="bad"><small>${t('Ana ekrana simge; tam ekran, internetsiz')}</small>${t('Uygulama olarak yükle')}</span><span class="rozet">›</span></button>` : ''}

@@ -39,7 +39,8 @@
       perde: +yuzdelik(f0, 0.5).toFixed(2),           // ortanca perde, 55 Hz'e göre yarım ses
       pes: +yuzdelik(f0, 0.1).toFixed(2), tiz: +yuzdelik(f0, 0.9).toFixed(2),
       aralik: +(yuzdelik(f0, 0.9) - yuzdelik(f0, 0.1)).toFixed(2),
-      sure: +sure.toFixed(1),                         // sesin olduğu süre (sessizlikler hariç): aynı metinde okuma hızını verir hz: Math.round(55 * Math.pow(2, yuzdelik(f0, 0.5) / 12)),
+      sure: +sure.toFixed(1),                         // sesin olduğu süre (sessizlikler hariç): aynı metinde okuma hızını verir
+      hz: Math.round(55 * Math.pow(2, yuzdelik(f0, 0.5) / 12)),
     };
   }
 

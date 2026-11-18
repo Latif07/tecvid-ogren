@@ -1009,3 +1009,13 @@ body:has(.ko-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ko-im-sil { width: 44px; border-radius: 12px; border: 1px solid var(--cizgi); background: var(--kart); color: var(--soluk); }
 .oku-ekran.tema-gece .ko-a.calan, .oku-ekran.tema-gece .ko-a.ko-vurgu { background: #3b3320; }
 .oku-ekran.tema-sepya .ko-a.calan, .oku-ekran.tema-sepya .ko-a.ko-vurgu { background: #ead79f; }
+
+/* ---------- Hocamı bul ---------- */
+.hb-fatiha { font-size: calc(1.6rem * var(--ar-olcek, 1)); line-height: 2.2; }
+#hbOku.kirmizi-btn { background: var(--kotu); border-color: var(--kotu); color: #fff; }
+.hb-kari-ust { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.hb-kari-ust > div { display: flex; flex-direction: column; }
+.hb-kari-ust b { font-size: 1.05rem; }
+.hb-neden { margin: 6px 0 10px; }
+.hb-secenek { display: flex; gap: 10px; align-items: center; min-height: 44px; margin: 8px 2px; }
+.hb-secenek input { width: 22px; height: 22px; }

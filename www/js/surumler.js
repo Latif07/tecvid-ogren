@@ -11,6 +11,7 @@
       'Üç görünüm (Mushaf, Modern, Meal ile) ve üç sayfa rengi (Açık, Sepya, Gece); Arapça yazı boyu, renkli tecvid, sayfaya git',
       'Ayet menüsü: dinle, meal, tecvidini çalış, yer imi; "Dinle" ile sayfadaki ayetler sırayla okunur; kaydırarak sayfa çevirme',
       'Bütün sûreler listesi okuma ekranını o sûrenin sayfasında açar',
+      'Hocamı bul (Profil ve Kâri seç): Fâtiha\'yı oku, sesinin perdesine ve okuma hızına en yakın 3 kâri; dinle ve "Bunu kârim yap". Kadın ve çocuk sesinde oktav farkı sayılmaz. Ses telefonda ölçülür, gönderilmez, saklanmaz',
     ] },
     { s: '1.0.36', t: '2026-11-18', durum: 'Test APK', l: [
       'Uygulama olarak yükle (PWA): Android ve bilgisayarda Chrome\'da ana sayfada ve Profil\'de "Yükle" düğmesi; ana ekrana simge, tam ekran, internetsiz dersler',
