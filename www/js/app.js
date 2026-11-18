@@ -779,6 +779,13 @@
   const EKRAN = {};
 
   // iPhone/iPad'de Safari'den açılınca: ana ekrana ekleme yardımı (uygulama gibi açılsın, internetsiz çalışsın)
+  // Android uygulaması: günlük hatırlatma bir kez sorulur (büyük profillerde; çocukta karar velinin)
+  function hatirlatmaKarti() {
+    if (!LN() || cocukMu() || (S.ayar.hatirlat && S.ayar.hatirlat.acik) || S.ayar.hatirSoruldu) return '';
+    return `<section class="kart hatir-kart" style="margin-bottom:14px"><h2>${t('🔔 Her gün hatırlatma gelsin mi?')}</h2>
+      <p>${t('Seçtiğin saatte kısa bir ayet ya da hadisle hatırlatırız. O gün zaten çalıştıysan gelmez.')}</p>
+      <div class="satir sola"><button class="btn" id="hatirEvet">${t('Evet, akşam 20:00')}</button><button class="btn ikincil" id="hatirSaatSec">${t('Saati seç')}</button><button class="btn ikincil" id="hatirHayir">${t('Hayır')}</button></div></section>`;
+  }
   function iosKurKarti() {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const kurulu = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
@@ -830,7 +837,7 @@
       <main>
         <p class="uygulama-alt">${t('Tecvidli Kur\'an okumayı adım adım öğren')}</p>
         <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
-        ${tanitimKarti()}${haftaOzetKarti()}${gunlukKarti()}${yarimKarti()}
+        ${tanitimKarti()}${hatirlatmaKarti()}${haftaOzetKarti()}${gunlukKarti()}${yarimKarti()}
         <section class="kart ozet">
           <div class="halka" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b><small>${t('tamam')}</small></div>
           <div><p class="buyukyazi">${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</p>
@@ -857,6 +864,10 @@
     odevKartiDoldur(); yarimBagla(); gununSorusuBagla();
     const hk_ = $('#haftaKapat'); if (hk_) hk_.onclick = () => { S.ayar.haftaKartKapali = Date.now(); kaydet(); ciz(); };
     const tk = $('#tanitimKapat'); if (tk) tk.onclick = () => { S.ayar.tanitim = 1; kaydet(); ciz(); };
+    const he = $('#hatirEvet'); if (he) he.onclick = async () => { S.ayar.hatirSoruldu = true; S.ayar.hatirlat = { acik: true, saat: '20:00' }; kaydet();
+      const ok = await hatirlatmaKur(true); if (!ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); } else toast(t('Hatırlatma kuruldu: her gün {0}', '20:00')); ciz(); };
+    const hss = $('#hatirSaatSec'); if (hss) hss.onclick = () => { S.ayar.hatirSoruldu = true; kaydet(); git('ayarlar'); };
+    const hh = $('#hatirHayir'); if (hh) hh.onclick = () => { S.ayar.hatirSoruldu = true; kaydet(); toast(t('İstersen Ayarlar > Günlük hatırlatma\'dan açabilirsin.')); ciz(); };
     const ik = $('#iosKapat'); if (ik) ik.onclick = () => { try { localStorage.setItem('tecvid-ogren.ios', '1'); } catch (e) { } ciz(); };
     const uk = $('#uyariKapat'); if (uk) uk.onclick = () => { S.hesapUyariKapali = true; kaydet(); ciz(); };
   };
@@ -2757,6 +2768,7 @@
       <article class="kart"><h2>${t('⏰ Günlük hatırlatma')}</h2>
         <p class="soluk">${t('Her gün seçtiğin saatte telefonuna bir hatırlatma gelir. O gün zaten çalıştıysan gelmez.')}</p>
         ${LN() ? `<div class="satir sola"><button class="btn ${hat.acik ? '' : 'ikincil'}" data-hatir="1">${t('Açık')}</button><button class="btn ${hat.acik ? 'ikincil' : ''}" data-hatir="0">${t('Kapalı')}</button>
+          <button class="btn ikincil" id="denemeBildirim">${t('Deneme bildirimi gönder')}</button>
           <label>${t('Saat:')} <input type="time" id="hatirSaat" value="${esc(hat.saat || '20:00')}" style="font:inherit;padding:8px;border-radius:10px;border:1px solid var(--cizgi);background:var(--bg);color:var(--metin)"></label></div>` : `<p class="soluk kucukyazi">${t('Günlük hatırlatma şimdilik yalnızca Android uygulamasında çalışır.')}</p>`}</article>
       <article class="kart"><h2>${t('🎓 Meşk modu (özel)')}</h2>
         <p class="soluk">${t('Geleneksel meşk usulü: kâri ayeti parça parça okur, sen tekrar edersin, okuyuşun incelenir. Açınca Kur\'an sekmesindeki ayetlerde ve Profil\'de görünür.')}</p>
@@ -2802,6 +2814,7 @@
       ciz();
     };
     app.querySelectorAll('[data-hatir]').forEach(b => b.onclick = () => hatirAyarla(b.dataset.hatir === '1', $('#hatirSaat').value || '20:00'));
+    if ($('#denemeBildirim')) $('#denemeBildirim').onclick = denemeBildirimi;
     if ($('#hatirSaat')) $('#hatirSaat').onchange = e => { if (e.target.value) hatirAyarla(!!(S.ayar.hatirlat || {}).acik, e.target.value); };
     app.querySelectorAll('[data-mesk]').forEach(b => b.onclick = () => { S.ayar.mesk = b.dataset.mesk === '1'; kaydet(); ciz(); });
     app.querySelectorAll('[data-mtekrar]').forEach(b => b.onclick = () => { S.ayar.meskTekrar = +b.dataset.mtekrar; kaydet(); ciz(); });
@@ -2826,15 +2839,24 @@
   // Önümüzdeki 14 gün için her gün seçilen saatte bir bildirim kurulur; bugün çalıştıysan bugünkü atlanır.
   const LN = () => window.capEklenti('LocalNotifications');
   const HATIR_ID = Array.from({ length: 14 }, (_, i) => 7100 + i);
+  // Günlük hatırlatma: başlık kısa bir davet, metin kaynağıyla kısa bir ayet ya da hadis.
+  // Metinler window.MUJDE'den (HadeethEnc ve sunnah.com künyeleriyle kontrol edildi); bildirimde uzun durmasın diye 110 karakterden kısa olanlar.
+  function hatirlatmaSozleri() {
+    const M = window.MUJDE || {}, gor = new Set();
+    return (cocukMu() ? (M.cocuk || []) : [...(M.buyuk || []), ...(M.cocuk || [])]).filter(x => {
+      const en = DIL === 'en', m = en ? x.en : x.tr, k = en ? x.ken : x.ktr; if (!m || !k || m.length > 110 || gor.has(k)) return false; gor.add(k); return true; });
+  }
   function hatirlatmaMetni(i) {
-    const siradaki = U.find(u => !gecti(u.id));
-    const l = [
-      t('🔁 Günlük tekrar zamanı. Birkaç soru çöz, öğrendiklerin kalıcı olsun.'),
-      siradaki ? t('📖 Sıradaki bölüm: {0}. Bugün 10 dakika ayır.', siradaki.ad) : t('📖 Bir sûre aç, dinle ve renkli tecvidle oku.'),
-      t('🔥 Serini bozma! Bugün kısa bir test çöz.'),
-      t('🎙️ Bir ayet seç, kâriyi dinle, kendini kaydet ve karşılaştır.'),
-    ];
-    return l[i % l.length];
+    const siradaki = U.find(u => !gecti(u.id)), vade = vadesiGelenler().length, ezVade = Object.values(S.ezber || {}).some(e => e.tam && (e.vade || 0) <= simdi());
+    const basliklar = cocukMu()
+      ? [t('Harf Yolculuğu seni bekliyor'), t('Bugün bir durak, bir yıldız'), t('Bugün Kur\'an\'a 5 dakika ayır')]
+      : [siradaki ? t('Bugünkü dersin: {0}', siradaki.ad) : t('Bugün bir sûre dinle ve oku'), t('Bugün Kur\'an\'a 10 dakika ayır'),
+        vade ? t('Tekrar zamanı: {0} soru seni bekliyor', vade) : t('Bir ayet oku, bir kural öğren'), ezVade ? t('Ezber tekrarın seni bekliyor') : t('Bugün bir ayet ezberle')];
+    const sozler = hatirlatmaSozleri(), soz = sozler[i % Math.max(1, sozler.length)];
+    const en = DIL === 'en', yazi = soz && (en ? soz.en : soz.tr), kun = soz && (en ? soz.ken : soz.ktr);
+    // içinde tırnak olan (ör. “Rabbim, ilmimi artır!”) metin ikinci kez tırnağa alınmaz; "…" âyetin bir kısmı olduğunu gösterir, korunur
+    const metin = soz ? `${yazi.includes('“') ? yazi : `“${yazi}”`} — ${kun}` : t('Birkaç dakika ayır; öğrendiklerin kalıcı olsun.');
+    return { baslik: basliklar[i % basliklar.length], metin };
   }
   async function hatirlatmaKur(izinIste) {
     const ln = LN(); const h = S.ayar.hatirlat || {};
@@ -2852,11 +2874,24 @@
         const at = new Date(); at.setDate(at.getDate() + g); at.setHours(sa, dk, 0, 0);
         if (at.getTime() <= Date.now() + 60000) continue;
         if (g === 0 && calisti) continue;
-        bildirimler.push({ id: HATIR_ID[g], title: t('Hüsn-i Kıraat'), body: hatirlatmaMetni(g + new Date().getDate()), schedule: { at, allowWhileIdle: true } });
+        const hm = hatirlatmaMetni(g + new Date().getDate());
+        // Tam zamanlı alarm istenmez: eklenti izin yoksa sistem ayar ekranını açıyor; günlük hatırlatmada birkaç dakika kayma sorun değil
+        bildirimler.push({ id: HATIR_ID[g], title: hm.baslik, body: hm.metin, largeBody: hm.metin, schedule: { at, allowWhileIdle: true }, isExactNotification: false, extra: { git: 'gunluk' } });
       }
       if (bildirimler.length) await ln.schedule({ notifications: bildirimler });
       return true;
     } catch (e) { console.warn('hatırlatma', e); return false; }
+  }
+  // Ayarlar: deneme bildirimi (5 sn sonra) — hatırlatmanın telefonda nasıl göründüğünü görmek için
+  async function denemeBildirimi() {
+    const ln = LN(); if (!ln) return toast(t('Bildirimler yalnızca Android uygulamasında çalışır.'));
+    try {
+      let izin = await ln.checkPermissions(); if (izin.display !== 'granted') izin = await ln.requestPermissions();
+      if (izin.display !== 'granted') return toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.'));
+      const hm = hatirlatmaMetni(Math.floor(Math.random() * 100));
+      await ln.schedule({ notifications: [{ id: 7190, title: hm.baslik, body: hm.metin, largeBody: hm.metin, schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true }, isExactNotification: false, extra: { git: 'gunluk' } }] });
+      toast(t('Deneme bildirimi 5 saniye içinde gelecek. Uygulamayı arka plana alabilirsin.'));
+    } catch (e) { toast(t('Bildirim gönderilemedi.')); }
   }
   // Ayarlardaki önizleme: ayetin tamamı renkli
   function kelimeHTMLtam(r) {
@@ -3785,7 +3820,7 @@
       const [sa, dk] = (h.saat || '19:00').split(':').map(Number), l = [];
       const at = new Date(); at.setHours(sa, dk, 0, 0); at.setDate(at.getDate() + ((7 - at.getDay()) % 7));
       if (at.getTime() <= Date.now() + 60000) at.setDate(at.getDate() + 7);
-      for (let i = 0; i < 4; i++) { const z = new Date(at); z.setDate(z.getDate() + 7 * i); l.push({ id: HAFTA_ID[i], title: t('Hüsn-i Kıraat'), body: t('📊 Haftalık çocuk özeti hazır. Bu hafta neler öğrendiklerine birlikte bakın.'), schedule: { at: z, allowWhileIdle: true }, extra: { git: 'ebeveynOzet' } }); }
+      for (let i = 0; i < 4; i++) { const z = new Date(at); z.setDate(z.getDate() + 7 * i); l.push({ isExactNotification: false, id: HAFTA_ID[i], title: t('Hüsn-i Kıraat'), body: t('📊 Haftalık çocuk özeti hazır. Bu hafta neler öğrendiklerine birlikte bakın.'), schedule: { at: z, allowWhileIdle: true }, extra: { git: 'ebeveynOzet' } }); }
       await ln.schedule({ notifications: l });
       return true;
     } catch (e) { console.warn('haftalık özet', e); return false; }
