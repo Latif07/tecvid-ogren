@@ -1,0 +1,17 @@
+name: Hocamı bul — kâri ses ölçüleri
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  olc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+      - run: node tools/kari-ses.js
+      - uses: actions/upload-artifact@v4
+        with: { name: kari-ses, path: www/data/kari-ses.json }
