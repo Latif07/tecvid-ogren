@@ -12,6 +12,7 @@
       'Sûre listesinden açılan sayfada başlık açılan sûrenin adı; sayfa doğrudan o sûreye kayar. Aramada "İkra", "Tebbet", "Yâsîn" gibi adlar da bulunur',
       'Dualar bölümü (Ezber → Dualar): Sübhâneke, tesbihler, Ettehiyyâtü, Salli-Bârik, Rabbenâ, kunut, Âmentü, Rabbi yessir; gizleyerek ezber',
       'Çocuk modu, Sûreler Adası: duraklarda sûre adı Türkçe (İngilizcede İngilizce); "🎙️ Bana oku": çocuk ayeti okur, uygulama dinler',
+      'Ezber: "Bu ayeti tekrar oku" artık yalnız o ayeti yeniden dinliyor; diğer ayetler sıfırlanmıyor',
     ] },
     { s: '1.0.41', t: '2026-11-18', durum: 'Web', l: [
       'Okuyarak pekiştir: her dersin Örnekler bölümünün sonunda; dersin örnek kelimelerini kâriden dinle, kendin oku. Yapay zekâ yüzde, harf/hareke/med/tecvid dökümü ve "Nerede puan kaybettin?" gösterir; kâri ve senin okuyuşun yan yana dinlenir. Ses telefonda değerlendirilir, gönderilmez',

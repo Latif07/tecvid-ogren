@@ -2572,17 +2572,20 @@
       if (y) y.textContent = yazi;
     };
     Z.ayetSonuc = Z.ayetSonuc || {};
-    async function ezOkuBasla(bas) {
+    // tek: "Bu ayeti tekrar oku" → yalnız o ayet dinlenir; diğer ayetlerin sonucu ve görünümü olduğu gibi kalır
+    async function ezOkuBasla(bas, tek) {
       if (CANLI) await canliDurdur(true);
       if (Z.calma) { Z.calma.iptal = true; Z.calma = null; sesDurdur(); }
       const sonucYer = $('#ezSonuc'); if (!sonucYer) return;
-      sonucYer.innerHTML = ''; app.querySelectorAll('.ez-ayet-tekrar').forEach(x => x.remove());
-      if (bas === 0) bas = okBas;   // önceki sûrenin ayeti tek başına okunmaz: bağlama baştan
-      const ilk = bas === okBas;
-      if (ilk) { Z.bakis = 0; Z.ayetSonuc = {}; } else for (let a = bas; a <= okBit; a++) delete Z.ayetSonuc[a];
-      for (let a = ilk && onekAktif ? 0 : bas; a <= okBit; a++) { const k = document.getElementById('rapor-' + a); if (k) { k.hidden = true; k.innerHTML = ''; } }
+      sonucYer.innerHTML = '';
+      if (bas === 0) { bas = okBas; tek = false; }   // önceki sûrenin ayeti tek başına okunmaz: bağlama baştan
+      const ilk = bas === okBas && !tek, bit = tek ? bas : okBit;
+      if (tek) { const k = document.getElementById('ayet-' + bas), x = k && k.querySelector('.ez-ayet-tekrar'); if (x) x.remove(); }
+      else app.querySelectorAll('.ez-ayet-tekrar').forEach(x => x.remove());
+      if (ilk) { Z.bakis = 0; Z.ayetSonuc = {}; } else for (let a = bas; a <= bit; a++) delete Z.ayetSonuc[a];
+      for (let a = ilk && onekAktif ? 0 : bas; a <= bit; a++) { const k = document.getElementById('rapor-' + a); if (k) { k.hidden = true; k.innerHTML = ''; } }
       mikDurum('hazirlaniyor');
-      await canliBaslat(n, bas, { bit: okBit, gizle, bitince: ezCanliBitti, ayetBitti: ezAyetBitti, onek: ilk && onekAktif ? onek : null });
+      await canliBaslat(n, bas, { bit, gizle, bitince: ezCanliBitti, ayetBitti: ezAyetBitti, onek: ilk && onekAktif ? onek : null });
       const bar = $('#canliBar'); if (bar) bar.hidden = false;
       mikDurum(CANLI ? 'dinliyor' : 'bos');
     }
@@ -2595,7 +2598,7 @@
       const kutu = document.getElementById('rapor-' + a); if (kutu) kutu.hidden = true;
       const sat = document.createElement('div'); sat.className = 'ez-ayet-tekrar';
       sat.innerHTML = `<button class="ez-yeniden">↻ ${t('Bu ayeti tekrar oku')}</button><button class="ez-ayrinti" aria-expanded="false">${t('Hataları gör')}</button>`;
-      sat.querySelector('.ez-yeniden').onclick = () => ezOkuBasla(a);
+      sat.querySelector('.ez-yeniden').onclick = () => ezOkuBasla(a, true);
       sat.querySelector('.ez-ayrinti').onclick = ev => { if (!kutu) return; kutu.hidden = !kutu.hidden; ev.currentTarget.setAttribute('aria-expanded', String(!kutu.hidden)); ev.currentTarget.textContent = kutu.hidden ? t('Hataları gör') : t('Gizle'); };
       k.querySelector('.ayet').after(sat);
     }
