@@ -387,5 +387,25 @@
     }
     return { heard: d.heard, kelimeler: en.kelimeler, puan: en.puan, sure: ses.length / SR };
   }
-  window.Okuma = { MODEL_URL, hazir: () => !!oturum, modelAc, sesCoz, logMel, dinle, listen, opcodes, editops, fonetik, ayetRaporu, kelimeRaporu, puanla };
+  // ------------------------------------------------------------------ metin değerlendirmesi (Müezzinlik ve Dualar ezberi)
+  // Hazır fonetik referansla (ayetin bir parçası ya da data/mz-fonetik.json) okunan metni karşılaştırır.
+  // Ezber kontrolü sözlere bakar (Mustafa Hoca: makam ve tecvid değil, sözler): harf ve hareke puanı "söz" yüzdesidir.
+  // parca: { n, a, w0, w1 } verilirse referans ayetin o kelimelerinden kesilir (uzun ayet parça parça okunur).
+  async function metinRaporu(ref, sesBlob, parca) {
+    if (parca) {
+      const ar = (await fonetik(parca.n))[parca.a - 1]; if (!ar) throw new Error('fonetik yok');
+      const sonda = parca.w1 === ar.sp.length - 1, ibtida = parca.w0 > 0 && /^\u0671/.test(parca.ilk || '') ? (/^\u0671\u0644/.test(parca.ilk) ? 'ءَ' : 'ءِ') : '';
+      ref = kelimeRef(ar, parca.w0, parca.w1, !sonda, /[\u064B-\u064D\u08F0-\u08F2]/.test(parca.son || ''), ibtida);
+    }
+    if (!ref) throw new Error('fonetik yok');
+    const ses = sesBlob instanceof Float32Array ? sesBlob : await sesCoz(sesBlob);
+    if (ses.length / SR > 29) throw new Error(EN() ? 'The recording is longer than 30 seconds. Recite one line at a time.' : 'Kayıt 30 saniyeden uzun. Bir seferde tek satır oku.');
+    if (ses.length / SR < 0.5) throw new Error(EN() ? 'The recording is too short.' : 'Kayıt çok kısa.');
+    const d = await dinle(ses), kelimeler = listen(ref, d.heard, d.probs, d.times), puan = puanla(ref, kelimeler, d.heard);
+    const h = puan.kat.harf || [0, 0], k = puan.kat.hareke || [0, 0], soz = h[1] + k[1] ? Math.round((h[0] + k[0]) / (h[1] + k[1]) * 100) : 0;
+    // Kelime renkleri de yalnız sözlere göre: harf ve hareke hataları (uzatma, ğunne gibi tecvid notları ezberi düşürmez)
+    const sozKelime = kelimeler.map(w => ({ ...w, notes: w.notes.filter(z => ['harf', 'hareke'].includes(notKategori(z.rule))) }));
+    return { heard: d.heard, kelimeler: sozKelime, puan, soz, sure: ses.length / SR };
+  }
+  window.Okuma = { MODEL_URL, hazir: () => !!oturum, modelAc, sesCoz, logMel, dinle, listen, opcodes, editops, fonetik, ayetRaporu, kelimeRaporu, puanla, metinRaporu };
 })();

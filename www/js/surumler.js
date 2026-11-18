@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.42';
+  const SURUM = '1.0.43';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.43', t: '2026-11-18', durum: 'Web', l: [
+      'Müezzinlik ve Dualar: ezber adımları (Dinle → Bakarak → Yarısı gizli → Ezberden). Her satırı 🎙️ ile okursun; sözler doğruysa satır ✓, hepsi ✓ olunca sonraki adım; son adımda ezberlenmiş sayılır. Kelimeler okurken açılmaz',
+      'Âyetü\'l-Kürsî gibi uzun ayetler durak işaretlerinden parçalara bölündü; her parça ayrı kart ve ayrı okunur',
+    ] },
     { s: '1.0.42', t: '2026-11-18', durum: 'Web', l: [
       'Harf kartları: 28 harf 17 mahrece göre; her harfin kartında üstün/esre/ötre hâlleri, mahreci, ağız hareketi videosu, sıfatları, karıştırılan harf, Kur\'an\'dan kelimeler (🎤 Sen oku) ve ilgili dersler. Müfredat → Mahreç ve sıfat',
       'Etkileşimli mahreç şeması: numaraya dokun, o mahrecin harflerini gör',

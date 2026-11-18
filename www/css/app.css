@@ -1187,3 +1187,7 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 /* Mushafta durak grupları: vakıf işaretine kadar olan kelimeler bir grup, iki renk sırayla */
 .oku-ekran .kelime.dg-0 { box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--t-dg) 45%, transparent); }
 .oku-ekran .kelime.dg-1 { box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--altin) 60%, transparent); }
+.sesbtn.yesil-btn { background: var(--iyi); border-color: var(--iyi); color: #fff; }
+.mz-sonuc:empty { display: none; }
+.mz-sonuc { margin-top: 6px; }
+.mz-sonuc p { margin: 4px 0; }

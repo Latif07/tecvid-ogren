@@ -23,6 +23,20 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+    "Doğru": "Correct",
+    "Önce dinle: metni gözünle takip ederek kayıttan dinle. Bitince \"Dinledim\" ile sonraki adıma geç.": "Listen first: follow the text with your eyes. Then tap \"I listened\" to go to the next step.",
+    "Metne bakarak her satırı 🎙️ ile oku. Sözler doğruysa satır ✓ olur.": "Looking at the text, read each line with 🎙️. If the words are right the line gets ✓.",
+    "Kelimelerin yarısı gizli. Her satırı 🎙️ ile oku; takıldığın kelimeye dokunup bakabilirsin.": "Half of the words are hidden. Read each line with 🎙️; tap a word you're stuck on to see it.",
+    "Hepsi gizli. Her satırı ezberden 🎙️ ile oku. Hepsi ✓ olunca ezberlenmiş sayılır.": "All hidden. Read each line from memory with 🎙️. When all have ✓ it counts as memorised.",
+    "{0}/{1} satır doğru": "{0}/{1} lines correct",
+    "Dinledim, sonraki adım ›": "I listened, next step ›",
+    "Yapay zekâ sözleri kontrol eder; makamı ve tecvidi değil. Son söz hocanındır.": "The AI checks the words, not the melody or tajweed. Your teacher has the final say.",
+    "Bütün satırlar doğru! Sonraki adım: {0}": "All lines correct! Next step: {0}",
+    "Değerlendirme yüklenemedi. İnternet bağlantını kontrol et.": "Could not load the checker. Check your internet connection.",
+    "Bu satır için değerlendirme yok.": "No check available for this line.",
+    "Dinliyorum… Satırı oku, bitince ⏹ düğmesine dokun.": "Listening… Read the line, then tap ⏹.",
+    "Sözler doğru": "Words correct",
+    "Dikkat et:": "Watch out:",
     "Durak grupları (cümle cümle)": "Stop groups (phrase by phrase)",
     "Bana oku": "Read to me",
     "Bitti": "Done",
