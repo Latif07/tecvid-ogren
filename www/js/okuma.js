@@ -1,4 +1,4 @@
-/* Hüsn-i Kıraat — okuma raporu: okuyuşu dinler, kelime kelime tecvid ve okuma hatalarını bulur.
+/* Kur'an Yolum — okuma raporu: okuyuşu dinler, kelime kelime tecvid ve okuma hatalarını bulur.
  *
  * Model: HisnLabs tajweed-v2 (Apache-2.0) — https://huggingface.co/Hisnlabs/tajweed-v2
  *   Ses → Whisper log-mel (80) → ONNX (fonetik yazı, CTC) → beklenen fonetik yazıyla karşılaştırma.

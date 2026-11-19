@@ -180,7 +180,7 @@
     "Kaydın telefonda ölçülür, hiçbir yere gönderilmez ve saklanmaz.": "Your recording is measured on your phone; it is not sent anywhere or kept.",
     "Kâri bilgisi yüklenemedi.": "Could not load reciter data.",
     "Kârin": "Your reciter",
-    "Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofon iznini aç.": "Microphone permission was not given. Turn on the microphone for Husn-i Qiraat in your phone settings.",
+    "Mikrofon izni verilmedi. Telefon ayarlarından Kur'an Yolum için mikrofon iznini aç.": "Microphone permission was not given. Turn on the microphone for Kur'an Yolum in your phone settings.",
     "Mücevved (makamlı) kayıtları da kat": "Include mujawwad (melodic) recordings",
     "Perden yakın": "Close to your pitch",
     "Perden çok yakın": "Very close to your pitch",
@@ -252,7 +252,7 @@
  "Yükle": "Install",
  "Uygulama olarak yükle": "Install as an app",
  "Ana ekrana simge; tam ekran, internetsiz": "Home screen icon; full screen, offline",
- "Yükleniyor… Ana ekranında Hüsn-i Kıraat simgesi görünecek.": "Installing… The Husn-i Qiraat icon will appear on your home screen.",
+ "Yükleniyor… Ana ekranında Kur'an Yolum simgesi görünecek.": "Installing… The Kur'an Yolum icon will appear on your home screen.",
  "İstersen Profil > Uygulama olarak yükle'den yükleyebilirsin.": "You can install it later from Profile > Install as an app.",
  "Harf Yolculuğu seni bekliyor": "Your Letter Journey is waiting",
  "Bugün bir durak, bir yıldız": "One stop, one star today",
@@ -1212,7 +1212,7 @@
  "📲 iPhone'a uygulama gibi ekle": "📲 Add to your iPhone like an app",
  "Safari'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).": "In Safari tap <b>Share</b> (the square with an up arrow; if you can't see it, tap <b>⋯</b> first).",
  "<b>Ana Ekrana Ekle</b>'yi seç, sonra <b>Ekle</b>'ye dokun.": "Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.",
- "Artık ana ekrandaki <b>Hüsn-i Kıraat</b> simgesinden aç.": "From now on, open it from the <b>Hüsn-i Kıraat</b> icon on your home screen.",
+ "Artık ana ekrandaki <b>Kur'an Yolum</b> simgesinden aç.": "From now on, open it from the <b>Kur'an Yolum</b> icon on your home screen.",
  "Ana ekrandan açınca tam ekran çalışır ve dersler internetsiz de açılır.": "Opened from the home screen it runs full screen and the lessons also work offline.",
  "Tamam": "OK",
  "Sesleri indirme şimdilik yalnızca Android uygulamasında çalışır. Burada sesler internetle çalar.": "Downloading audio only works in the Android app for now. Here the audio plays over the internet.",
@@ -1268,7 +1268,7 @@
  "Her gün seçtiğin saatte telefonuna bir hatırlatma gelir. O gün zaten çalıştıysan gelmez.": "Every day at the time you choose, your phone gets a reminder. If you've already studied that day, it is skipped.",
  "Saat:": "Time:",
  "Bildirimler telefondaki uygulamada çalışır.": "Notifications work in the phone app.",
- "Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.": "Notification permission was not granted. Allow notifications for Hüsn-i Kıraat in your phone settings.",
+ "Bildirim izni verilmedi. Telefon ayarlarından Kur'an Yolum için bildirimlere izin ver.": "Notification permission was not granted. Allow notifications for Kur'an Yolum in your phone settings.",
  "Hatırlatma kuruldu: her gün {0}": "Reminder set: every day at {0}",
  "🔁 Günlük tekrar zamanı. Birkaç soru çöz, öğrendiklerin kalıcı olsun.": "🔁 Time for your daily review. Answer a few questions so what you learned sticks.",
  "📖 Sıradaki bölüm: {0}. Bugün 10 dakika ayır.": "📖 Next unit: {0}. Set aside 10 minutes today.",
@@ -1338,7 +1338,7 @@
  "⚠️ Sınıfı sil": "⚠️ Delete class",
  "Sınıf kapanır, kod çalışmaz. Öğrencilerin kendi ilerlemesi silinmez.": "The class closes and the code stops working. Students keep their own progress.",
  "Sınıfı sil": "Delete class",
- "Hüsn-i Kıraat uygulamasında \"{0}\" sınıfına katıl: Profil → Sınıf → Öğrenciyim → kod: {1}": "Join the \"{0}\" class in the Hüsn-i Kıraat app: Profile → Class → I'm a student → code: {1}",
+ "Kur'an Yolum uygulamasında \"{0}\" sınıfına katıl: Profil → Sınıf → Öğrenciyim → kod: {1}": "Join the \"{0}\" class in the Kur'an Yolum app: Profile → Class → I'm a student → code: {1}",
  "Ödev verildi ✓": "Homework set ✓",
  "Ödev kaldırıldı": "Homework removed",
  "Bu öğrenci sınıftan çıkarılsın mı?": "Remove this student from the class?",
@@ -1380,7 +1380,7 @@
  "▶ Sesim": "▶ My voice",
  "🔁 Karşılaştır": "🔁 Compare",
  "Bu cihazda ses kaydı desteklenmiyor.": "Audio recording is not supported on this device.",
- "Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.": "Microphone permission wasn't given. Allow microphone access for this app in your phone settings.",
+ "Mikrofon izni verilmedi. Telefon ayarlarından Kur'an Yolum için mikrofona izin ver.": "Microphone permission wasn't given. Allow microphone access for this app in your phone settings.",
 
  "🎧 Dinle: bu kelimede hangi harf var?": "🎧 Listen: which letter is in this word?",
  "Ses çalmıyorsa kelimeyi göster": "Show the word if the audio doesn't play",
@@ -1423,7 +1423,7 @@
  "Final": "Final",
  "Ara sınav": "Checkpoint",
  "Bölüm {0}": "Unit {0}",
- "Hüsn-i Kıraat": "Husn-i Qiraat",
+ "Kur'an Yolum": "Kur'an Yolum",
  "Hesap": "Account",
  "Giriş": "Sign in",
  "tamam": "done",
@@ -1600,5 +1600,5 @@
     for (var i = 1; i < arguments.length; i++) r = r.split('{' + (i - 1) + '}').join(arguments[i]);
     return r;
   };
-  if (dil === 'en') document.title = 'Husn-i Qiraat: Learn Tajweed';
+  if (dil === 'en') document.title = 'Kur\'an Yolum: Learn Tajweed';
 })();

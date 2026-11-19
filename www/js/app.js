@@ -1,4 +1,4 @@
-/* Hüsn-i Kıraat — uygulama motoru (çevrimdışı çalışır, veriler telefonda ve hesapta saklanır) */
+/* Kur'an Yolum — uygulama motoru (çevrimdışı çalışır, veriler telefonda ve hesapta saklanır) */
 (function () {
   'use strict';
   const { R, U, KAYNAK } = window.TC;
@@ -384,7 +384,7 @@
     if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
     let akis;
     try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
     if (ses) { ses.pause(); ses = null; }
     const parcalar = [];
     kayitci = new MediaRecorder(akis); kayitAnahtar = anahtar; KAYIT['_kari_' + anahtar] = kariUrl;
@@ -804,7 +804,7 @@
   const yuklenebilir = () => !!window.__yukleIstegi && !yerelUygulama() && !pwaYuklu();
   async function pwaYukle() {
     const e = window.__yukleIstegi; if (!e) return;
-    try { await e.prompt(); const s = await e.userChoice; if (s && s.outcome === 'accepted') { window.__yukleIstegi = null; toast(t('Yükleniyor… Ana ekranında Hüsn-i Kıraat simgesi görünecek.')); } } catch (x) { }
+    try { await e.prompt(); const s = await e.userChoice; if (s && s.outcome === 'accepted') { window.__yukleIstegi = null; toast(t('Yükleniyor… Ana ekranında Kur\'an Yolum simgesi görünecek.')); } } catch (x) { }
     ciz();
   }
   function yukleKarti() {
@@ -822,7 +822,7 @@
     let kapali = false; try { kapali = localStorage.getItem('tecvid-ogren.ios') === '1'; } catch (e) { }
     if (!ios || kurulu || kapali || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return '';
     return `<section class="kart hesap-uyari" style="margin-bottom:14px"><div><h2>${t('📲 iPhone\'a uygulama gibi ekle')}</h2>
-      <ol style="padding-left:20px;margin:6px 0"><li>${t('Safari\'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).')}</li><li>${t('<b>Ana Ekrana Ekle</b>\'yi seç, sonra <b>Ekle</b>\'ye dokun.')}</li><li>${t('Artık ana ekrandaki <b>Hüsn-i Kıraat</b> simgesinden aç.')}</li></ol>
+      <ol style="padding-left:20px;margin:6px 0"><li>${t('Safari\'de <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok; görmüyorsan önce <b>⋯</b> düğmesine dokun).')}</li><li>${t('<b>Ana Ekrana Ekle</b>\'yi seç, sonra <b>Ekle</b>\'ye dokun.')}</li><li>${t('Artık ana ekrandaki <b>Kur\'an Yolum</b> simgesinden aç.')}</li></ol>
       <p class="soluk kucukyazi">${t('Ana ekrandan açınca tam ekran çalışır ve dersler internetsiz de açılır.')}</p></div>
       <div class="satir sola"><button class="btn ikincil" id="iosKapat">${t('Tamam')}</button></div></section>`;
   }
@@ -864,7 +864,7 @@
     const siradaki = U.find(u => !gecti(u.id));
     const k = B() && B().kullanici();
     const hesapUyari = B() && B().hazir && !k && !S.hesapUyariKapali;
-    app.innerHTML = `${ust(t('Hüsn-i Kıraat'), false, `<button class="hesapbtn" data-git="hesap" aria-label="${t('Hesap')}">${k ? '👤' : t('Giriş')}</button>`)}
+    app.innerHTML = `${ust(t('Kur\'an Yolum'), false, `<button class="hesapbtn" data-git="hesap" aria-label="${t('Hesap')}">${k ? '👤' : t('Giriş')}</button>`)}
       <main>
         <p class="uygulama-alt">${t('Tecvidli Kur\'an okumayı adım adım öğren')}</p>
         <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
@@ -888,7 +888,7 @@
     const hk_ = $('#haftaKapat'); if (hk_) hk_.onclick = () => { S.ayar.haftaKartKapali = Date.now(); kaydet(); ciz(); };
     const tk = $('#tanitimKapat'); if (tk) tk.onclick = () => { S.ayar.tanitim = 1; kaydet(); ciz(); };
     const he = $('#hatirEvet'); if (he) he.onclick = async () => { S.ayar.hatirSoruldu = true; S.ayar.hatirlat = { acik: true, saat: '20:00' }; kaydet();
-      const ok = await hatirlatmaKur(true); if (!ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); } else toast(t('Hatırlatma kuruldu: her gün {0}', '20:00')); ciz(); };
+      const ok = await hatirlatmaKur(true); if (!ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Kur\'an Yolum için bildirimlere izin ver.')); } else toast(t('Hatırlatma kuruldu: her gün {0}', '20:00')); ciz(); };
     const hss = $('#hatirSaatSec'); if (hss) hss.onclick = () => { S.ayar.hatirSoruldu = true; kaydet(); AYAR_ACIK.add('3'); git('ayarlar'); };
     const hh = $('#hatirHayir'); if (hh) hh.onclick = () => { S.ayar.hatirSoruldu = true; kaydet(); toast(t('İstersen Ayarlar > Günlük hatırlatma\'dan açabilirsin.')); ciz(); };
     const py = $('#pwaYukle'); if (py) py.onclick = pwaYukle;
@@ -1575,7 +1575,7 @@
         <p class="soluk kucukyazi">${t('Öğrencinin ilerlemesi, onun telefonu internete bağlanıp eşitlendiğinde güncellenir.')}</p>
         <article class="kart"><h2>${t('⚠️ Sınıfı sil')}</h2><p>${t('Sınıf kapanır, kod çalışmaz. Öğrencilerin kendi ilerlemesi silinmez.')}</p><button class="btn tehlike" id="sinifSil">${t('Sınıfı sil')}</button></article>`;
       $('#paylas').onclick = async () => {
-        const yazi = t('Hüsn-i Kıraat uygulamasında "{0}" sınıfına katıl: Profil → Sınıf → Öğrenciyim → kod: {1}', s.ad || '', kod);
+        const yazi = t('Kur\'an Yolum uygulamasında "{0}" sınıfına katıl: Profil → Sınıf → Öğrenciyim → kod: {1}', s.ad || '', kod);
         try { if (navigator.share) { await navigator.share({ text: yazi }); return; } } catch (e) { return; }
         try { await navigator.clipboard.writeText(yazi); toast(t('Kopyalandı')); } catch (e) { toast(kod); }
       };
@@ -2070,7 +2070,7 @@
     let O, ref = null;
     try { [O] = await Promise.all([okumaHazirla(), s_.parca ? null : mzFonetik().then(f => { ref = f[s_.fkey]; })]); } catch (e) { return toast(t('Değerlendirme yüklenemedi. İnternet bağlantını kontrol et.')); }
     if (!s_.parca && !ref) return toast(t('Bu satır için değerlendirme yok.'));
-    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
     sesDurdur(); O.modelAc().catch(() => { });
     const parca = [], rec = new MediaRecorder(akis); MZ_KAYIT = { rec, btn };
     btn.textContent = '⏹ ' + t('Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor');
@@ -2143,7 +2143,7 @@
     const yenile = () => { kutu.innerHTML = dinletHTML(); dinletBagla(n, son); };
     const b = $('#dinletBas'); if (b) b.onclick = async () => {
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
-      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
       const parca = []; let r; try { r = new MediaRecorder(akis, { audioBitsPerSecond: 24000 }); } catch (e) { r = new MediaRecorder(akis); }
       DINLET.kayitci = r; DINLET.bas = Date.now();
       r.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
@@ -2271,7 +2271,7 @@
       if (PK.kayitci) { PK.kayitci.stop(); return; }
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
       let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
-      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofon iznini aç.')); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofon iznini aç.')); }
       sesDurdur(); O.modelAc().catch(() => { });
       const parca = [], rec = new MediaRecorder(akis); PK.kayitci = rec;
       btn.textContent = '⏹ ' + t('Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor');
@@ -2325,7 +2325,7 @@
     if (!navigator.mediaDevices || !window.AudioContext && !window.webkitAudioContext) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
     const bar = $('#canliBar'); bar.hidden = false; bar.querySelector('.canli-durum').textContent = t('Hazırlanıyor…');
     let O; try { O = await okumaHazirla(); await O.modelAc(p => { const e = bar.querySelector('.canli-durum'); if (e) e.textContent = t('Yapay zekâ modeli hazırlanıyor: {0}', yuzdeStr(Math.round(p * 100))); }); } catch (e) { bar.hidden = true; return toast(e.message || t('Okuma raporu yüklenemedi.')); }
-    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { bar.hidden = true; return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { bar.hidden = true; return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
     sesDurdur(); const mn = app.querySelector('main'); if (mn) mn.classList.add('canli-mod');
     const fon = await O.fonetik(n), x = SURE(n), son_ = x.ayet.length;
     // Beklenen fonetik yazı: başlangıç ayetinden sûre sonuna kadar art arda
@@ -2737,7 +2737,7 @@
       if (OKU_KAYIT.r) { if (OKU_KAYIT.a === a) OKU_KAYIT.r.state !== 'inactive' && OKU_KAYIT.r.stop(); return; }
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
       let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
-      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
       if (ses) { ses.pause(); ses = null; }
       const parca = []; const r = new MediaRecorder(akis); Object.assign(OKU_KAYIT, { r, n, a });
       b.classList.add('kirmizi-btn', 'kaydediyor'); b.textContent = t('⏹ Bitir');
@@ -3163,14 +3163,32 @@
     oturumBaslat({ tur: 'sure', id: null, sure: n, kimlik: 'sure|' + n, baslik: t('Kural bul: {0}', sureAdi(x)), anahtarlar: karistir(secilen), puanli: true });
   };
 
-  EKRAN.kariSec = function () {
-    const ornek = '1:1';
-    app.innerHTML = `${ust(t('Kâri seç'))}<main>
-      ${cocukMu() ? '' : `<button class="bolum" data-git="hocamiBul"><span class="ikon">🔎</span><span class="bad"><small>${t('Fâtiha\'yı oku, sesine en yakın kâriyi bul')}</small>${t('Hocamı bul')}</span><span class="rozet">›</span></button>`}
-      <article class="kart"><p>${t('Örneklerdeki ayetleri hangi kâriden dinlemek istersin? Dinlemek için ▶\'ye, seçmek için isme dokun.')}</p>
-      ${benzersiz(KARILER.map(k => k.tur)).map(tur => `<h2 class="baslik">${esc(tur)}</h2><div class="secenek-liste">${KARILER.filter(k => k.tur === tur).map(k => `<button class="${k.id === kari().id ? 'aktif' : ''}" data-kari="${k.id}"><span>${esc(k.ad)}<small>${esc(k.tur)}</small></span>
-        <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}">▶</span></button>`).join('')}</div>`).join('')}
-      <p class="soluk kucukyazi">${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')} ${t('Türk hafızların kayıtları Diyanet İşleri Başkanlığı Kur\'an portalındandır.')}</p></article></main>`;
+  // Kâri (hoca sesi): tek ekran, iki sekme — Listeden seç | Sesime göre bul (karar: toplanti-2026-11-19-arayuz-sadelestirme.md)
+  const KARI_ACIK = new Set();   // açık gruplar (oturum boyunca)
+  const kariUst = (sekme) => {
+    const k = kari();
+    return `<section class="kart kari-secili"><p class="soluk kucukyazi" style="margin:0">${t('Seçili kâri')}</p>
+        <div class="kari-secili-ic"><div><b>${esc(k.ad)}</b><small class="soluk">${esc(k.tur)}${k.makam ? ' · ' + esc(k.makam) : ''}</small></div><button class="sesbtn" data-ses="${ayetUrl('1:2', k.klasor)}">▶ ${t('Örnek')}</button></div></section>
+      ${cocukMu() ? '' : `<div class="sekmeler kari-sekme" role="tablist"><button class="${sekme === 'liste' ? 'aktif' : ''}" data-kari-sekme="liste" role="tab" aria-selected="${sekme === 'liste'}">${t('Listeden seç')}</button><button class="${sekme === 'bul' ? 'aktif' : ''}" data-kari-sekme="bul" role="tab" aria-selected="${sekme === 'bul'}">🔎 ${t('Sesime göre bul')}</button></div>`}`;
+  };
+  const kariSekmeBagla = () => app.querySelectorAll('[data-kari-sekme]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['kariSec', [b.dataset.kariSekme]]; ciz(); });
+  EKRAN.kariSec = function (sekme) {
+    sekme = sekme === 'bul' && !cocukMu() ? 'bul' : 'liste';
+    if (sekme === 'bul') return EKRAN.hocamiBul(true);
+    const ornek = '1:2', secili = kari();
+    const gruplar = benzersiz(KARILER.map(k => k.tur));
+    if (!KARI_ACIK.size) KARI_ACIK.add(secili.tur);
+    app.innerHTML = `${ust(t('Kâri (hoca sesi)'))}<main>
+      ${kariUst('liste')}
+      <div class="form"><input id="kariAra" type="search" placeholder="${t('Kâri ara')}" aria-label="${t('Kâri ara')}"></div>
+      ${gruplar.map(tur => { const l = KARILER.filter(k => k.tur === tur); return `<details class="kart kari-grup" data-tur="${esc(tur)}" ${KARI_ACIK.has(tur) ? 'open' : ''}><summary><b>${esc(tur)}</b><span class="soluk kucukyazi">${l.length}</span></summary>
+        <div class="secenek-liste">${l.map(k => `<button class="${k.id === secili.id ? 'aktif' : ''}" data-kari="${k.id}" data-ara="${esc(trSade(k.ad + ' ' + k.tur + ' ' + (k.makam || '')))}"><span>${esc(k.ad)}<small>${esc(k.makam ? k.makam : k.tur)}</small></span>
+          <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}" aria-label="${t('Dinle')}">▶</span></button>`).join('')}</div></details>`; }).join('')}
+      <p class="soluk kucukyazi">${t('Dinlemek için ▶\'ye, seçmek için isme dokun. Seçtiğin kâri uygulamanın her yerinde çalar.')} ${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')} ${t('Türk hafızların kayıtları Diyanet İşleri Başkanlığı Kur\'an portalındandır.')}</p></main>`;
+    kariSekmeBagla();
+    app.querySelectorAll('.kari-grup').forEach(d => d.addEventListener('toggle', () => { if (d.open) KARI_ACIK.add(d.dataset.tur); else KARI_ACIK.delete(d.dataset.tur); }));
+    $('#kariAra').oninput = e => { const q = trSade(e.target.value.trim());
+      app.querySelectorAll('.kari-grup').forEach(d => { let var_ = 0; d.querySelectorAll('[data-ara]').forEach(b => { const g = !q || b.dataset.ara.includes(q); b.hidden = !g; if (g) var_++; }); d.hidden = !var_; if (q) d.open = true; }); };
     app.querySelectorAll('[data-kari]').forEach(b => b.onclick = e => {
       if (e.target.closest('[data-ses]')) return;
       S.ayar.kari = b.dataset.kari; kaydet(); toast(t('Kâri seçildi: ') + kari().ad); ciz();
@@ -3208,9 +3226,11 @@
     if (Math.abs(x.aralikFark) >= 3) l.push(x.aralikFark > 0 ? t('sesin daha çok iniş çıkış yapıyor') : t('onun sesi daha çok iniş çıkış yapıyor'));
     return l.join(' · ');
   }
-  EKRAN.hocamiBul = function () {
+  EKRAN.hocamiBul = function (kariEkrani) {
+    // Artık Kâri ekranının "Sesime göre bul" sekmesi; eski bağlantılar da oraya gider
+    if (!kariEkrani) { ekranYigini[ekranYigini.length - 1] = ['kariSec', ['bul']]; return ciz(); }
     const son = S.hocaBul, mucevved = !!(S.ayar.hbMucevved);
-    app.innerHTML = `${ust(t('Hocamı bul'))}<main>
+    app.innerHTML = `${ust(t('Kâri (hoca sesi)'))}<main>${kariUst('bul')}
       <article class="kart"><p>${t('Fâtiha\'yı baştan sona oku; sesinin perdesine ve okuma hızına en yakın 3 kâriyi bulalım. Kendi perdende okuyan bir kâriyi dinleyip taklit etmek daha kolaydır.')}</p>
         <p class="soluk kucukyazi">${t('Bu öneri yalnız sesin perdesine ve hızına göredir; okuyuşun ya da kârinin güzelliği hakkında bir hüküm değildir.')}</p>
         <p class="soluk kucukyazi">🔒 ${t('Kaydın telefonda ölçülür, hiçbir yere gönderilmez ve saklanmaz.')}</p></article>
@@ -3220,6 +3240,7 @@
       <div id="hbSonuc"></div>
       <label class="hb-secenek"><input type="checkbox" id="hbMuc" ${mucevved ? 'checked' : ''}> ${t('Mücevved (makamlı) kayıtları da kat')}</label>
     </main>`;
+    kariSekmeBagla();
     const metin = () => { const x = SURE(1); if (!x) return; const yer = $('#hbMetin'); if (yer) yer.innerHTML = x.ayet.map((a, i) => `${esc(a)} <span class="ayet-no">﴿${(i + 1).toLocaleString('ar-EG')}﴾</span>`).join(' '); };
     if (SURE(1)) metin(); else sureYukle(1).then(metin).catch(() => { });
     const goster = () => {
@@ -3233,7 +3254,7 @@
             <div class="satir sola"><button class="btn ikincil" data-hb-dinle="${x.k.id}">▶ ${t('Dinle')}</button>${x.k.id === kari().id ? '' : `<button class="btn" data-hb-sec="${x.k.id}">${t('Bunu kârim yap')}</button>`}</div></article>`).join('')}
           <p class="soluk kucukyazi">${t('Senin ölçülerin: ortanca perde yaklaşık {0} Hz · Fâtiha\'yı {1} sn\'de okudun (duraklar hariç).', u.hz, Math.round(u.sure))}</p>`;
         yer.querySelectorAll('[data-hb-dinle]').forEach(b => b.onclick = () => { const k = KARILER.find(y => y.id === b.dataset.hbDinle); cal(ayetUrl('1:2', k.klasor), b); });
-        yer.querySelectorAll('[data-hb-sec]').forEach(b => b.onclick = () => { S.ayar.kari = b.dataset.hbSec; kaydet(); toast(t('Kâri seçildi: ') + kari().ad); goster(); });
+        yer.querySelectorAll('[data-hb-sec]').forEach(b => b.onclick = () => { S.ayar.kari = b.dataset.hbSec; kaydet(); toast(t('Kâri seçildi: ') + kari().ad); ciz(); });
       }).catch(e => { yer.innerHTML = `<p class="hata">${esc(e.message)}</p>`; });
     };
     hbYukle().catch(() => { }); goster();
@@ -3243,7 +3264,7 @@
       if (HB_KAYIT) { HB_KAYIT.stop(); return; }
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
       hbYukle().catch(() => { });
-      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofon iznini aç.')); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofon iznini aç.')); }
       const parca = [], rec = new MediaRecorder(akis); HB_KAYIT = rec; const bas = Date.now();
       btn.textContent = '⏹ ' + t('Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor'); durum.textContent = t('🎙️ Dinliyorum… Fâtiha\'yı oku, bitince "Bitir"e dokun.');
       const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 120000);
@@ -3289,7 +3310,6 @@
         ${satir('harfSesleri', '🎙️', t('Harf seslerini kaydet'), t('Hoca sesiyle çocuk modundaki “Dinle” oyunları'))}
         ${satir('hesap', '☁️', k ? t('Hesabım') : t('Giriş yap / Hesap aç'), k ? esc(k.email || '') : t('İlerlemen kaybolmasın'))}
         ${satir('okumaRaporu', '🎤', t('Okuma raporu'), t('Okuyuşundaki hatalar ve gelişimin'))}
-        ${cocukMu() ? '' : satir('hocamiBul', '🔎', t('Hocamı bul'), t('Fâtiha\'yı oku, sesine en yakın kâriyi bul'))}
         ${satir('sinif', '👨‍🏫', t('Sınıf (hoca–öğrenci)'), ogrSiniflari().length ? ogrSiniflari().map(c => esc(c.sinifAd || c.kod)).join(', ') : t('Katıl ya da sınıf aç'))}
         ${satir('ayarlar', '⚙️', t('Ayarlar'), t('Dil, tema, yazı boyutu, kâri, hatırlatma, yedek'))}
         ${yuklenebilir() ? `<button class="bolum" id="profilYukle"><span class="ikon">📲</span><span class="bad"><small>${t('Ana ekrana simge; tam ekran, internetsiz')}</small>${t('Uygulama olarak yükle')}</span><span class="rozet">›</span></button>` : ''}
@@ -3368,7 +3388,7 @@
     const hatirAyarla = async (acik, saat) => {
       S.ayar.hatirlat = { acik, saat }; kaydet();
       const ok = await hatirlatmaKur(acik);
-      if (acik && LN() && !ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); }
+      if (acik && LN() && !ok) { S.ayar.hatirlat.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Kur\'an Yolum için bildirimlere izin ver.')); }
       else if (acik) toast(t('Hatırlatma kuruldu: her gün {0}', saat));
       ciz();
     };
@@ -3447,7 +3467,7 @@
     const ln = LN(); if (!ln) return toast(t('Bildirimler yalnızca Android uygulamasında çalışır.'));
     try {
       let izin = await ln.checkPermissions(); if (izin.display !== 'granted') izin = await ln.requestPermissions();
-      if (izin.display !== 'granted') return toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.'));
+      if (izin.display !== 'granted') return toast(t('Bildirim izni verilmedi. Telefon ayarlarından Kur\'an Yolum için bildirimlere izin ver.'));
       const hm = hatirlatmaMetni(Math.floor(Math.random() * 100));
       await ln.schedule({ notifications: [{ id: 7190, title: hm.baslik, body: hm.metin, largeBody: hm.metin, schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true }, isExactNotification: false, extra: { git: 'gunluk' } }] });
       toast(t('Deneme bildirimi 5 saniye içinde gelecek. Uygulamayı arka plana alabilirsin.'));
@@ -3543,7 +3563,7 @@
     if (SV_KAYIT) { SV_KAYIT.stop(); return; }
     if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
     let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
-    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
     const parca = [], rec = new MediaRecorder(akis); SV_KAYIT = rec; O.modelAc().catch(() => { });
     btn.textContent = t('⏹ Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor'); kutu.innerHTML = `<p class="soluk">${t('🎙️ Dinliyorum… Ayeti oku, bitince "Bitir"e dokun.')}</p>`;
     const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 15000);
@@ -3766,7 +3786,7 @@
     // Hadis günde bir kez tam süre gösterilir; sonraki açılışlarda kısa
     let kisa = false; try { kisa = localStorage.getItem('hk.acilisGun') === bugun(); localStorage.setItem('hk.acilisGun', bugun()); } catch (e) { }
     const d = document.createElement('div'); d.className = 'acilis';
-    d.innerHTML = `<div class="acilis-ic"><img class="acilis-logo" src="icons/icon-512.png" alt=""><h1>${t('Hüsn-i Kıraat')}</h1>
+    d.innerHTML = `<div class="acilis-ic"><img class="acilis-logo" src="icons/icon-512.png" alt=""><h1>${t('Kur\'an Yolum')}</h1>
       <p class="acilis-ar" dir="rtl" lang="ar">${HADIS_AR}</p><p class="acilis-tr">${hadisMetni()}</p><p class="acilis-kaynak">${hadisKaynak()}</p>
       <p class="acilis-dokun">${t('Devam etmek için dokun')}</p></div>`;
     document.body.appendChild(d);
@@ -4008,7 +4028,7 @@
     if (MH_KAYIT) { MH_KAYIT.stop(); return; }
     if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
     let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
-    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
     sesDurdur();
     const parca = [], rec = new MediaRecorder(akis); MH_KAYIT = rec;
     btn.textContent = t('⏹ Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor');
@@ -4292,7 +4312,7 @@
       if (MESK.kayit) { MESK.kayit.state !== 'inactive' && MESK.kayit.stop(); return; }
       if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
       let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
-      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+      let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
       if (ses) { ses.pause(); ses = null; }
       const parca = [], rec = new MediaRecorder(akis); MESK.kayit = rec;
       O.modelAc(p => { const e = document.getElementById('modelYuzde'); if (e) e.textContent = t('(yapay zekâ modeli ilk kez hazırlanıyor: {0})', yuzdeStr(Math.round(p * 100))); }).catch(() => { });
@@ -4471,7 +4491,7 @@
         <input type="time" id="haftaSaat" value="${(S.ayar.haftaOzet || {}).saat || '19:00'}">` : `<p class="soluk">${t('Bildirim hatırlatması Android uygulamasında çalışır. Burada her pazar ve pazartesi ana sayfada bir kart görürsünüz.')}</p>`}</article>` : ''}
       <p class="soluk kucukyazi">${t('Özet bu telefondaki verilerden hazırlanır.')}</p></main>`;
     const ho = $('#haftaOzet'), hs = $('#haftaSaat');
-    const kur = async () => { S.ayar.haftaOzet = { acik: ho.checked, saat: hs.value || '19:00' }; kaydet(); const ok = await haftaOzetKur(true); if (ho.checked && !ok) { ho.checked = false; S.ayar.haftaOzet.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için bildirimlere izin ver.')); } else if (ho.checked) toast(t('Tamam, her pazar {0}\'de hatırlatacağım.', hs.value)); };
+    const kur = async () => { S.ayar.haftaOzet = { acik: ho.checked, saat: hs.value || '19:00' }; kaydet(); const ok = await haftaOzetKur(true); if (ho.checked && !ok) { ho.checked = false; S.ayar.haftaOzet.acik = false; kaydet(); toast(t('Bildirim izni verilmedi. Telefon ayarlarından Kur\'an Yolum için bildirimlere izin ver.')); } else if (ho.checked) toast(t('Tamam, her pazar {0}\'de hatırlatacağım.', hs.value)); };
     if (ho) { ho.onchange = kur; hs.onchange = () => { if (ho.checked) kur(); }; }
   };
   // Haftalık çocuk özeti bildirimi: önümüzdeki 4 pazar, seçilen saatte (yalnız ayarı açan profilde kurulur/silinir)
@@ -4487,7 +4507,7 @@
       const [sa, dk] = (h.saat || '19:00').split(':').map(Number), l = [];
       const at = new Date(); at.setHours(sa, dk, 0, 0); at.setDate(at.getDate() + ((7 - at.getDay()) % 7));
       if (at.getTime() <= Date.now() + 60000) at.setDate(at.getDate() + 7);
-      for (let i = 0; i < 4; i++) { const z = new Date(at); z.setDate(z.getDate() + 7 * i); l.push({ isExactNotification: false, id: HAFTA_ID[i], title: t('Hüsn-i Kıraat'), body: t('📊 Haftalık çocuk özeti hazır. Bu hafta neler öğrendiklerine birlikte bakın.'), schedule: { at: z, allowWhileIdle: true }, extra: { git: 'ebeveynOzet' } }); }
+      for (let i = 0; i < 4; i++) { const z = new Date(at); z.setDate(z.getDate() + 7 * i); l.push({ isExactNotification: false, id: HAFTA_ID[i], title: t('Kur\'an Yolum'), body: t('📊 Haftalık çocuk özeti hazır. Bu hafta neler öğrendiklerine birlikte bakın.'), schedule: { at: z, allowWhileIdle: true }, extra: { git: 'ebeveynOzet' } }); }
       await ln.schedule({ notifications: l });
       return true;
     } catch (e) { console.warn('haftalık özet', e); return false; }

@@ -1,6 +1,6 @@
 {
-  "name": "Hüsn-i Kıraat",
-  "short_name": "Hüsn-i Kıraat",
+  "name": "Kur'an Yolum: Tecvid ve Ezber",
+  "short_name": "Kur'an Yolum",
   "description": "Kur'an-ı Kerim'i tecvidli okumayı adım adım öğreten uygulama: dersler, renkli tecvid, kâri sesleri, yapay zekâ ile okuma kontrolü, ezber ve çocuklar için Harf Yolculuğu.",
   "start_url": "./",
   "scope": "./",

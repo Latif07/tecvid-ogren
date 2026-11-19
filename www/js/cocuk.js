@@ -1,4 +1,4 @@
-/* Hüsn-i Kıraat — çocuk modu: Harf Yolculuğu, oyunlar, konfeti, yıldız maskot, ebeveyn kilidi.
+/* Kur'an Yolum — çocuk modu: Harf Yolculuğu, oyunlar, konfeti, yıldız maskot, ebeveyn kilidi.
  * app.js yüklenince window.CocukModu(api) ile bağlanır. Harflere hürmet: harfler oyunlarda
  * patlatılmaz/parçalanmaz; konfeti harfin etrafında patlar, harfler sepete özenle taşınır. */
 (function () {
@@ -1106,7 +1106,7 @@
         const k = b.dataset.skayit;
         if (KAYIT) { const ayni = KAYIT.k === k; KAYIT.r.state !== 'inactive' && KAYIT.r.stop(); if (ayni) return; }
         if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
-        let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Hüsn-i Kıraat için mikrofona izin ver.')); }
+        let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
         const parca = []; const r = new MediaRecorder(akis); KAYIT = { k, r };
         r.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
         r.onstop = async () => {

@@ -1,4 +1,4 @@
-/* Hüsn-i Kıraat — hesap ve bulut eşitleme (Firebase Auth + Firestore)
+/* Kur'an Yolum — hesap ve bulut eşitleme (Firebase Auth + Firestore)
  * Uygulama internetsiz çalışır; veriler önce telefona yazılır, internet varken
  * kullanıcının hesabına (users/{uid}) eşitlenir. */
 import { initializeApp } from './firebase/firebase-app.js';

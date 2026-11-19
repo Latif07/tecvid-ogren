@@ -47,6 +47,8 @@ jobs:
           npm install --no-audit --no-fund
           npx cap add android
           npx cap sync android
+          # Uygulama adı (Kur'an Yolum): kesme işareti strings.xml'de kaçırılmalı
+          node tools/android-ad.js
           # Firebase: google-services.json ve Google girişi
           cp android-res/google-services.json android/app/google-services.json
           sed -i "s/^ext {/ext {\n    rgcfaIncludeGoogle = true/" android/variables.gradle
@@ -81,7 +83,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SURUM }}
-          name: Hüsn-i Kıraat ${{ env.SURUM }}
+          name: Kur'an Yolum ${{ env.SURUM }}
           body_path: surum-notu.md
           files: tecvid-ogren.apk
           make_latest: true
