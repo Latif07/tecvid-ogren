@@ -1110,7 +1110,7 @@
     app.innerHTML = `${ust(esc(o.baslik))}
       <div class="ilerleme"><div style="width:${ilerleme}%"></div></div>
       <main>
-        <p class="soluk">${o.tur === 'seviye' ? t('Konu {0}/{1}: {2}', o.sv.blok + 1, SV_BLOK.length, esc(SV_BLOK[o.sv.blok].ad())) : t('Soru {0} / {1}', o.i + 1, o.sorular.length) + (o.puanli ? '' : t(' · alıştırma'))}${o.ustalik ? ` · <span class="seviye-rozet sv${o.ustalik.sv[q.anahtar] || 2}">${[t('Temel'), t('Tanıma'), t('Uygulama'), t('Karışık')][(o.ustalik.sv[q.anahtar] || 2) - 1]}</span>` : ''}</p>
+        <p class="soluk">${o.tur === 'seviye' ? t('Konu {0}/{1}: {2}', o.sv.konu + 1, SV_KONU.length, esc(SV_KONU[o.sv.konu].ad())) + (o.i === o.sv.bas && !cevap ? ` · <button class="link" id="svGormedim">${t('Bu konuyu hiç görmedim, geç')}</button>` : '') : t('Soru {0} / {1}', o.i + 1, o.sorular.length) + (o.puanli ? '' : t(' · alıştırma'))}${o.ustalik ? ` · <span class="seviye-rozet sv${o.ustalik.sv[q.anahtar] || 2}">${[t('Temel'), t('Tanıma'), t('Uygulama'), t('Karışık')][(o.ustalik.sv[q.anahtar] || 2) - 1]}</span>` : ''}</p>
         ${o.ustalik && o.ustalik.karisik && o.i === 0 ? `<p class="soluk kucukyazi">${t('Bu dersin sorularının hepsini gördün; önceki derslerle karışık sorular geliyor.')}</p>` : ''}
         <article class="kart soru">
           ${(cevap ? q.ustRenkli : q.ust) || ''}
@@ -1131,6 +1131,7 @@
         </article>
       </main>`;
     const gb = $('[data-goster]'); if (gb) gb.onclick = () => { $('.gizli-kelime').hidden = false; gb.remove(); };
+    const svg = $('#svGormedim'); if (svg) svg.onclick = svHicGormedim;
     if (q.tip === 'dinle' && !cevap && !q._calindi) { q._calindi = true; const sb = $('.dinle-kutu .sesbtn'); setTimeout(() => cal(q.sesUrl, sb), 250); }
     app.querySelectorAll('.secenek').forEach(b => b.onclick = () => {
       const s = q.secenek[+b.dataset.i]; const d = s === q.dogru;
@@ -3557,44 +3558,124 @@
   // Yeni yetişkin profile bir kez "nereden başlayalım?" sorulur (daha önce ilerlemesi olana sorulmaz)
   if (location.hostname === 'localhost') window.__test = { oturum: () => oturum, ac: (ad, ...a) => { ekranYigini = [[ad, a]]; ciz(); }, git: (...a) => git(...a), U: () => U.map(u => u.id), S: () => S };
   // ------------------------------------------------------------ Seviye tespiti: "Seni tanıyalım" (yetişkin)
-  // Bloklar basitten zora; her blokta 3 soru (örnekte tanıma/uygulama), 2 doğru → blok geçildi; takılınca test biter.
-  const SV_BLOK = [
-    { ad: () => t('Harfler ve harekeler'), dersler: ['e1', 'u0'], oner: ['m1', 'm2', 'm3'] },
-    { ad: () => t('Medler'), dersler: ['u1', 'u2', 'u3', 'u4', 'u5', 'u6'], ek: ['x1'] },
-    { ad: () => t('Nûn sâkin, tenvin, mîm sâkin, ğunne'), dersler: ['u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13'], ek: ['x2'] },
-    { ad: () => t('İdğamlar, kalkale, lâm-ı tarif, Allah lafzı, râ'), dersler: ['u14', 'u15', 'u16', 'u17', 'u18'] },
-    { ad: () => t('Vakf ve Hafs\'a özel okunuşlar'), dersler: ['u19', 'u20'] },
+  // Karar: claude/toplanti-2026-11-18-seviye-tespiti-yeniden.md
+  // 1) Başta isteğe bağlı okuma (3 kısa ayet, yapay zekâ dinler). 2) 8 konu, her biri ayrı yoklanır: 3 soru;
+  // 3/3 geçti, 2/3 → 2 soru daha (5'te 4 geçti), 1/3 kaldı. Test ilk takılmada bitmez; yalnız arka arkaya iki
+  // konu kalınırsa (ya da "hiç görmedim") erken biter. 3) Sabit yerleştirme havuzu: ses gerektirmeyen, kuralı ölçen,
+  // ders sorularından seçilmiş sorular (hoca onayı bekliyor). 4) Sonuç: konu listesi, kişi değiştirebilir, puan yok.
+  // Kendi beyanı taban: "Kur'an okuyabiliyorum" diyen Elif-Ba'ya hiçbir zaman geri gönderilmez.
+  const SV_KONU = [
+    { id: 'hareke', ad: () => t('Harekeler ve işaretler'), dersler: ['u0'], oner: ['m1', 'm2', 'm3'], havuz: ['c:u0:0', 'c:u0:1', 'c:u0:2', 'c:u0:7', 'c:u0:8', 'c:u0:9', 'c:u1:3'] },
+    { id: 'tabii', ad: () => t('Med-i tabîî ve med harfleri'), dersler: ['u1'], havuz: ['c:u1:0', 'c:u1:1', 'c:u1:2', 'c:u1:4', 'c:u0:3', 'c:u0:4'] },
+    { id: 'feri', ad: () => t('Diğer medler (muttasıl, munfasıl, lâzım, ârız, lîn) ve zamir'), dersler: ['u2', 'u3', 'u4', 'u5', 'u6'], ek: ['x1'], havuz: ['c:u2:0', 'c:u2:3', 'c:u3:0', 'c:u3:2', 'c:u4:0', 'c:u4:1', 'c:u5:0', 'c:u6:0'] },
+    { id: 'nun', ad: () => t('Nûn sâkin ve tenvin'), dersler: ['u7', 'u8', 'u9', 'u10', 'u11'], havuz: ['c:u7:0', 'c:u7:3', 'c:u8:0', 'c:u8:1', 'c:u9:2', 'c:u10:0', 'c:u10:3', 'c:u11:3'] },
+    { id: 'mim', ad: () => t('Mîm sâkin ve ğunne'), dersler: ['u12', 'u13'], ek: ['x2'], havuz: ['c:u12:0', 'c:u12:1', 'c:u12:2', 'c:u12:4', 'c:u13:0', 'c:u13:2', 'c:u13:3'] },
+    { id: 'idgam', ad: () => t('İdğamlar'), dersler: ['u14'], havuz: ['c:u14:0', 'c:u14:1', 'c:u14:3', 'c:u14:4', 'c:u14:5', 'c:u9:0'] },
+    { id: 'kalkale', ad: () => t('Kalkale, lâm-ı tarif, Allah lafzı, râ'), dersler: ['u15', 'u16', 'u17', 'u18'], havuz: ['c:u15:1', 'c:u15:3', 'c:u16:1', 'c:u16:5', 'c:u17:1', 'c:u17:3', 'c:u18:0', 'c:u18:1'] },
+    { id: 'vakf', ad: () => t('Vakf (durma) ve Hafs\'a özel okunuşlar'), dersler: ['u19', 'u20'], ek: ['x3'], havuz: ['c:u19:1', 'c:u19:2', 'c:u19:3', 'c:u19:4', 'c:u19:5', 'c:u20:1', 'c:u20:3'] },
   ];
-  function svSorular(b) {
-    const gruplar = karistir(b.dersler.map(unitById).filter(Boolean).map(u => { const l = anahtarlar(u).filter(k => !k.endsWith(':kural')); const iyi = l.filter(k => soruSeviye(k) >= 2); return karistir(iyi.length ? iyi : l); }));
-    const l = []; for (let i = 0; l.length < 3 && i < 10; i++) for (const g of gruplar) { if (l.length >= 3) break; if (g[i] && !l.some(x => kokAnahtar(x) === kokAnahtar(g[i]))) l.push(g[i]); }
-    return l;
-  }
+  // Okuma adımı: kolaydan zora 3 kısa ayet (Mustafa Hoca)
+  const SV_OKUMA = ['1:2', '108:1', '103:3'];
+  const svSecim = (konu, adet, olan) => karistir(konu.havuz.filter(k => !olan.includes(k))).slice(0, adet);
   EKRAN.seviyeTespit = function () {
     app.innerHTML = `${ust(t('🧭 Seni tanıyalım'))}<main>
-      <section class="kart"><p>${t('Birkaç kısa soruyla bildiğin konuları bulalım; bildiğin bölümleri atlayıp doğru yerden başlayalım. Puan yok, yanlış yapmak sorun değil.')}</p>
-        <ol class="sv-bloklar">${SV_BLOK.map(b => `<li>${esc(b.ad())}</li>`).join('')}</ol>
-        <p class="soluk kucukyazi">${t('Her konuda 3 soru. Bilmediğin bir konuya gelince test orada biter. Yaklaşık 5–10 dakika.')}</p>
+      <section class="kart"><p>${t('Bildiğin konuları bulalım; bildiğin bölümleri atlayıp doğru yerden başlayalım. Puan yok, yanlış yapmak sorun değil.')}</p>
+        <ol class="sv-bloklar"><li>${t('Kısa okuma: 3 ayet (istersen atlarsın)')}</li>${SV_KONU.map(b => `<li>${esc(b.ad())}</li>`).join('')}</ol>
+        <p class="soluk kucukyazi">${t('Her konuda 3 soru; kararsız kalırsan 2 soru daha. Bir konuyu bilmemek testi bitirmez. Hiç görmediğin konuyu tek dokunuşla geçebilirsin. Yaklaşık 8–12 dakika.')}</p>
         <button class="btn genis" id="svBasla">${t('Başlayalım')}</button></section></main>`;
-    $('#svBasla').onclick = () => { ekranYigini.pop(); oturumBaslat({ tur: 'seviye', kimlik: 'seviye', baslik: t('Seni tanıyalım'), anahtarlar: svSorular(SV_BLOK[0]), puanli: false, sv: { blok: 0, bas: 0, gecen: 0 } }); };
+    $('#svBasla').onclick = () => { SVO.i = 0; SVO.sonuc = []; ekranDegistir('seviyeOkuma'); };
   };
-  function seviyeIleri(o) {
-    const n = o.sorular.length;
-    if (o.i + 1 < n) { o.i++; oturumSakla(); ciz(); window.scrollTo(0, 0); return; }
-    const dogru = o.cevaplar.slice(o.sv.bas).filter(c => c && c.dogru).length, gecti_ = dogru >= Math.ceil((n - o.sv.bas) * 2 / 3);
-    if (gecti_) o.sv.gecen = o.sv.blok + 1;
-    if (gecti_ && o.sv.blok + 1 < SV_BLOK.length) {
-      o.sv.blok++; o.sv.bas = n;
-      const yeni = svSorular(SV_BLOK[o.sv.blok]); o.anahtarlar.push(...yeni); o.sorular.push(...yeni.map(soruUret).filter(Boolean));
-      o.i++; oturumSakla(); toast(t('Bârekallah! Sonraki konu: {0}', SV_BLOK[o.sv.blok].ad())); ciz(); window.scrollTo(0, 0); return;
-    }
-    const gecen = o.sv.gecen; oturum = null; oturumSakla();
-    seviyeYerlestir(gecen); ekranYigini.pop(); git('seviyeSonuc', gecen);
+  // ---- okuma adımı
+  const SVO = { i: 0, sonuc: [], kayit: null };
+  EKRAN.seviyeOkuma = function () {
+    const r = SV_OKUMA[SVO.i], [n] = r.split(':').map(Number);
+    if (!SURE(n)) { app.innerHTML = `${ust(t('🧭 Seni tanıyalım'))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; sureYukle(n).then(() => ciz()).catch(() => svTestBaslat()); return; }
+    const son = SVO.sonuc[SVO.i];
+    app.innerHTML = `${ust(t('🧭 Seni tanıyalım'))}<main>
+      <p class="soluk">${t('Okuma {0}/{1}', SVO.i + 1, SV_OKUMA.length)}</p>
+      <section class="kart"><h2 style="margin-top:0">🎙️ ${t('Bu ayeti sesli oku')}</h2>
+        <div class="ayet" dir="rtl" lang="ar">${esc(ayetMetni(r))}</div>
+        <p class="soluk kucukyazi">${esc(sureNoAdi(n))} ${r.split(':')[1]} · ${t('Her zamanki gibi oku; yapay zekâ telefonda dinler, ses gönderilmez.')}</p>
+        <div class="satir sola"><button class="btn" id="svOku">🎤 ${son ? t('Tekrar oku') : t('Oku')}</button></div>
+        <div id="svOkuSonuc">${son ? son.html : ''}</div></section>
+      <div class="satir">${son ? `<button class="btn genis" id="svOkuIleri">${SVO.i + 1 < SV_OKUMA.length ? t('Sonraki ayet ›') : t('Sorulara geç ›')}</button>` : ''}</div>
+      <div class="satir"><button class="btn ikincil genis" id="svOkumaAtla">${t('Okumayı atla, sorulara geç')}</button></div></main>`;
+    $('#svOkumaAtla').onclick = () => svTestBaslat();
+    const il = $('#svOkuIleri'); if (il) il.onclick = () => { if (SVO.i + 1 < SV_OKUMA.length) { SVO.i++; ciz(); window.scrollTo(0, 0); } else svTestBaslat(); };
+    $('#svOku').onclick = ev => svOkut(ev.currentTarget, r);
+  };
+  async function svOkut(btn, r) {
+    if (SVO.kayit) { SVO.kayit.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
+    let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
+    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
+    const kutu = $('#svOkuSonuc'), parca = [], rec = new MediaRecorder(akis); SVO.kayit = rec; O.modelAc().catch(() => { });
+    btn.textContent = t('⏹ Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor'); kutu.innerHTML = `<p class="soluk">${t('🎙️ Dinliyorum… Ayeti oku, bitince "Bitir"e dokun.')}</p>`;
+    const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 25000);
+    rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+    rec.onstop = async () => {
+      clearTimeout(z); akis.getTracks().forEach(x => x.stop()); SVO.kayit = null;
+      btn.classList.remove('kirmizi-btn', 'kaydediyor'); btn.textContent = t('Kontrol ediliyor…'); kutu.innerHTML = `<p class="soluk">${t('Kontrol ediliyor…')}</p>`;
+      const [n, a] = r.split(':').map(Number);
+      try {
+        const s = await O.ayetRaporu(n, a, new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
+        const j = s.kelimeler.filter(w => w.notes.some(z_ => z_.severity === 'jali')).length, duydu = !!s.heard && s.heard.length > 5;
+        const html = !duydu ? `<p class="r-orta">${t('Sesini duyamadım. Biraz daha yüksek ve yakından oku.')}</p>`
+          : j === 0 ? `<p class="r-iyi"><b>${t('Güzel okudun.')}</b></p>` : j <= 2 ? `<p class="r-iyi"><b>${t('İyi okudun; {0} kelimede küçük bir şey var.', j)}</b></p>` : `<p class="r-orta"><b>${t('{0} kelimede hata var.', j)}</b> ${t('Sorun değil; buna göre yerleştireceğiz.')}</p>`;
+        if (duydu) SVO.sonuc[SVO.i] = { j, kelime: s.kelimeler.length, html };
+        if (ekranYigini[ekranYigini.length - 1][0] === 'seviyeOkuma') ciz();
+      } catch (e) { kutu.innerHTML = `<p class="hata">${esc(e.message || t('Kontrol edilemedi.'))}</p>`; btn.textContent = '🎤 ' + t('Tekrar oku'); }
+    };
+    rec.start();
   }
-  // Geçilen blokların derslerini "Atlandı (seviye)" yap; sorularının bir kısmı ileride tekrara düşsün
-  function seviyeYerlestir(gecen) {
-    SV_BLOK.forEach((b, i) => {
-      const atla = i < gecen;
+  // Okuma iyi mi? En az 2 ayet okunmuş ve toplamda en fazla 2 kelimede açık hata
+  const svOkumaDurumu = () => { const l = SVO.sonuc.filter(Boolean); if (l.length < 2) return null; const j = l.reduce((x, y) => x + y.j, 0); return j <= 2 ? 'iyi' : j <= 6 ? 'orta' : 'zayif'; };
+  function svTestBaslat() {
+    const okuma = svOkumaDurumu(), sonuc = SV_KONU.map(() => null);
+    // Okuyuşu iyi olanın "Harekeler ve işaretler" konusu okumayla geçilmiş sayılır (Mustafa Hoca: asıl ölçü okuyuştur)
+    let konu = 0; if (okuma === 'iyi') { sonuc[0] = 'gecti'; konu = 1; }
+    const ilk = svSecim(SV_KONU[konu], 3, []);
+    ekranYigini = [[evKok(), []]];
+    oturumBaslat({ tur: 'seviye', kimlik: 'seviye', baslik: t('Seni tanıyalım'), anahtarlar: ilk, puanli: false, sv: { konu, bas: 0, ek: false, sonuc, okuma, ardKaldi: 0 } });
+  }
+  function svKonuBitir(o, durum) {
+    o.sv.sonuc[o.sv.konu] = durum;
+    if (durum !== 'gormedim') o.sv.ardKaldi = durum === 'gecti' ? 0 : o.sv.ardKaldi + 1; // "hiç görmedim" testi durdurmaz
+    let sonraki = o.sv.konu + 1; while (sonraki < SV_KONU.length && o.sv.sonuc[sonraki]) sonraki++;
+    if (o.sv.ardKaldi >= 2 || sonraki >= SV_KONU.length) return svBitir(o);
+    o.sv.konu = sonraki; o.sv.bas = o.sorular.length; o.sv.ek = false;
+    const yeni = svSecim(SV_KONU[sonraki], 3, o.anahtarlar); o.anahtarlar.push(...yeni); o.sorular.push(...yeni.map(soruUret).filter(Boolean));
+    o.i = o.sv.bas; oturumSakla(); toast(durum === 'gecti' ? t('Bârekallah! Sonraki konu: {0}', SV_KONU[sonraki].ad()) : t('Sonraki konu: {0}', SV_KONU[sonraki].ad())); ciz(); window.scrollTo(0, 0);
+  }
+  function seviyeIleri(o) {
+    const cev = o.cevaplar.slice(o.sv.bas, o.i + 1), d = cev.filter(c => c && c.dogru).length, y = cev.length - d;
+    // Karar: 3/3 geçti · 2/3 → 2 soru daha, 5'te 4 geçti · en fazla 1/3 kaldı (ilk iki yanlışta erken karar)
+    if (!o.sv.ek) {
+      if (cev.length >= 2 && y >= 2) return svKonuBitir(o, 'kaldi');
+      if (cev.length < 3) { o.i++; oturumSakla(); ciz(); window.scrollTo(0, 0); return; }
+      if (d === 3) return svKonuBitir(o, 'gecti');
+      o.sv.ek = true; const yeni = svSecim(SV_KONU[o.sv.konu], 2, o.anahtarlar); o.anahtarlar.push(...yeni); o.sorular.push(...yeni.map(soruUret).filter(Boolean));
+      if (o.i + 1 >= o.sorular.length) return svKonuBitir(o, 'kaldi');
+      o.i++; oturumSakla(); toast(t('Emin olmak için 2 soru daha')); ciz(); window.scrollTo(0, 0); return;
+    }
+    if (d >= 4) return svKonuBitir(o, 'gecti');
+    if (y >= 2) return svKonuBitir(o, 'kaldi');
+    if (o.i + 1 < o.sorular.length) { o.i++; oturumSakla(); ciz(); window.scrollTo(0, 0); return; }
+    return svKonuBitir(o, d >= 4 ? 'gecti' : 'kaldi');
+  }
+  function svHicGormedim() { const o = oturum; if (!o || o.tur !== 'seviye') return; o.sorular.length = o.sv.bas; o.anahtarlar.length = o.sv.bas; o.cevaplar.length = o.sv.bas; svKonuBitir(o, 'gormedim'); }
+  function svBitir(o) {
+    const sv = { konular: o.sv.sonuc.slice(), okuma: o.sv.okuma, t: simdi() };
+    oturum = null; oturumSakla();
+    S.ayar.svSonuc = sv; seviyeYerlestir(); ekranYigini = [[evKok(), []], ['seviyeSonuc', []]]; ciz(); window.scrollTo(0, 0);
+  }
+  // Sonuca göre bölümleri "Atlandı (seviye)" yap ya da aç; kişinin işaretleri (S.ayar.svSonuc.konular) esas alınır
+  function seviyeYerlestir() {
+    const sv = S.ayar.svSonuc || { konular: [] }, beyan = S.ayar.svBeyan || S.ayar.seviye;
+    // Kendi beyanı taban: harfleri tanıyan ve okuyabilen Elif-Ba'ya dönmez
+    if ((beyan === 'okur' || beyan === 'harf' || sv.konular.some(x => x === 'gecti')) && !gecti('e1')) S.ilerleme.e1 = { en: 0, deneme: 0, gecti: true, atla: true, seviye: true };
+    SV_KONU.forEach((b, i) => {
+      const atla = sv.konular[i] === 'gecti';
       for (const id of b.dersler.concat(b.ek || [])) {
         const il = S.ilerleme[id];
         if (atla && !gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true, seviye: true };
@@ -3606,50 +3687,23 @@
         if (!atla && S.ilerleme[id] && S.ilerleme[id].oner) delete S.ilerleme[id];
       }
     });
-    S.ayar.seviye = 'tespit'; S.ayar.seviyeBlok = gecen; kaydet();
+    S.ayar.seviye = 'tespit'; if (beyan && beyan !== 'tespit') S.ayar.svBeyan = beyan; kaydet();
   }
-  EKRAN.seviyeSonuc = function (gecen) {
-    gecen = +gecen || 0; const sir = U.find(u => !gecti(u.id));
+  const SV_DURUM = () => ({ gecti: ['ok', t('Biliyorsun ✓')], kaldi: ['simdi', t('Çalışalım')], gormedim: ['simdi', t('Görmedin, çalışalım')], null: ['soluk', t('Sorulmadı')] });
+  EKRAN.seviyeSonuc = function () {
+    const sv = S.ayar.svSonuc; if (!sv) return anaSayfa();
+    const sir = U.find(u => !gecti(u.id)), D = SV_DURUM();
     app.innerHTML = `${ust(t('🧭 Seni tanıdık'), false)}<main>
-      <section class="kart sv-sonuc"><h2>${sir ? t('Buradan başlıyorsun: {0}', esc(sir.ad)) : t('Maşallah! Bütün konuları biliyorsun.')}</h2>
-        ${gecen ? `<p>${t('Bildiğin konular:')}</p><ul>${SV_BLOK.slice(0, gecen).map(b => `<li>✓ ${esc(b.ad())}</li>`).join('')}</ul>
-          <p class="soluk kucukyazi">${t('Bu konuların bölümleri "Atlandı" olarak açık kaldı; istediğin zaman çalışabilir, testlerine girebilirsin. Unutmaman için birkaç sorusu ara sıra günlük tekrarda gelecek.')}</p>` : `<p>${t('Baştan, adım adım ilerleyelim. Her bölüm kısa ve kolay.')}</p>`}
-        ${gecen ? `<p class="kucukyazi">📍 ${t('Mahreç, sıfat ve karıştırılan harfler bölümleri senin için önerilir; açık kaldı.')}</p>` : ''}
-        <div class="satir sola">${sir ? `<button class="btn" data-git="${sir.ara ? 'sinavGiris|' + sir.id : 'ders|' + sir.id}">${t('Başla')}</button>` : ''}${gecen ? `<button class="btn ikincil" id="svGeri">${t('Bir önceki konudan başla')}</button>` : ''}<button class="btn ikincil" id="svAna">${t('Ana sayfa')}</button></div>
-      </section>
-      ${gecen ? `<section class="kart"><h2>🎙️ ${t('İstersen okuyuşunu da dinleyelim')}</h2><p>${t('Fâtiha\'nın 2. ayetini sesli oku. Yapay zekâ okuyuşunu kontrol eder; çok hata çıkarsa okumayı güçlendiren bölümden başlamanı öneririz.')}</p>
-        <div class="ayet" dir="rtl" lang="ar">ٱلۡحَمۡدُ لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ</div>
-        <div class="satir sola"><button class="sesbtn" id="svOku">🎤 ${t('Oku')}</button></div><div id="svOkuSonuc"></div></section>` : ''}
-    </main>`;
-    const sa = $('#svAna'); if (sa) sa.onclick = () => anaSayfa();
-    const sg = $('#svGeri'); if (sg) sg.onclick = () => { seviyeYerlestir(gecen - 1); ekranYigini[ekranYigini.length - 1] = ['seviyeSonuc', [gecen - 1]]; ciz(); };
-    const so = $('#svOku'); if (so) so.onclick = () => seviyeOkut(so, gecen);
+      <section class="kart sv-sonuc"><h2 style="margin-top:0">${sir ? t('Buradan başlıyorsun: {0}', esc(sir.ad)) : t('Maşallah! Bütün konuları biliyorsun.')}</h2>
+        ${sv.okuma ? `<p class="kucukyazi">🎙️ ${sv.okuma === 'iyi' ? t('Okuyuşun iyi.') : sv.okuma === 'orta' ? t('Okuyuşunda birkaç hata var; konuları çalıştıkça düzelir.') : t('Okuyuşunda hatalar var; "Harekeler ve işaretler" bölümünü çalışman önerilir.')}</p>` : ''}
+        <ul class="sv-konular">${SV_KONU.map((b, i) => { const x = sv.konular[i] || null, [cls, yazi] = D[x];
+          return `<li><span class="bad">${esc(b.ad())}</span><span class="rozet ${cls}">${yazi}</span><button class="btn kucuk ikincil" data-sv-cevir="${i}">${x === 'gecti' ? t('Çalışmak istiyorum') : t('Biliyorum')}</button></li>`; }).join('')}</ul>
+        <p class="soluk kucukyazi">${t('Bildiğin konuların bölümleri "Atlandı" olarak açık kalır; istediğin zaman çalışabilir, testlerine girebilirsin. Bir konuyu kendin de değiştirebilirsin.')}</p>
+        <div class="satir sola">${sir ? `<button class="btn" data-git="${sir.ara ? 'sinavGiris|' + sir.id : 'ders|' + sir.id}">${t('Başla')}</button>` : ''}<button class="btn ikincil" id="svAna">${t('Ana sayfa')}</button></div>
+      </section></main>`;
+    $('#svAna').onclick = () => anaSayfa();
+    app.querySelectorAll('[data-sv-cevir]').forEach(b => b.onclick = () => { const i = +b.dataset.svCevir; sv.konular[i] = sv.konular[i] === 'gecti' ? 'kaldi' : 'gecti'; seviyeYerlestir(); ciz(); });
   };
-  let SV_KAYIT = null;
-  async function seviyeOkut(btn, gecen) {
-    const kutu = $('#svOkuSonuc');
-    if (SV_KAYIT) { SV_KAYIT.stop(); return; }
-    if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));
-    let O; try { O = await okumaHazirla(); } catch (e) { return toast(e.message); }
-    let akis; try { akis = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { return toast(t('Mikrofon izni verilmedi. Telefon ayarlarından Kur\'an Yolum için mikrofona izin ver.')); }
-    const parca = [], rec = new MediaRecorder(akis); SV_KAYIT = rec; O.modelAc().catch(() => { });
-    btn.textContent = t('⏹ Bitir'); btn.classList.add('kirmizi-btn', 'kaydediyor'); kutu.innerHTML = `<p class="soluk">${t('🎙️ Dinliyorum… Ayeti oku, bitince "Bitir"e dokun.')}</p>`;
-    const z = setTimeout(() => rec.state !== 'inactive' && rec.stop(), 15000);
-    rec.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
-    rec.onstop = async () => {
-      clearTimeout(z); akis.getTracks().forEach(x => x.stop()); SV_KAYIT = null;
-      btn.textContent = '🎤 ' + t('Tekrar oku'); btn.classList.remove('kirmizi-btn', 'kaydediyor'); kutu.innerHTML = `<p class="soluk">${t('Kontrol ediliyor…')}</p>`;
-      try {
-        const s = await O.ayetRaporu(1, 2, new Blob(parca, { type: rec.mimeType || 'audio/webm' }));
-        const j = s.kelimeler.filter(w => w.notes.some(z_ => z_.severity === 'jali')).length;
-        kutu.innerHTML = raporHTML(1, 2, s) + (j >= 2 ? `<p><b>${t('Okumanı güçlendirmek için "Harekeler ve işaretler" bölümünden başlamanı öneririz.')}</b></p><button class="btn" id="svOkumadan">${t('Okumayı güçlendirerek başla')}</button>`
-          : `<p><b>${t('Okuyuşun iyi görünüyor. Yerleştirme uygun.')}</b></p>`);
-        const ob = $('#svOkumadan'); if (ob) ob.onclick = () => { delete S.ilerleme.u0; seviyeYerlestirOkuma(); kaydet(); git('ders', 'u0'); };
-      } catch (e) { kutu.innerHTML = `<p class="hata">${esc(e.message || t('Kontrol edilemedi.'))}</p>`; }
-    };
-    rec.start();
-  }
-  function seviyeYerlestirOkuma() { ['u0', 'm1', 'm2', 'm3'].forEach(id => { const il = S.ilerleme[id]; if (il && il.atla) delete S.ilerleme[id]; }); }
   const seviyeSorulmali = () => !cocukMu() && !S.ayar.seviye && !Object.keys(S.ilerleme).length && !S.gecmis.length;
   EKRAN.hosgeldin = function (adim = 'yas') {
     const p = AKTIF();
@@ -3667,10 +3721,10 @@
       app.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => {
         const sv = b.dataset.sv; if (sv === 'sifir') return kendim(sv);
         app.querySelector('main').innerHTML = `<p>${t('Bildiğin konuları kısa bir testle bulalım mı? Böylece bildiğin bölümleri atlarsın.')}</p>
-          <div class="yas-kartlar"><button class="yas-kart" id="svTest"><span>🧭</span><b>${t('Seni tanıyalım')}</b><small>${t('5–10 dakikalık kısa test (önerilir)')}</small></button>
+          <div class="yas-kartlar"><button class="yas-kart" id="svTest"><span>🧭</span><b>${t('Seni tanıyalım')}</b><small>${t('8–12 dakikalık kısa test (önerilir)')}</small></button>
           <button class="yas-kart" id="svKendim"><span>✋</span><b>${t('Kendim seçeyim')}</b><small>${sv === 'okur' ? t('Doğrudan tecvid konularına geç') : t('Harekeler ve işaretlerle başla')}</small></button></div>`;
         $('#svKendim').onclick = () => kendim(sv);
-        $('#svTest').onclick = () => { S.ayar.seviye = sv; kaydet(); ekranYigini = [[evKok(), []], ['seviyeTespit', []]]; ciz(); };
+        $('#svTest').onclick = () => { S.ayar.seviye = sv; S.ayar.svBeyan = sv; kaydet(); ekranYigini = [[evKok(), []], ['seviyeTespit', []]]; ciz(); };
       });
       return;
     }

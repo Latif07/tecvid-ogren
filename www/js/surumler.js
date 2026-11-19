@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.45';
+  const SURUM = '1.0.46';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.46', t: '2026-11-19', durum: 'Web', l: [
+      '"Seni tanıyalım" yenilendi: 8 konuda 3\'er soru, kararsız kalınca 2 soru daha; tek yanlış konuyu kaybettirmez',
+      'Bir konuyu bilmemek testi bitirmez; "Bu konuyu hiç görmedim, geç" ile tek dokunuşla geçilir',
+      'İsteğe bağlı kısa okuma (3 ayet): iyi okuyan harekeler konusunu geçmiş sayılır. Kur\'an okuyan biri artık Elif-Ba\'ya gönderilmez',
+      'Sonuç ekranı: konu konu "Biliyorsun / Çalışalım"; her konuyu kendin değiştirebilirsin. Sorular hoca onayı bekliyor',
+    ] },
     { s: '1.0.45', t: '2026-11-19', durum: 'Web', l: [
       'Yeni arayüz: alt menü 4 sekme (Bugün · Tecvid · Kur\'an · Ben), çizgi ikonlar',
       'Kur\'an sekmesinde üstte Oku · Ezberle · Dinle; sûreler cüzlere göre açılır gruplar, arama ve son açtıkların',

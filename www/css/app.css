@@ -1270,3 +1270,10 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .selam b { font-size: 1.25rem; }
 .selam small { color: var(--soluk); }
 .hesapbtn.resimli { width: 40px; height: 40px; padding: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; font-weight: 700; }
+/* Seni tanıyalım: sonuç listesi */
+.sv-konular { list-style: none; padding: 0; margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+.sv-konular li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 8px; padding: 8px 0; border-bottom: 1px solid var(--cizgi); }
+.sv-konular li .bad { font-weight: 600; }
+.sv-konular li .rozet { white-space: nowrap; }
+.sv-konular li .btn { grid-column: 1 / -1; justify-self: start; }
+.sv-konular .rozet.soluk { background: var(--bg); color: var(--soluk); }
