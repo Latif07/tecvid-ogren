@@ -23,6 +23,12 @@
   try { document.documentElement.dataset.tema = localStorage.getItem('tecvid-ogren.tema') || 'sistem'; } catch (e) { }
   try { document.documentElement.dataset.renk = localStorage.getItem('tecvid-ogren.renk') || 'yesil'; } catch (e) { }
   var EN = {
+    "Kâri (hoca sesi)": "Reciter (teacher's voice)",
+    "Seçili kâri": "Selected reciter",
+    "Listeden seç": "Choose from list",
+    "Sesime göre bul": "Find by my voice",
+    "Kâri ara": "Search reciters",
+    "Dinlemek için ▶'ye, seçmek için isme dokun.": "Tap ▶ to listen, tap the name to choose.",
     "Doğru": "Correct",
     "Önce dinle: metni gözünle takip ederek kayıttan dinle. Bitince \"Dinledim\" ile sonraki adıma geç.": "Listen first: follow the text with your eyes. Then tap \"I listened\" to go to the next step.",
     "Metne bakarak her satırı 🎙️ ile oku. Sözler doğruysa satır ✓ olur.": "Looking at the text, read each line with 🎙️. If the words are right the line gets ✓.",

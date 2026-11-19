@@ -3184,7 +3184,7 @@
       ${gruplar.map(tur => { const l = KARILER.filter(k => k.tur === tur); return `<details class="kart kari-grup" data-tur="${esc(tur)}" ${KARI_ACIK.has(tur) ? 'open' : ''}><summary><b>${esc(tur)}</b><span class="soluk kucukyazi">${l.length}</span></summary>
         <div class="secenek-liste">${l.map(k => `<button class="${k.id === secili.id ? 'aktif' : ''}" data-kari="${k.id}" data-ara="${esc(trSade(k.ad + ' ' + k.tur + ' ' + (k.makam || '')))}"><span>${esc(k.ad)}<small>${esc(k.makam ? k.makam : k.tur)}</small></span>
           <span class="sesbtn ikincil" data-ses="${ayetUrl(ornek, k.klasor)}" aria-label="${t('Dinle')}">▶</span></button>`).join('')}</div></details>`; }).join('')}
-      <p class="soluk kucukyazi">${t('Dinlemek için ▶\'ye, seçmek için isme dokun. Seçtiğin kâri uygulamanın her yerinde çalar.')} ${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')} ${t('Türk hafızların kayıtları Diyanet İşleri Başkanlığı Kur\'an portalındandır.')}</p></main>`;
+      <p class="soluk kucukyazi">${t('Dinlemek için ▶\'ye, seçmek için isme dokun.')} ${t('Sesler everyayah.com arşivinden internet üzerinden çalınır. Kelime kelime dinleme her kâri için Quran.com kaydıyla yapılır.')} ${t('Türk hafızların kayıtları Diyanet İşleri Başkanlığı Kur\'an portalındandır.')}</p></main>`;
     kariSekmeBagla();
     app.querySelectorAll('.kari-grup').forEach(d => d.addEventListener('toggle', () => { if (d.open) KARI_ACIK.add(d.dataset.tur); else KARI_ACIK.delete(d.dataset.tur); }));
     $('#kariAra').oninput = e => { const q = trSade(e.target.value.trim());

@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.43';
+  const SURUM = '1.0.44';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.44', t: '2026-11-19', durum: 'Web', l: [
+      'Uygulamanın yeni adı: Kur\'an Yolum',
+      'Kâri seçimi ve Hocamı bul tek ekranda: üstte seçili kâri, iki sekme (Listeden seç · Sesime göre bul), açılır gruplar ve arama',
+    ] },
     { s: '1.0.43', t: '2026-11-18', durum: 'Web', l: [
       'Müezzinlik ve Dualar: ezber adımları (Dinle → Bakarak → Yarısı gizli → Ezberden). Her satırı 🎙️ ile okursun; sözler doğruysa satır ✓, hepsi ✓ olunca sonraki adım; son adımda ezberlenmiş sayılır. Kelimeler okurken açılmaz',
       'Âyetü\'l-Kürsî gibi uzun ayetler durak işaretlerinden parçalara bölündü; her parça ayrı kart ve ayrı okunur',
