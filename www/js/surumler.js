@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.44';
+  const SURUM = '1.0.45';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.45', t: '2026-11-19', durum: 'Web', l: [
+      'Yeni arayüz: alt menü 4 sekme (Bugün · Tecvid · Kur\'an · Ben), çizgi ikonlar',
+      'Kur\'an sekmesinde üstte Oku · Ezberle · Dinle; sûreler cüzlere göre açılır gruplar, arama ve son açtıkların',
+      'Tecvid sekmesi: Harf kartları, Testler, Sûre sûre tecvid, Kural ara kısayolları; bölümler açılır gruplar',
+      'Ben sekmesi: profil resmi (Google ile girişte), gruplu satırlar; Ayarlar 5 bölüm (Görünüm, Ses ve kâri, Hatırlatma, Dil, Hesap ve yedek). Çocuk modu ayarları Profiller ekranında',
+    ] },
     { s: '1.0.44', t: '2026-11-19', durum: 'Web', l: [
       'Uygulamanın yeni adı: Kur\'an Yolum',
       'Kâri seçimi ve Hocamı bul tek ekranda: üstte seçili kâri, iki sekme (Listeden seç · Sesime göre bul), açılır gruplar ve arama',

@@ -1204,3 +1204,69 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .kari-grup > summary .kucukyazi { margin-left: auto; }
 .kari-grup .secenek-liste { padding: 0 12px 12px; }
 .kari-sekme { position: static; border: 1px solid var(--cizgi); border-radius: 14px; padding: 4px; }
+/* Yeni arayüz (19.11): çizgi ikonlu 4 sekmeli alt menü */
+.alt-menu.n4 { grid-template-columns: repeat(4, 1fr); }
+.alt-menu button { min-height: 56px; font-size: .76rem; }
+.alt-menu button span { display: flex; filter: none; opacity: 1; font-size: 1.3rem; }
+.alt-menu button span .ik { width: 24px; height: 24px; }
+.ik { flex: none; }
+/* Ayarlar: 5 bölüm, ikonlu başlık ve kısa özet */
+.ayar-bolum > summary { display: flex; align-items: center; gap: 12px; min-height: 52px; }
+.ayar-bolum .ayar-ik { color: var(--ana); display: flex; }
+.ayar-bolum .ayar-bas { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ayar-bolum .ayar-bas b { font-size: 1rem; }
+.ayar-bolum .ayar-bas small { color: var(--soluk); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ayar-govde { margin-top: 10px; }
+.ayar-dip { margin: 8px 4px; }
+.ayar-dip > summary { color: var(--soluk); font-size: .9rem; min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.ayar-surum { margin: 8px 4px 24px; }
+/* Ben ekranı */
+.ben-ust { display: flex; align-items: center; gap: 14px; padding: 4px 4px 12px; }
+.ben-ust .avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--ana); color: #fff; display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; overflow: hidden; flex: none; }
+.ben-ust h2 { margin: 0; font-size: 1.3rem; }
+.ben-ust p { margin: 2px 0 0; font-size: .85rem; }
+.hesap-resim { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+.ben-grup { padding: 4px 0; }
+.ben-satir { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 16px; border: 0; background: none; text-align: left; color: var(--metin); border-top: 1px solid var(--cizgi); }
+.ben-satir:first-child { border-top: 0; }
+.ben-satir .bad { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ben-satir .bad b { font-weight: 600; font-size: .98rem; }
+.ben-satir .bad small { color: var(--soluk); font-size: .8rem; }
+.ben-satir > .ik:last-child { width: 18px; height: 18px; color: var(--soluk); }
+.ben-ik { color: var(--ana); display: flex; }
+.ben-ozet { color: var(--soluk); font-size: .82rem; max-width: 40%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ben-baslik { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--soluk); margin: 18px 6px 6px; }
+.ben-dip { margin: 14px 6px 24px; }
+.ben-dip .link { font-size: inherit; }
+/* Kur'an sekmesi: Oku · Ezberle · Dinle */
+.kuran-sekme { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: color-mix(in srgb, var(--cizgi) 70%, var(--bg)); border-radius: 14px; padding: 4px; margin: 0 0 14px; }
+.kuran-sekme button { min-height: 42px; border: 0; border-radius: 10px; background: transparent; color: var(--soluk); font: inherit; font-weight: 600; font-size: .92rem; }
+.kuran-sekme button.aktif { background: var(--kart); color: var(--metin); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.ara-kutu { display: flex; align-items: center; gap: 8px; background: var(--kart); border: 1.5px solid var(--cizgi); border-radius: 14px; padding: 0 14px; min-height: 48px; margin: 12px 0; color: var(--soluk); }
+.ara-kutu input { border: 0; background: transparent; font: inherit; font-size: 1rem; flex: 1; outline: none; color: var(--metin); min-width: 0; }
+.gorunmez { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.son-sureler { margin: 0 2px 12px; }
+.son-sureler .cipler { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.son-sureler .cip { min-height: 40px; padding: 0 14px; border-radius: 99px; background: var(--kart); border: 1px solid var(--cizgi); font-weight: 600; }
+.cuz-grup, .bolum-grup { padding: 0; overflow: hidden; }
+.cuz-grup > summary, .bolum-grup > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; min-height: 52px; cursor: pointer; }
+.cuz-grup > summary::-webkit-details-marker, .bolum-grup > summary::-webkit-details-marker { display: none; }
+.cuz-grup > summary::after, .bolum-grup > summary::after { content: '›'; font-size: 1.3rem; color: var(--soluk); transform: rotate(90deg); transition: transform .2s; }
+.cuz-grup[open] > summary::after, .bolum-grup[open] > summary::after { transform: rotate(-90deg); }
+.cuz-grup > summary .soluk { margin-left: auto; text-align: right; }
+.cuz-grup .bolumler, .bolum-grup .bolumler { padding: 0 10px 10px; }
+.bolum-grup > summary .bad { display: flex; flex-direction: column; flex: 1; }
+.bolum-grup > summary .bad small { color: var(--ana); font-weight: 600; font-size: .78rem; }
+.bolum-grup.simdi { border: 1.5px solid var(--ana); }
+.bolum-grup > .hkt-giris { margin: 0 10px 8px; width: calc(100% - 20px); }
+/* Tecvid sekmesi */
+.tecvid-ozet { margin: 0 4px 10px; }
+.tecvid-kutular { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.tecvid-kutu { min-height: 76px; border: 0; border-radius: 16px; background: var(--kart); box-shadow: var(--golge); color: var(--metin); font: inherit; font-weight: 600; font-size: .92rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.tecvid-kutu span { color: var(--ana); display: flex; }
+.tecvid-kutu .ar { font-size: 1.8rem; line-height: 1; font-weight: 700; }
+/* Bugün: selam satırı ve hesap resmi */
+.selam { margin: 2px 4px 12px; display: flex; flex-direction: column; }
+.selam b { font-size: 1.25rem; }
+.selam small { color: var(--soluk); }
+.hesapbtn.resimli { width: 40px; height: 40px; padding: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; font-weight: 700; }
