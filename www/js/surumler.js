@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.46';
+  const SURUM = '1.0.47';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.47', t: '2026-11-20', durum: 'APK', l: [
+      'Profil hatası düzeltildi: hızlı çift dokunuşta aynı profil iki kez eklenmiyor',
+      'Testte yanlış cevapta artık ne hata yapıldığı açıklanıyor (karıştırılan harfler ve iklâb sorularında)',
+    ] },
     { s: '1.0.46', t: '2026-11-19', durum: 'Web', l: [
       '"Seni tanıyalım" yenilendi: 8 konuda 3\'er soru, kararsız kalınca 2 soru daha; tek yanlış konuyu kaybettirmez',
       'Bir konuyu bilmemek testi bitirmez; "Bu konuyu hiç görmedim, geç" ile tek dokunuşla geçilir',
