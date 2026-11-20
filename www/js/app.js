@@ -3785,8 +3785,10 @@
     app.querySelectorAll('[data-gec]').forEach(b => b.onclick = () => profilDegistir(b.dataset.gec));
     app.querySelectorAll('[data-fy]').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('aktif', x === b)); });
     app.querySelectorAll('[data-kaydet]').forEach(b => b.onclick = () => {
+      if (b.dataset.kilit) return;   // çift dokunuşta ikinci kayıt engellenir (mükerrer profil hatası)
       const f = b.closest('[data-form]'), ad = f.querySelector('.fAd').value.trim().slice(0, 20), yb = f.querySelector('[data-fy].aktif');
       if (!yb) { toast(t('Yaş grubunu seç.')); return; }
+      b.dataset.kilit = '1';
       const oncekiCocuk = cocukMu();
       if (b.dataset.kaydet === 'yeni') {
         const id = 'p' + Date.now().toString(36);
