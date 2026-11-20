@@ -214,12 +214,12 @@ window.TC = (function () {
       { t: "ق ك — ط ت", h: `<ul><li><span class="ar">ق</span>: dilin kökünden, <b>kalın</b>, nefes akmaz</li><li><span class="ar">ك</span>: biraz daha önden, <b>ince</b>, nefesli</li><li><span class="ar">ط</span>: dil ucu üst dişlerin kökünde, dil damağa kapanır; <b>kalın</b></li><li><span class="ar">ت</span>: aynı yer, <b>ince</b> ve nefesli</li></ul>` }
     ],
     sorular: [
-      { q: "عَلِيم ile أَلِيم arasındaki fark neden önemlidir?", a: "ع yerine ء okumak anlamı değiştirir (bilen / acı veren)", w: ["Fark yoktur, ikisi de aynı okunur", "Sadece uzatma farkı vardır", "Sadece kalınlık farkı vardır"] },
-      { q: "Hangisi kalın okunur?", a: "ص", w: ["س", "ث", "ز"] },
-      { q: "ظ ile ذ arasındaki fark nedir?", a: "Aynı yerden çıkarlar; ظ kalın, ذ ince", w: ["Mahreçleri çok uzaktır", "ذ kalın, ظ incedir", "Hiçbir farkı yoktur"] },
-      { q: "ح ile ه arasındaki fark nedir?", a: "ح boğazın ortasından sıkışarak, ه en derinden hafif nefesle çıkar", w: ["İkisi de dudaktan çıkar", "ه daha kalındır", "Hiçbir farkı yoktur"] },
-      { q: "ث nasıl çıkarılır?", a: "Dil ucu üst ön dişlerin ucuna değer (peltek s)", w: ["Dilin kökünden", "İki dudaktan", "Boğazın ortasından"] },
-      { q: "ق ile ك arasındaki fark nedir?", a: "ق daha derinden ve kalın, ك daha önden ve ince", w: ["ك daha kalındır", "İkisi de dudaktan çıkar", "Hiçbir farkı yoktur"] }
+      { q: "عَلِيم ile أَلِيم arasındaki fark neden önemlidir?", a: "ع yerine ء okumak anlamı değiştirir (bilen / acı veren)", w: ["Fark yoktur, ikisi de aynı okunur", "Sadece uzatma farkı vardır", "Sadece kalınlık farkı vardır"], ac: "ع boğazın ortasından, ء (hemze) en derininden çıkar; karıştırmak manayı bozar (bilen / acı veren)." },
+      { q: "Hangisi kalın okunur?", a: "ص", w: ["س", "ث", "ز"], ac: "ص kalın (isti'lâ) harftir; س ث ز incedir. En sık hata ص'yı düz 's' (sin) gibi okumaktır." },
+      { q: "ظ ile ذ arasındaki fark nedir?", a: "Aynı yerden çıkarlar; ظ kalın, ذ ince", w: ["Mahreçleri çok uzaktır", "ذ kalın, ظ incedir", "Hiçbir farkı yoktur"], ac: "İkisi de peltektir (dil ucu dişler arasında); fark kalınlıkta: ظ kalın, ذ ince." },
+      { q: "ح ile ه arasındaki fark nedir?", a: "ح boğazın ortasından sıkışarak, ه en derinden hafif nefesle çıkar", w: ["İkisi de dudaktan çıkar", "ه daha kalındır", "Hiçbir farkı yoktur"], ac: "Türkçede ikisi de 'h'ye benzediği için karışır; ح boğazın ortasından, ه en derinden çıkar." },
+      { q: "ث nasıl çıkarılır?", a: "Dil ucu üst ön dişlerin ucuna değer (peltek s)", w: ["Dilin kökünden", "İki dudaktan", "Boğazın ortasından"], ac: "ث peltektir; Türkçede olmadığı için düz 's' (sin) gibi okumak yaygın hatadır." },
+      { q: "ق ile ك arasındaki fark nedir?", a: "ق daha derinden ve kalın, ك daha önden ve ince", w: ["ك daha kalındır", "İkisi de dudaktan çıkar", "Hiçbir farkı yoktur"], ac: "ق dilin kökünden kalın, ك biraz önden ince çıkar; ق'yı 'k' gibi inceltmek sık hatadır." }
     ],
     dinle: [
       { h: 'ض', r: '1:7', w: 9, k: 'ٱلضَّآلِّينَ', g: ['ض', 'ظ', 'ذ', 'ز'] },
@@ -481,11 +481,11 @@ window.TC = (function () {
       { k: 'iklab', r: '2:256', w: [13, 14], oku: "ve yu'mim billâhi", n: "Nûn + ب." }
     ],
     sorular: [
-      { q: "İklâb harfi hangisidir?", a: "ب", w: ["م", "ن", "ل"] },
-      { q: "İklâbda nûn neye dönüşür?", a: "Mîm (م)", w: ["Lâm (ل)", "Ye (ي)", "Hiçbir şeye"] },
-      { q: "Medine mushafında iklâbı hangi işaret gösterir?", a: "Küçük mîm (ـۢ)", w: ["Şedde", "Sükûn", "Dalgalı med"] },
-      { q: "Hangisinde iklâb vardır?", a: "مِنۢ بَيۡنِ", w: ["مِن رَّبِّهِمۡ", "مِنۡ عَلَقٍ", "مَن يَقُولُ"] },
-      { q: "Doğru mu? İklâb kelime içinde de olabilir.", a: "Doğru", w: ["Yanlış"] }
+      { q: "İklâb harfi hangisidir?", a: "ب", w: ["م", "ن", "ل"], ac: "Sâkin nûn veya tenvinden sonra yalnız ب gelince iklâb olur." },
+      { q: "İklâbda nûn neye dönüşür?", a: "Mîm (م)", w: ["Lâm (ل)", "Ye (ي)", "Hiçbir şeye"], ac: "ن veya tenvin, ب'den önce genizden (ğunne ile) mîm sesine döner." },
+      { q: "Medine mushafında iklâbı hangi işaret gösterir?", a: "Küçük mîm (ـۢ)", w: ["Şedde", "Sükûn", "Dalgalı med"], ac: "Nûn/tenvin üstündeki küçük mîm (ـۢ) iklâbı gösterir." },
+      { q: "Hangisinde iklâb vardır?", a: "مِنۢ بَيۡنِ", w: ["مِن رَّبِّهِمۡ", "مِنۡ عَلَقٍ", "مَن يَقُولُ"], ac: "مِنۢ بَيۡنِ'de nûndan sonra ب var → iklâb. Diğerlerinde idğâm veya izhâr vardır." },
+      { q: "Doğru mu? İklâb kelime içinde de olabilir.", a: "Doğru", w: ["Yanlış"], ac: "Evet; أَنۢبِئۡهُمۡ gibi tek kelimede de iklâb olur." }
     ]
   });
 

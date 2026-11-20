@@ -591,7 +591,7 @@
     }
     if (p[0] === 'c') {
       const c = u.sorular[+p[2]]; if (!c) return null;
-      return { anahtar, unit: u.id, tip: 'kavram', soru: metin(c.q), dogru: c.a, secenek: karistir([c.a, ...c.w]), aciklama: '' };
+      return { anahtar, unit: u.id, tip: 'kavram', soru: metin(c.q), dogru: c.a, secenek: karistir([c.a, ...c.w]), aciklama: c.ac ? metin(c.ac) : '' };
     }
     const ex = u.ornek[+p[2]]; if (!ex) return null; const kural = R[ex.k];
     // Testte renkler cevabı ele vermesin: soru ayetleri renksiz, cevaptan sonra renkli gösterilir
