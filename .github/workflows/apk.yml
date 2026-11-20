@@ -24,7 +24,7 @@ jobs:
 
       - name: Uygulama dosyalarını hazırla
         run: |
-          mkdir -p proje && cp -r www android-res package.json capacitor.config.json proje/
+          mkdir -p proje && cp -r www android-res package.json capacitor.config.json tools proje/
           ls proje
 
       - uses: actions/setup-node@v4
