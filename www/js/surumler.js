@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.47';
+  const SURUM = '1.0.48';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.48', t: '2026-11-20', durum: 'APK', l: [
+      'Profil silme düzeltildi: silinen profil artık geri gelmiyor (bulut eşitlemesi silmeyi hemen tanıyor)',
+      'Geri Al: silmeyi 10 saniye içinde geri alabilirsin, profil ilerlemesiyle birlikte döner',
+    ] },
     { s: '1.0.47', t: '2026-11-20', durum: 'APK', l: [
       'Profil hatası düzeltildi: hızlı çift dokunuşta aynı profil iki kez eklenmiyor',
       'Testte yanlış cevapta artık ne hata yapıldığı açıklanıyor (karıştırılan harfler ve iklâb sorularında)',

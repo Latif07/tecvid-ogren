@@ -25,7 +25,8 @@
     location.reload();
   }
   function profilBirlestir(a, b) {
-    const m = new Map(); [...(b.liste || []), ...(a.liste || [])].forEach(p => { const x = m.get(p.id); if (!x || (p.d || 0) >= (x.d || 0)) m.set(p.id, p); });
+    // Silinenler (tombstone) de birleştirmeye katılır; yoksa yeni silme buluta gitmeden kaybolur ve profil geri gelir.
+    const m = new Map(); [...(b.liste || []), ...(b.silinen || []), ...(a.liste || []), ...(a.silinen || [])].forEach(p => { const x = m.get(p.id); if (!x || (p.d || 0) >= (x.d || 0)) m.set(p.id, p); });
     const liste = [...m.values()].filter(p => !p.silindi).sort((x, y) => x.id === 'p1' ? -1 : y.id === 'p1' ? 1 : (x.id < y.id ? -1 : 1));
     const silinen = [...m.values()].filter(p => p.silindi);
     return { aktif: a.aktif, liste: liste.length ? liste : a.liste, silinen };
@@ -3810,15 +3811,24 @@
         t('Sil'));
       if (!ok) return;
       const sira = PR.liste.indexOf(p), anahtar = p.id === 'p1' ? 'tecvid-ogren.v1' : 'tecvid-ogren.v1.' + p.id;
-      const kesinlestir = () => {
-        PR.silinen = (PR.silinen || []).concat([{ id: p.id, silindi: true, d: Date.now() }]);
-        try { localStorage.removeItem(anahtar); } catch (e) { }
-        profilKaydet(); profilleriEsitle(); if (girisli() && B().profilSil) B().profilSil(p.id).catch(() => { });
-      };
+      // Silme HEMEN kalıcı işaretlenir (tombstone) ve buluta yazılır; böylece eşitleme profili geri getiremez.
       PR.liste = PR.liste.filter(x => x !== p);
+      PR.silinen = (PR.silinen || []).filter(x => x.id !== p.id).concat([{ id: p.id, silindi: true, d: Date.now() }]);
+      profilKaydet(); profilleriEsitle();
+      const kesinlestir = () => {   // geri alma süresi dolunca: yerel ilerleme verisini ve bulut veri belgesini sil
+        try { localStorage.removeItem(anahtar); } catch (e) { }
+        if (girisli() && B().profilSil) B().profilSil(p.id).catch(() => { });
+      };
       if (aktifMi) { kesinlestir(); profilDegistir(PR.liste[0].id); return; }
-      profilKaydet(); yenile();
-      geriAlToast(t('“{0}” silindi.', ad), () => { PR.liste.splice(sira, 0, p); profilKaydet(); if (ekranYigini[ekranYigini.length - 1][0] === 'profiller') yenile(); toast(t('Geri alındı ✓')); }, kesinlestir);
+      yenile();
+      geriAlToast(t('“{0}” silindi.', ad), () => {   // geri al: tombstone kaldırılır, profil yeni tarihle geri gelir (eşitlemede kazanır)
+        PR.silinen = (PR.silinen || []).filter(x => x.id !== p.id);
+        p.d = Date.now();
+        PR.liste.splice(Math.min(sira, PR.liste.length), 0, p);
+        profilKaydet(); profilleriEsitle();
+        if (ekranYigini[ekranYigini.length - 1][0] === 'profiller') yenile();
+        toast(t('Geri alındı ✓'));
+      }, kesinlestir);
     });
   };
 
