@@ -77,6 +77,37 @@ const EKRANLAR = [
   await cevapla('bölüm testi', () => window.__TECVID.git('testBasla', 'bolum', TC.U.filter(u => !u.ara)[0].id), 1);
   await cevapla('alıştırma', () => window.__TECVID.git('alistirmaBasla', TC.U.filter(u => !u.ara)[0].id), 1);
 
+  // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
+  {
+    const once = hatalar.length;
+    try {
+      const pg = await (await tarayici.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' })).newPage();
+      pg.on('pageerror', e => hatalar.push('pageerror: ' + e.message));
+      await pg.addInitScript(() => {
+        const L = () => JSON.parse(localStorage.getItem('mockcloud') || '{}'), W = o => localStorage.setItem('mockcloud', JSON.stringify(o));
+        if (!localStorage.getItem('mockcloud')) W({ profiller: JSON.stringify([{ id: 'p1', ad: 'Ben', yas: 'buyuk' }, { id: 'pa', ad: 'Ayse', yas: 'cocuk' }, { id: 'pb', ad: 'Burak', yas: 'cocuk' }]) });
+        const M = { kullanici: () => ({ uid: 'u', email: 'a@b' }), dinle(f) { setTimeout(() => f({ uid: 'u' }), 0); return () => { }; },
+          async indir(pid) { const c = L(); return c['v:' + pid] ? JSON.parse(c['v:' + pid]) : null; }, async yukle(v, pid) { const c = L(); c['v:' + pid] = JSON.stringify(v); W(c); },
+          async profilIndir() { const c = L(); return c.profiller ? { liste: JSON.parse(c.profiller) } : null; }, async profilYukle(p) { const c = L(); c.profiller = JSON.stringify(p.liste); W(c); },
+          async profilSil(pid) { const c = L(); delete c['v:' + pid]; W(c); } };
+        Object.defineProperty(window, 'Bulut', { get: () => M, set: () => { } });
+      });
+      const yerel = () => pg.evaluate(() => JSON.parse(localStorage.getItem('tecvid-ogren.profiller')).liste.map(p => p.id));
+      const bulut = () => pg.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('mockcloud')).profiller).filter(p => !p.silindi).map(p => p.id));
+      await pg.goto(url); await pg.waitForFunction(() => window.__TECVID); await pg.waitForTimeout(1200);
+      await pg.evaluate(() => window.__TECVID.git('profiller'));
+      await pg.click('[data-duz="pa"]'); await pg.fill('[data-form="pa"] .fAd', 'Ayse2'); await pg.click('[data-form="pa"] [data-fy="cocuk"]'); await pg.click('[data-kaydet="pa"]');
+      await pg.waitForTimeout(600);
+      kontrol('profil: düzenleme yeni profil açmıyor', (await yerel()).length === 3 && (await bulut()).length === 3);
+      await pg.click('[data-sil="pb"]');
+      kontrol('profil: silmeden önce onay penceresi çıkıyor', !!(await pg.$('.modal-arka')));
+      await pg.click('.modal-arka [data-c="1"]'); await pg.waitForTimeout(600);
+      kontrol('profil: silinen profil yerelde ve bulutta gitti', !(await yerel()).includes('pb') && !(await bulut()).includes('pb'));
+      await pg.reload(); await pg.waitForFunction(() => window.__TECVID); await pg.waitForTimeout(1200);
+      kontrol('profil: yeniden açınca silinen profil geri gelmiyor', !(await yerel()).includes('pb') && (await yerel()).length === 2, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('profil yönetimi', false, e.message.split('\n')[0]); }
+  }
+
   kontrol('konsolda yakalanmamış hata yok', hatalar.length === 0, hatalar.slice(0, 3).join(' | '));
 
   if (KAPSAM) {
