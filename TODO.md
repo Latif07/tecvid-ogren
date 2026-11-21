@@ -9,7 +9,7 @@ Kural: her madde ayrı oturum + ayrı commit. Davranış değişmeyecek, sadece 
 - `app.js` tek bir `(function () { 'use strict'; ... })()` içinde; 181 fonksiyon aynı kapsamı paylaşıyor.
 - Ortak kapsam: `S` (durum), `PR`, `kaydet`, `toast`, `esc`, `metin`, `t`, `DIL`, `R`, `U`, `AYAH`, `ciz`, `git`, `ekranYigini` vb.
 - Scriptler `www/index.html` içinde sırayla yükleniyor; çevrimdışı önbellek listesi `www/sw.js` içindeki `KABUK`.
-- Otomatik test yok (`www/_test` .gitignore'da). Her adımdan sonra elle kontrol gerekir.
+- Otomatik duman testi var: `npm run test:smoke` (açılış + ana ekranlar + konsol hatası). Ekranların içeriğini denemez, o kısım hâlâ elle.
 
 ### Teknik karar (adım 1'de uygulanacak)
 - Ortak çekirdek `window.TC` altında paylaşılır (`window.TC.core = { ... }`), bölümler başında `const { S, kaydet, toast, esc, t } = window.TC.core;` ile alır.
@@ -29,7 +29,7 @@ Kural: her madde ayrı oturum + ayrı commit. Davranış değişmeyecek, sadece 
 - [ ] 10. `CLAUDE.md` "Yapı" bölümünü güncelle: hangi özellik hangi dosyada.
 
 ### Her adımın bitiş kontrolü
-- [ ] Tarayıcıda açılıyor, konsolda hata yok
+- [ ] `npm run test:smoke` geçiyor
 - [ ] Taşınan bölümün ekranları elle denendi
 - [ ] Çevrimdışı (Service Worker) açılıyor: yeni dosya `KABUK`'ta
 - [ ] Commit atıldı, sonra `/clear`
