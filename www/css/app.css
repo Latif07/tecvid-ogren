@@ -791,8 +791,13 @@ body.sekmeli .sozluk-pencere { bottom: calc(86px + env(safe-area-inset-bottom));
 @keyframes canliAcil { from { opacity: 0; filter: blur(3px); } to { opacity: 1; filter: none; } }
 .kelime.canli-bakildi { color: #2f6fb3 !important; }
 .ayet .kelime.r-iyi { color: var(--iyi); }
-.ayet .kelime.r-orta { color: #d08000; text-decoration: underline wavy; }
-.ayet .kelime.r-kotu { color: var(--kotu); text-decoration: underline wavy; }
+.ayet .kelime.r-orta { color: #d08000; }
+.ayet .kelime.r-kotu { color: var(--kotu); }
+.kelime.hata-alt { text-decoration: underline; text-decoration-color: var(--kotu); text-decoration-thickness: 3px; text-underline-offset: 8px; text-decoration-skip-ink: none; }
+.ko-ok { min-width: 48px; font-size: 1.5rem; line-height: 1; padding: 6px 12px; }
+.ko-hatalar { max-height: 82vh; overflow-y: auto; }
+.ko-hata { border-top: 1px solid var(--cizgi); padding-top: 8px; margin-top: 10px; }
+.ko-hata h3 { margin: 0 0 6px; font-size: 1rem; }
 main.canli-mod .ayet-kart .okunus, main.canli-mod .ayet-kart .meal { display: none; }
 .canli-sonuc .canli-baslik { font-weight: 800; font-size: 1.05rem; margin: 0 0 6px; }
 .canli-sayilar { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; font-weight: 700; }

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./www/kuran/**)",
+      "Read(./www/model/**)",
+      "Read(./www/sesler/**)",
+      "Read(./www/fonts/**)",
+      "Read(./www/data/**)",
+      "Read(./www/js/firebase/**)",
+      "Read(./www/js/ort/**)",
+      "Read(./docs/*.jpg)",
+      "Read(./android/**)",
+      "Read(./package-lock.json)"
+    ]
+  }
+}
