@@ -2,7 +2,7 @@
   "name": "tecvid-ogren",
   "version": "1.0.0",
   "private": true,
-  "description": "Adım adım tecvid öğreten, test eden ve ilerlemeyi takip eden uygulama",
+  "description": "Ad\u0131m ad\u0131m tecvid \u00f6\u011freten, test eden ve ilerlemeyi takip eden uygulama",
   "dependencies": {
     "@capacitor-community/text-to-speech": "8.0.2",
     "@capacitor-firebase/authentication": "8.6.0",
@@ -15,7 +15,8 @@
     "firebase": "12.19.0"
   },
   "scripts": {
-    "test:smoke": "node tools/test/smoke.js"
+    "test:smoke": "node tools/test/smoke.js",
+    "test:kapsam": "node tools/test/smoke.js --kapsam"
   },
   "devDependencies": {
     "playwright": "^1.50.0"
