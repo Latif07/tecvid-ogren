@@ -77,6 +77,29 @@ const EKRANLAR = [
   await cevapla('bölüm testi', () => window.__TECVID.git('testBasla', 'bolum', TC.U.filter(u => !u.ara)[0].id), 1);
   await cevapla('alıştırma', () => window.__TECVID.git('alistirmaBasla', TC.U.filter(u => !u.ara)[0].id), 1);
 
+  // Kur'an takip modu: ‹ › okları, kesin hata altı çizgisi, "Hatalarımı göster" paneli
+  {
+    const once = hatalar.length;
+    try {
+      await sayfa.evaluate(() => {
+        const K = [0, 1, 2, 3].map(i => ({ index: i, notes: i === 1 ? [{ severity: 'jali', msg: 'Hareke hatası', rule: 'vowel' }] : [], madd: [] }));
+        window.__TECVID.TAKIP_HATA.clear(); window.__TECVID.TAKIP_HATA.set('1:1', { n: 1, a: 1, p: 1, s: { kelimeler: K } });
+        window.__TECVID.git('sayfa', 1);
+      });
+      kontrol('takip: altta ‹ › okları var', !!(await sayfa.$('#koOkGeri')) && !!(await sayfa.$('#koOkIleri')));
+      const alt = await sayfa.evaluate(() => { const e = document.createElement('span'); e.className = 'kelime hata-alt'; e.textContent = 'x'; document.body.appendChild(e); return getComputedStyle(e).textDecorationLine; });
+      kontrol('takip: kesin hata altı çiziliyor', alt === 'underline', alt);
+      const orta = await sayfa.evaluate(() => { const a = document.createElement('div'); a.className = 'ayet'; a.innerHTML = '<span class="kelime r-orta">x</span>'; document.body.appendChild(a); return getComputedStyle(a.firstChild).textDecorationLine; });
+      kontrol('takip: "kontrol et" (ince hata) çizilmiyor', orta === 'none', orta);
+      await sayfa.click('#koHatalar');
+      const panel = await sayfa.evaluate(() => (document.querySelector('.ko-hatalar') || {}).innerText || '');
+      kontrol('takip: Hatalarımı göster paneli açılıyor', /Hatalarım/.test(panel) && /1\. ayet/.test(panel) && /Hareke hatası/.test(panel), panel.slice(0, 80));
+      await sayfa.click('.ko-hatalar [data-c="temizle"]');
+      kontrol('takip: liste temizlenince panel kapanıyor, hata kalmıyor', !(await sayfa.$('.ko-hatalar')) && (await sayfa.evaluate(() => window.__TECVID.TAKIP_HATA.size)) === 0);
+      kontrol('takip: sayfa hatasız çizildi', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('takip', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;

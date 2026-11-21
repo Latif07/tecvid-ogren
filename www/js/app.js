@@ -2365,6 +2365,7 @@
   // Kelimeler okundukça açılır. Okurken hiçbir uyarı yok; bir ayet ancak bitince değerlendirilir
   // (S.ayar.canliSonuc: 'ayet' → her ayet bitince renklenir, 'son' → hepsi durunca). Yarım kalan ayet değerlendirilmez.
   let CANLI = null;
+  const TAKIP_HATA = new Map();   // takip sırasında bulunan açık hatalar (oturum boyunca): 'n:a' → { n, a, p, s }
   function onekHizala(h, R) {   // h'nin tamamı ↔ R'nin en iyi öneki; es[i]: h[0..i) → R[0..es[i])
     const n = h.length, m = Math.min(R.length, n * 2 + 12);
     const D = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
@@ -2421,9 +2422,9 @@
     const kuyruk = { p: Promise.resolve() }; const sirala = f => (kuyruk.p = kuyruk.p.then(f, f));   // model çağrıları tek tek
     // Fâtiha ve Tevbe dışında 1. ayetten başlanırsa okuyucu önce besmele çekebilir: duyulana göre karar verilir
     const besmele = basAyet === 1 && n !== 1 && n !== 9 ? (await O.fonetik(1))[0].p : '';
-    CANLI = { n, onek: ops.onek || null, besmele, besmeleKarar: besmele && !ops.onek ? null : 'yok', akis, ctx, isl, kaynak, G, W, AY, c: 0, bas: 0, acilan: 0, bitenAyet: 0, ayetBas: 0, sonuc: {}, bakilan: new Set(), mesgul: false, bitti: false, sirala, al, O, toplam: () => toplam, bitince: ops.bitince, ayetBitti: ops.ayetBitti, elBul: ops.elBul, rms: rmsL, sonIlerleme: Date.now() };
+    CANLI = { n, onek: ops.onek || null, besmele, besmeleKarar: besmele && !ops.onek ? null : 'yok', akis, ctx, isl, kaynak, G, W, AY, c: 0, bas: 0, acilan: 0, bitenAyet: 0, ayetBas: 0, sonuc: {}, bakilan: new Set(), mesgul: false, bitti: false, sirala, al, O, toplam: () => toplam, bitince: ops.bitince, ayetBitti: ops.ayetBitti, hataKaydet: ops.hataKaydet, elBul: ops.elBul, rms: rmsL, sonIlerleme: Date.now() };
     // takılınca kelimeye dokunup bakma
-    W.forEach(w => { const el = canliEl(w.a, w.wi); if (el) { el.classList.toggle('gizli', !ops.gizle || ops.gizle(w.a, w.wi)); el.classList.remove('canli-acik', 'canli-okundu', 'canli-bakildi', 'r-iyi', 'r-orta', 'r-kotu'); el.onclick = ev => { if (!CANLI || !el.classList.contains('gizli')) return; ev.stopPropagation(); el.classList.remove('gizli'); el.classList.add('canli-bakildi'); CANLI.bakilan.add(w.a + ':' + w.wi); }; } });
+    W.forEach(w => { const el = canliEl(w.a, w.wi); if (el) { el.classList.toggle('gizli', !ops.gizle || ops.gizle(w.a, w.wi)); el.classList.remove('canli-acik', 'canli-okundu', 'canli-bakildi', 'r-iyi', 'r-orta', 'r-kotu', 'hata-alt'); el.onclick = ev => { if (!CANLI || !el.classList.contains('gizli')) return; ev.stopPropagation(); el.classList.remove('gizli'); el.classList.add('canli-bakildi'); CANLI.bakilan.add(w.a + ':' + w.wi); }; } });
     canliSiraIsaretle();
     (ops.elBul ? (ops.elBul(basAyet)[0] || null) : document.getElementById('ayet-' + basAyet))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     bar.classList.add('dinliyor'); bar.querySelector('#canliDur').textContent = t('⏹ Durdur');
@@ -2521,6 +2522,7 @@
       try {
         const s = await C_.O.ayetRaporu(rn, ra, seg); C_.sonuc[a] = s; raporKaydet(rn, ra, s);
         if ((S.ayar.canliSonuc || 'ayet') === 'ayet') canliAyetBoya(a, s);
+        if (C_.hataKaydet) C_.hataKaydet(a, s);
         if (C_.ayetBitti && !C_.durduruldu) C_.ayetBitti(a, s);
       } catch (e) { C_.sonuc[a] = { hata: e.message }; }
     });
@@ -2528,8 +2530,9 @@
   function canliAyetBoya(a, s) {
     const K = s.kelimeler; canliKelimeler(a).forEach((el, i) => {
       const w = K[Math.min(i, K.length - 1)]; if (!w) return;
-      el.classList.remove('canli-acik', 'canli-okundu', 'canli-sira', 'gizli');
-      el.classList.add(!w.notes.length ? 'r-iyi' : w.notes.some(z => z.severity === 'jali') ? 'r-kotu' : 'r-orta');
+      el.classList.remove('canli-acik', 'canli-okundu', 'canli-sira', 'gizli', 'hata-alt');
+      const jali = w.notes.some(z => z.severity === 'jali');
+      el.classList.add(!w.notes.length ? 'r-iyi' : jali ? 'r-kotu' : 'r-orta'); if (jali) el.classList.add('hata-alt');
     });
     const [rn, ra] = a === 0 && CANLI && CANLI.onek ? [CANLI.onek.n, CANLI.onek.a] : [CANLI ? CANLI.n : 0, a];
     const kutu = document.getElementById('rapor-' + a); if (kutu) { kutu.innerHTML = raporHTML(rn, ra, s); kutu.hidden = !(s.kelimeler.some(w => w.notes.length)); }
@@ -2566,8 +2569,8 @@
     bar.querySelectorAll('[data-canli-bas]').forEach(b => b.onclick = () => { const a = +b.dataset.canliBas; canliBarSifirla(); canliBaslat(C_.n, a); });
     bar.querySelector('#canliKapat').onclick = () => { canliBarSifirla(); bar.hidden = true; };
   }
-  function canliBarHTML() { return `<div class="canli-ic"><span class="canli-nokta"></span><span class="canli-durum"></span><button class="btn kirmizi-btn" id="canliDur">${t('⏹ Durdur')}</button></div>`; }
-  function canliBarSifirla() { const bar = document.getElementById('canliBar'); if (!bar) return; bar.innerHTML = canliBarHTML(); bar.querySelector('#canliDur').onclick = () => canliDurdur(); document.querySelectorAll('[id^="rapor-"]').forEach(k => { k.hidden = true; k.innerHTML = ''; }); }
+  function canliBarHTML(ok) { return `<div class="canli-ic">${ok ? `<button class="btn ikincil ko-ok" id="koOkGeri" aria-label="${t('Önceki ayet')}">‹</button>` : ''}<span class="canli-nokta"></span><span class="canli-durum"></span><button class="btn kirmizi-btn" id="canliDur">${t('⏹ Durdur')}</button>${ok ? `<button class="btn ikincil ko-ok" id="koOkIleri" aria-label="${t('Sonraki ayet')}">›</button>` : ''}</div>`; }
+  function canliBarSifirla(ok) { const bar = document.getElementById('canliBar'); if (!bar) return; bar.innerHTML = canliBarHTML(!!ok); bar.querySelector('#canliDur').onclick = () => canliDurdur(); if (ok) { bar.querySelector('#koOkGeri').onclick = ok.geri; bar.querySelector('#koOkIleri').onclick = ok.ileri; } document.querySelectorAll('[id^="rapor-"]').forEach(k => { k.hidden = true; k.innerHTML = ''; }); }
   // ------------------------------------------------------------ Ezber çalış: tek ekran, adım adım (karar: claude/toplanti-2026-11-16-ezber-ux.md)
   // Adımlar: 0 Dinle · 1 Bakarak oku · 2 Yarısı gizli · 3 Ezberden · 4 Bağla (önceki ayetlerle birlikte; sûrenin ilk dersinde yok).
   // Kısa ayetler günlük ders kadar birlikte çalışılır; uzun ayet (EZ_UZUN kelimeden çok) tek başına.
@@ -2936,7 +2939,8 @@
         <article class="ko-sayfa">${govde}<p class="ko-sayfa-no">${p}</p></article>
         ${gor === 'meal' ? `<p class="soluk kucukyazi ortala">${DIL === 'en' ? t('Meal: Saheeh International (tanzil.net).') : t('Meal: Diyanet İşleri Başkanlığı (tanzil.net). Meal, ayetin anlamını anlamaya yardım eder; Kur\'an\'ın kendisi Arapça metindir.')}</p>` : ''}
         <p class="soluk kucukyazi ortala">${t('Ayet numarasına dokun: dinle, yer imi koy, meale bak.')} ${t('🎙️ Takip: sen okudukça okuduğun yer işaretlenir, sayfa bitince sonraki sayfaya geçilir.')}</p>
-        <div class="canli-bar" id="canliBar" hidden>${canliBarHTML()}</div>
+        ${TAKIP_HATA.size ? `<div class="satir ortala"><button class="btn ikincil" id="koHatalar">🔍 ${t('Hatalarımı göster ({0})', TAKIP_HATA.size)}</button></div>` : ''}
+        <div class="canli-bar" id="canliBar" hidden>${canliBarHTML(true)}</div>
       </main>
       <div class="ko-alt"><button class="btn ikincil" data-ko-git="${p - 1}" ${p <= 1 ? 'disabled' : ''}>‹ ${t('Önceki')}</button>
         <button class="btn ko-ileri" id="koIleri" ${p >= 604 && okundu ? 'disabled' : ''}>${okundu ? t('Sonraki sayfa') : t('Okudum · Sonraki')} ›</button></div>`;
@@ -2944,13 +2948,46 @@
     // Sesli takip (Talvia incelemesi): sayfadaki ayetler sûre sûre canlı takip motoruyla dinlenir; okunan kelimeler işaretlenir,
     // biten ayet "kaldığın yer" olur; sayfa bitince sonraki sayfa açılır ve takip sürer.
     const parcalar = []; ay.forEach(([n, a]) => { const l = parcalar[parcalar.length - 1]; if (l && l.n === n) l.bit = a; else parcalar.push({ n, bas: a, bit: a }); });
+    // Ok düğmeleri (‹ ›): ayet ayet ilerle. Okunan yer, takip sürerken canlı motordan, durunca son okunan ayetten alınır.
+    let sonOkunan = null, sonOk = 0;
+    const ok = { geri: () => okGit(-1), ileri: () => okGit(1) };
+    const okGit = d => {
+      if (Date.now() - sonOk < 800) return; sonOk = Date.now();   // çift dokunuşta iki mikrofon açılmasın
+      const su = CANLI && CANLI.W.length ? [CANLI.n, CANLI.W[Math.min(CANLI.acilan, CANLI.W.length - 1)].a] : (sonOkunan || ay[0]);
+      const i = ay.findIndex(x => x[0] === su[0] && x[1] === su[1]), h = ay[i + d];
+      if (h) return takip(h[0], h[1]);
+      if (d > 0) return git_(p + 1, 'takip');       // sayfanın son ayeti: sonraki sayfada takip sürer
+      if (p > 1) return git_(p - 1, 'takip');
+      takip(su[0], su[1]);
+    };
+    // "Hatalarımı göster": bu oturumda bulunan açık hatalar, ayrıntılı raporla
+    const hataPaneli = () => {
+      const l = [...TAKIP_HATA.values()].sort((x, y) => x.p - y.p || x.n - y.n || x.a - y.a);
+      const d = document.createElement('div'); d.className = 'modal-arka';
+      d.innerHTML = `<div class="modal kart ko-hatalar" role="dialog" aria-modal="true"><h2>${t('Hatalarım')}</h2>` + (l.length
+        ? l.map(h => `<section class="ko-hata"><h3>${esc(sureNoAdi(h.n))} · ${t('{0}. ayet', h.a)} <small>(${t('Sayfa {0}', h.p)})</small></h3>${raporHTML(h.n, h.a, h.s)}
+            <div class="satir sola">${h.p === p ? `<button class="btn kucuk" data-tekrar="${h.n}:${h.a}">${t('🔁 Tekrar oku')}</button>` : `<button class="btn kucuk ikincil" data-sayfa="${h.p}" data-hedef="${h.n}:${h.a}">${t('{0}. sayfaya git', h.p)}</button>`}</div></section>`).join('')
+        : `<p>${t('Açık hata yok. Maşallah!')}</p>`) + `<div class="satir"><button class="btn ikincil" data-c="temizle">${t('Listeyi temizle')}</button><button class="btn" data-c="kapat">${t('Kapat')}</button></div></div>`;
+      document.body.appendChild(d);
+      const kapat = () => d.remove();
+      d.onclick = e => {
+        if (e.target === d) return kapat();
+        const c = e.target.closest('[data-c]'); if (c) { if (c.dataset.c === 'temizle') { TAKIP_HATA.clear(); document.querySelectorAll('.kelime.hata-alt').forEach(x => x.classList.remove('hata-alt')); const b = $('#koHatalar'); if (b) b.parentNode.remove(); } return kapat(); }
+        const tk = e.target.closest('[data-tekrar]'); if (tk) { kapat(); const [n_, a_] = tk.dataset.tekrar.split(':').map(Number); return takip(n_, a_); }
+        const sf = e.target.closest('[data-sayfa]'); if (sf) { kapat(); git_(+sf.dataset.sayfa, sf.dataset.hedef); }
+      };
+    };
     const takip = (n, bas) => {
       if (CANLI) { canliDurdur(true); return setTimeout(() => takip(n, bas), 300); }
       const j = parcalar.findIndex(x => x.n === n && bas >= x.bas && bas <= x.bit); if (j < 0) return;
       const pr = parcalar[j];
-      canliBarSifirla(); $('#koTakip').textContent = '⏹ ' + t('Takip');
+      canliBarSifirla(ok); $('#koTakip').textContent = '⏹ ' + t('Takip');
       canliBaslat(n, bas, {
         bit: pr.bit, gizle: () => false,
+        hataKaydet: (a, s) => {   // kesin hata varsa listeye gir; aynı ayet sonradan doğru okunursa listeden çık
+          if (!s || !s.kelimeler) return; const k = n + ':' + a;
+          if (s.kelimeler.some(w => w.notes.some(z => z.severity === 'jali'))) TAKIP_HATA.set(k, { n, a, p, s }); else TAKIP_HATA.delete(k);
+        },
         elBul: a => [...app.querySelectorAll(`.ko-a[data-ayet="${n}:${a}"] .kelime`)],
         ayetBitti: a => { if (a > 0) { EKRAN.sayfa._yoksay = Date.now() + 1500; koSonKaydet(n, a, p); } },
         bitince: C_ => {
@@ -2967,14 +3004,17 @@
           // Kullanıcı durdurdu: kaldığı ayetten devam edebilir
           const okunan = C_.AY.filter(y => y.a > 0 && C_.W.some(w => w.a === y.a && C_.W.indexOf(w) < C_.acilan));
           const sonA = okunan.length ? okunan[okunan.length - 1].a : bas;
-          const bar = $('#canliBar'); if (!bar) return;
+          const bar = $('#canliBar'); if (!bar) return; sonOkunan = [n, sonA];
           bar.innerHTML = `<div class="canli-sonuc"><p class="canli-baslik">${t('Takip durdu. {0} kelime okundu.', C_.acilan)}</p>
-            <div class="satir sola"><button class="btn" id="koTakipDevam">🎙️ ${t('{0}. ayetten devam et', sonA)}</button><button class="btn ikincil" id="canliKapat">${t('Kapat')}</button></div></div>`;
+            <div class="satir sola"><button class="btn ikincil ko-ok" id="koOkGeri" aria-label="${t('Önceki ayet')}">‹</button><button class="btn" id="koTakipDevam">🎙️ ${t('{0}. ayetten devam et', sonA)}</button><button class="btn ikincil ko-ok" id="koOkIleri" aria-label="${t('Sonraki ayet')}">›</button></div>
+            <div class="satir sola">${TAKIP_HATA.size ? `<button class="btn ikincil" id="koHatalarBar">🔍 ${t('Hatalarımı göster ({0})', TAKIP_HATA.size)}</button>` : ''}<button class="btn ikincil" id="canliKapat">${t('Kapat')}</button></div></div>`;
+          $('#koOkGeri').onclick = ok.geri; $('#koOkIleri').onclick = ok.ileri; if ($('#koHatalarBar')) $('#koHatalarBar').onclick = hataPaneli;
           $('#koTakipDevam').onclick = () => takip(n, sonA);
           $('#canliKapat').onclick = () => { canliBarSifirla(); bar.hidden = true; };
         },
       });
     };
+    if ($('#koHatalar')) $('#koHatalar').onclick = hataPaneli;
     $('#koTakip').onclick = () => {
       if (CANLI) return canliDurdur();
       if (koSure) $('#koDinle').click();
@@ -4703,5 +4743,5 @@
   basla();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { TAKIP_HATA, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();
