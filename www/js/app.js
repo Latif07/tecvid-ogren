@@ -2422,7 +2422,7 @@
     const kuyruk = { p: Promise.resolve() }; const sirala = f => (kuyruk.p = kuyruk.p.then(f, f));   // model çağrıları tek tek
     // Fâtiha ve Tevbe dışında 1. ayetten başlanırsa okuyucu önce besmele çekebilir: duyulana göre karar verilir
     const besmele = basAyet === 1 && n !== 1 && n !== 9 ? (await O.fonetik(1))[0].p : '';
-    CANLI = { n, onek: ops.onek || null, besmele, besmeleKarar: besmele && !ops.onek ? null : 'yok', akis, ctx, isl, kaynak, G, W, AY, c: 0, bas: 0, acilan: 0, bitenAyet: 0, ayetBas: 0, sonuc: {}, bakilan: new Set(), mesgul: false, bitti: false, sirala, al, O, toplam: () => toplam, bitince: ops.bitince, ayetBitti: ops.ayetBitti, hataKaydet: ops.hataKaydet, elBul: ops.elBul, rms: rmsL, sonIlerleme: Date.now() };
+    CANLI = { n, onek: ops.onek || null, besmele, besmeleKarar: besmele && !ops.onek ? null : 'yok', akis, ctx, isl, kaynak, G, W, AY, c: 0, bas: 0, acilan: 0, bitenAyet: 0, ayetBas: 0, sonuc: {}, bakilan: new Set(), mesgul: false, bitti: false, sirala, al, O, toplam: () => toplam, bitince: ops.bitince, ayetBitti: ops.ayetBitti, hataKaydet: ops.hataKaydet, elBul: ops.elBul, rms: rmsL, sonIlerleme: Date.now(), tani: [], t0: Date.now(), cihaz: { ua: navigator.userAgent, ctxHz: ctx.sampleRate, worklet: !!(isl && isl.port) } };
     // takılınca kelimeye dokunup bakma
     W.forEach(w => { const el = canliEl(w.a, w.wi); if (el) { el.classList.toggle('gizli', !ops.gizle || ops.gizle(w.a, w.wi)); el.classList.remove('canli-acik', 'canli-okundu', 'canli-bakildi', 'r-iyi', 'r-orta', 'r-kotu', 'hata-alt'); el.onclick = ev => { if (!CANLI || !el.classList.contains('gizli')) return; ev.stopPropagation(); el.classList.remove('gizli'); el.classList.add('canli-bakildi'); CANLI.bakilan.add(w.a + ':' + w.wi); }; } });
     canliSiraIsaretle();
@@ -2430,6 +2430,11 @@
     bar.classList.add('dinliyor'); bar.querySelector('#canliDur').textContent = t('⏹ Durdur');
     canliDurumYaz();
     CANLI.zaman = setInterval(() => canliAdim(false), 1000);
+  }
+  function taniKopyala(C_) {   // takip tanı kaydını panoya kopyalar (ses içermez)
+    const sr = C_.rms.slice().sort((x, y) => x - y), q = f => +(sr[Math.floor(sr.length * f)] || 0).toFixed(4);
+    const j = JSON.stringify({ s: 'takip-tani-1', sure: C_.n, cihaz: C_.cihaz, kelime: [C_.acilan, C_.W.length], sesDuzeyi: { p10: q(0.1), p50: q(0.5), p90: q(0.9), maks: q(0.999) }, adimlar: C_.tani });
+    (navigator.clipboard ? navigator.clipboard.writeText(j) : Promise.reject()).then(() => toast(t('Tanı kaydı kopyalandı ✓')), () => { window.prompt(t('Tanı kaydını kopyala:'), j); });
   }
   function canliDurumYaz() {
     const C_ = CANLI; if (!C_) return; const e = document.querySelector('#canliBar .canli-durum'); if (!e) return;
@@ -2451,7 +2456,7 @@
     C_.mesgul = true;
     try {
       const seg = C_.al(C_.bas, son);
-      const d = await C_.sirala(() => C_.O.dinle(seg));
+      const t0_ = performance.now(), d = await C_.sirala(() => C_.O.dinle(seg)), ms = Math.round(performance.now() - t0_);
       if (CANLI !== C_) return;
       const h = d.heard; if (window.__canliLog) console.log('canlı duy', C_.c, h);
       if (C_.besmeleKarar === null) {   // besmele çekildi mi?
@@ -2467,8 +2472,10 @@
         // uzun takılmada ses 29 sn sınırını aşmasın: yalnız son 20 sn (okuma ve ardından gelen sessizlik)
         if (ac && ac >= Math.ceil(wl.length * 0.6)) { canliAyetBitti(ay.a, Math.max(C_.ayetBas, son - 20 * 16000), son); C_.ayetBas = son; C_.bitenAyet++; } };
       const A = onekHizala(h, C_.G.slice(C_.c));
+      // Tanı kaydı (yalnız metin ve sayılar; ses kaydedilmez): her adımda ne duyuldu, ne bekleniyordu, neden ilerlenmedi
+      const tani = (karar, ek) => { if (C_.tani.length < 300) C_.tani.push(Object.assign({ s: Math.round((Date.now() - C_.t0) / 100) / 10, pen: +((son - C_.bas) / 16000).toFixed(1), ms, duyulan: h.length, k: A.k, fark: A.mesafe, ac: C_.acilan, karar, duy: h.slice(0, 100), bek: C_.G.slice(C_.c, C_.c + Math.min(100, A.k + 8)) }, ek || {})); };
       // güvenilmeyen hizalama (tekrar okuma, başka ayet, gürültü): ilerleme yok; pencere çok uzarsa eski ses bırakılır
-      if (A.k > 0 && A.mesafe > Math.max(3, 0.35 * A.k)) { if (sonAdim) yarimDegerlendir(); else if ((son - C_.bas) / 16000 > 12) C_.bas = son - 4 * 16000; return; }
+      if (A.k > 0 && A.mesafe > Math.max(3, 0.35 * A.k)) { tani('ret', { son: !!sonAdim }); if (sonAdim) yarimDegerlendir(); else if ((son - C_.bas) / 16000 > 12) C_.bas = son - 4 * 16000; return; }
       // okuyucu durduysa (son ~0,9 sn sessiz) ya da bitirdiyse: büyük kısmı duyulan kelime de tamamlanmış sayılır (uzun med, vakf)
       const kuyrukSes = seg.subarray(Math.max(0, seg.length - 14400)); let e2 = 0; for (const v of kuyrukSes) e2 += v * v;
       // Sessizlik eşiği ortama göre: gürültü tabanının üstünde, konuşma düzeyinin altında (telefonda oda gürültüsü 0,012'yi aşabiliyor)
@@ -2482,7 +2489,7 @@
       let ilerle = C_.c + A.k - (durdu ? 0 : 1);
       const sira = C_.W[C_.acilan];
       if (durdu && sira && ilerle < sira.e && ilerle >= sira.s + 0.6 * (sira.e - sira.s)) ilerle = sira.e;
-      canliAc(ilerle);
+      canliAc(ilerle); tani('ilerle', { il: ilerle, durdu: !!durdu });
       const zamanBul = hedef => { let hi = -1; for (let i = 0; i <= h.length; i++) if (A.es[i] <= hedef - C_.c) hi = i; return hi > 0 && hi <= d.times.length ? C_.bas + Math.max(0, Math.round((d.times[hi - 1] + 0.08) * 16000)) : null; };
       // biten ayetler: bir sonraki ayetin okunmaya başlandığı görülünce (ya da son adımda tamamı okununca)
       while (C_.bitenAyet < C_.AY.length) {
@@ -3007,7 +3014,9 @@
           const bar = $('#canliBar'); if (!bar) return; sonOkunan = [n, sonA];
           bar.innerHTML = `<div class="canli-sonuc"><p class="canli-baslik">${t('Takip durdu. {0} kelime okundu.', C_.acilan)}</p>
             <div class="satir sola"><button class="btn ikincil ko-ok" id="koOkGeri" aria-label="${t('Önceki ayet')}">‹</button><button class="btn" id="koTakipDevam">🎙️ ${t('{0}. ayetten devam et', sonA)}</button><button class="btn ikincil ko-ok" id="koOkIleri" aria-label="${t('Sonraki ayet')}">›</button></div>
-            <div class="satir sola">${TAKIP_HATA.size ? `<button class="btn ikincil" id="koHatalarBar">🔍 ${t('Hatalarımı göster ({0})', TAKIP_HATA.size)}</button>` : ''}<button class="btn ikincil" id="canliKapat">${t('Kapat')}</button></div></div>`;
+            <div class="satir sola">${TAKIP_HATA.size ? `<button class="btn ikincil" id="koHatalarBar">🔍 ${t('Hatalarımı göster ({0})', TAKIP_HATA.size)}</button>` : ''}<button class="btn ikincil" id="canliKapat">${t('Kapat')}</button></div>
+            <p class="soluk kucukyazi"><button class="link" id="koTani">${t('🛠 Takip sorunu mu var? Tanı kaydını kopyala')}</button></p></div>`;
+          $('#koTani').onclick = () => taniKopyala(C_);
           $('#koOkGeri').onclick = ok.geri; $('#koOkIleri').onclick = ok.ileri; if ($('#koHatalarBar')) $('#koHatalarBar').onclick = hataPaneli;
           $('#koTakipDevam').onclick = () => takip(n, sonA);
           $('#canliKapat').onclick = () => { canliBarSifirla(); bar.hidden = true; };
