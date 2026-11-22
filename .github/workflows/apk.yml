@@ -15,20 +15,28 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    # Push'ta APK yalnızca commit mesajında [apk] varsa derlenir (önce web'de test edilir); elle başlatma her zaman derler
+  test:
+    # Playwright henüz ubuntu 26.04'ü (ubuntu-latest) desteklemiyor; test 24.04'te çalışır. Başarısız olursa APK derlenmez.
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Duman testi (başarısız olursa yayın yapılmaz)
+      - name: Duman testi
         run: |
           npm install --no-save --no-audit --no-fund playwright@1.58.0
           npx playwright install --with-deps chromium
           node tools/test/smoke.js
+
+  build:
+    # Push'ta APK yalnızca commit mesajında [apk] varsa derlenir (önce web'de test edilir); elle başlatma her zaman derler
+    needs: test
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Uygulama dosyalarını hazırla
         run: |
