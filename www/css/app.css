@@ -1302,3 +1302,15 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ko-ic .canli-nokta { grid-area: nokta; } .ko-ic .canli-durum { grid-area: durum; }
 .ko-ic #koOkGeri { grid-area: geri; } .ko-ic #canliDur { grid-area: durdur; } .ko-ic #koOkIleri { grid-area: ileri; }
 .canli-eylem[hidden] { display: none; }
+
+/* Küçük durum etiketi ve inceltilmiş çubuk */
+.canli-ilerleme { height: 6px; margin-bottom: 8px; }
+.ko-ic { gap: 6px 8px; }
+.ko-ic .canli-nokta { width: 9px; height: 9px; }
+.ko-ic .canli-durum { justify-self: start; flex: none; font-size: .78rem; font-weight: 600; line-height: 1.2; padding: 3px 10px; border-radius: 99px; color: var(--iyi); background: color-mix(in srgb, var(--iyi) 13%, transparent); }
+.canli-bar[data-durum="bekle"] .ko-ic .canli-durum { color: var(--soluk); background: color-mix(in srgb, var(--soluk) 15%, transparent); font-weight: 600; }
+.canli-bar[data-durum="takildi"] .ko-ic .canli-durum { color: #a05f00; background: color-mix(in srgb, #d08000 16%, transparent); }
+.ko-ic .btn { padding: 8px 12px; font-size: .92rem; min-height: 0; }
+.ko-ic .ko-ok { min-width: 44px; font-size: 1.3rem; padding: 4px 10px; }
+.canli-eylem { margin-top: 8px; }
+.canli-eylem .btn { font-size: .85rem; padding: 6px 12px; }

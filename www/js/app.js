@@ -2471,10 +2471,11 @@
   }
   function canliDurumYaz() {
     const C_ = CANLI; if (!C_) return; const e = document.querySelector('#canliBar .canli-durum'); if (!e) return;
+    const kk = !!document.querySelector('#canliBar .ko-ic'), dur = Date.now() - C_.sonIlerleme;
     const w = C_.W[Math.min(C_.acilan, C_.W.length - 1)], bekle = C_.durum === 'bekle' && w && C_.acilan < C_.W.length;
-    e.textContent = bekle ? t('⏸ Bekliyorum · {0}. ayet, {1}. kelime', w.a, w.wi + 1) + (Date.now() - C_.sonIlerleme > 6000 ? ' ' + t('Bitirdiysen ⏹ düğmesine dokun.') : '')
-      : C_.durum === 'takildi' ? t('⚠️ Seni duyuyorum ama bu kelimeyi eşleştiremedim.')
-      : t('🎙️ Dinliyorum · {0}/{1} kelime', C_.acilan, C_.W.length);
+    if (kk) {   // Kur'an sayfası: kısa, küçük durum etiketi (renkli nokta + metin)
+      e.textContent = bekle ? t('Bekliyorum · {0}. ayet, {1}. kelime', w.a, w.wi + 1) : C_.durum === 'takildi' ? t('Kelimeyi eşleştiremedim') : t('Dinliyorum · {0}/{1}', C_.acilan, C_.W.length);
+    } else e.textContent = dur > 5000 ? t('Bitirdiysen ⏹ düğmesine dokun.') : t('🎙️ Dinliyorum · {0}/{1} kelime', C_.acilan, C_.W.length);
   }
   function canliSiraIsaretle() {
     document.querySelectorAll('.kelime.canli-sira').forEach(e => e.classList.remove('canli-sira'));
