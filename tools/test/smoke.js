@@ -100,6 +100,37 @@ const EKRANLAR = [
     } catch (e) { kontrol('takip', false, e.message.split('\n')[0]); }
   }
 
+  // Takip durum göstergesi, ilerleme çubuğu ve "bu kelimeyi geç" (sahte takip durumuyla; gerçek mikrofon/model gerekmez)
+  {
+    const once = hatalar.length;
+    try {
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 1));
+      const sonuc = await sayfa.evaluate(() => {
+        const T = window.__TECVID.canliTest, bar = document.getElementById('canliBar'); bar.hidden = false;
+        const els = a => [...document.querySelectorAll(`.ko-a[data-ayet="1:${a}"] .kelime`)];
+        const W = []; for (let a = 1; a <= 7; a++) els(a).forEach((e, wi) => W.push({ a, wi, s: W.length * 4, e: W.length * 4 + 4 }));
+        const ses = v => (b, s) => new Float32Array(Math.max(0, s - b)).fill(v);
+        const C = { n: 1, W, acilan: 3, c: 12, bas: 0, rms: [], tani: [], t0: Date.now(), bitti: false, toplam: () => 48000, al: ses(0.2), elBul: a => els(a), sonIlerleme: Date.now() };
+        T.kur(C); T.sira();
+        const o = {};
+        const gorunur = () => getComputedStyle(bar.querySelector('.canli-eylem')).display !== 'none';
+        T.durum(); o.dinle = [bar.dataset.durum, !gorunur()];
+        C.sonIlerleme = Date.now() - 10000; C.al = ses(0.2); T.durum(); o.takildi = [bar.dataset.durum, !gorunur(), bar.querySelector('.canli-durum').textContent];
+        C.al = ses(0); T.durum(); o.bekle = [bar.dataset.durum, bar.querySelector('.canli-durum').textContent];
+        o.cubuk = bar.querySelector('.canli-ilerleme').getAttribute('aria-valuenow');
+        const sira = C.W[C.acilan], once_ = C.acilan; C.al = ses(0.2); C.sonIlerleme = Date.now() - 10000; T.durum(); T.gec();
+        o.gec = [C.acilan - once_, !!els(sira.a)[sira.wi].classList.contains('canli-atlandi'), bar.dataset.durum, !gorunur()];
+        T.kur(null); return o;
+      });
+      kontrol('takip: sesli ve ilerliyorken "dinliyorum"', sonuc.dinle[0] === 'dinle' && sonuc.dinle[1] === true, JSON.stringify(sonuc.dinle));
+      kontrol('takip: ses var ilerleme yok → "takıldım" + geç düğmesi', sonuc.takildi[0] === 'takildi' && sonuc.takildi[1] === false && /eşleştiremedim/.test(sonuc.takildi[2]), JSON.stringify(sonuc.takildi));
+      kontrol('takip: sustuysan "bekliyorum" ve kaldığın yer yazıyor', sonuc.bekle[0] === 'bekle' && /ayet, \d+\. kelime/.test(sonuc.bekle[1]), sonuc.bekle[1]);
+      kontrol('takip: ilerleme çubuğu dolu (>0)', +sonuc.cubuk > 0, 'aria-valuenow=' + sonuc.cubuk);
+      kontrol('takip: kelimeyi geç → bir kelime ilerler, gri işaretlenir, durum sıfırlanır', sonuc.gec[0] === 1 && sonuc.gec[1] === true && sonuc.gec[2] === 'dinle' && sonuc.gec[3] === true, JSON.stringify(sonuc.gec));
+      kontrol('takip: durum testi hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('takip durum', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;
