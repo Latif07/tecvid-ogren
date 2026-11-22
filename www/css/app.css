@@ -1282,3 +1282,23 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .sv-konular li .rozet { white-space: nowrap; }
 .sv-konular li .btn { grid-column: 1 / -1; justify-self: start; }
 .sv-konular .rozet.soluk { background: var(--bg); color: var(--soluk); }
+
+/* Kur'an sayfası: okuma durumu ve ilerleme çubuğu */
+.canli-ilerleme { position: relative; height: 8px; margin: 0 0 10px; background: var(--cizgi); border-radius: 99px; }
+.canli-ilerleme i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ana); border-radius: 99px; transition: width .4s ease; }
+.canli-ilerleme s { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--soluk); opacity: .55; }
+.canli-ilerleme s.hata { background: var(--kotu); opacity: 1; width: 3px; }
+.canli-ilerleme b { position: absolute; top: -9px; transform: translateX(-50%); font-size: .8rem; line-height: 1; color: var(--ana); transition: left .4s ease; }
+.canli-bar[data-durum="bekle"] .canli-nokta { background: var(--soluk); animation: none; }
+.canli-bar[data-durum="bekle"] .canli-durum { color: var(--soluk); font-weight: 600; }
+.canli-bar[data-durum="takildi"] { border-color: #d08000; }
+.canli-bar[data-durum="takildi"] .canli-nokta { background: #d08000; }
+.canli-bar[data-durum="takildi"] .canli-durum { color: #b06d00; }
+.canli-eylem { margin-top: 10px; display: flex; gap: 8px; justify-content: center; }
+.kelime.canli-atlandi { color: var(--soluk) !important; text-decoration: underline dotted; text-underline-offset: 6px; }
+
+/* Kur'an sayfası çubuğu: durum metni tam genişlikte, altında ‹ Durdur › */
+.ko-ic { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "nokta durum durum" "geri durdur ileri"; gap: 8px 10px; align-items: center; }
+.ko-ic .canli-nokta { grid-area: nokta; } .ko-ic .canli-durum { grid-area: durum; }
+.ko-ic #koOkGeri { grid-area: geri; } .ko-ic #canliDur { grid-area: durdur; } .ko-ic #koOkIleri { grid-area: ileri; }
+.canli-eylem[hidden] { display: none; }
