@@ -16,21 +16,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    # Playwright henüz ubuntu 26.04'ü (ubuntu-latest) desteklemiyor; test 24.04'te çalışır. Başarısız olursa yayın yapılmaz.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Duman testi
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.58.0
+          npx playwright install --with-deps chromium
+          node tools/test/smoke.js
+
   yayinla:
+    needs: test
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.dagit.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Duman testi (başarısız olursa yayın yapılmaz)
-        run: |
-          npm install --no-save --no-audit --no-fund playwright@1.58.0
-          npx playwright install --with-deps chromium
-          node tools/test/smoke.js
       - name: Sürüm numarasını yaz (önbellek yenilensin)
         run: |
           sed -i "s/SURUM_YER/${{ github.run_number }}-${GITHUB_SHA::7}/" www/sw.js
