@@ -1314,3 +1314,7 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ko-ic .ko-ok { min-width: 44px; font-size: 1.3rem; padding: 4px 10px; }
 .canli-eylem { margin-top: 8px; }
 .canli-eylem .btn { font-size: .85rem; padding: 6px 12px; }
+
+.canli-bar[data-durum="bitir"] .canli-nokta { background: var(--ana); animation: canliAtim 1.2s ease-in-out infinite; }
+.canli-bar[data-durum="bitir"] .ko-ic .canli-durum { color: var(--ana); background: color-mix(in srgb, var(--ana) 13%, transparent); }
+.canli-bar .btn.kirmizi-btn:disabled { opacity: .65; }

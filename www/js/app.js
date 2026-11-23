@@ -2581,11 +2581,14 @@
   }
   async function canliDurdur(sessiz) {
     const C_ = CANLI; if (!C_ || C_.bitti) return; C_.bitti = true; C_.durduruldu = !!sessiz; clearInterval(C_.zaman); clearInterval(C_.zaman2);
-    const bar = document.getElementById('canliBar'); if (bar) { bar.classList.remove('dinliyor'); bar.querySelector('.canli-durum').textContent = t('Değerlendiriliyor…'); }
-    // son adım: duyulanın tamamıyla hizala (son kelime ve son ayet için)
-    while (C_.mesgul) await new Promise(r => setTimeout(r, 100));
+    // Durdur'a basılır basılmaz: mikrofon kapanır, düğme "değerlendiriliyor" olur ve bir kare çizilir; ağır model işi ondan sonra başlar
     try { C_.isl.disconnect(); C_.kaynak.disconnect(); } catch (e) { }
     C_.akis.getTracks().forEach(x => x.stop());
+    const bar = document.getElementById('canliBar');
+    if (bar) { bar.classList.remove('dinliyor'); bar.dataset.durum = 'bitir'; const d = bar.querySelector('.canli-durum'); if (d) d.textContent = t('Son kelimeler değerlendiriliyor…'); const db = bar.querySelector('#canliDur'); if (db) { db.disabled = true; db.textContent = t('⏳ Bekle…'); } const ey = bar.querySelector('.canli-eylem'); if (ey) ey.hidden = true; }
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+    // son adım: duyulanın tamamıyla hizala (son kelime ve son ayet için)
+    while (C_.mesgul) await new Promise(r => setTimeout(r, 100));
     if (!sessiz) { CANLI = C_; await canliAdim(true); }
     await C_.sirala(() => null); try { C_.ctx.close(); } catch (e) { }
     CANLI = null; document.querySelectorAll('.kelime.canli-sira').forEach(e => e.classList.remove('canli-sira'));
@@ -4787,5 +4790,5 @@
   basla();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { TAKIP_HATA, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle() }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { TAKIP_HATA, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();

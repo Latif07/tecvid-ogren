@@ -134,6 +134,25 @@ const EKRANLAR = [
     } catch (e) { kontrol('takip durum', false, e.message.split('\n')[0]); }
   }
 
+  // Durdur'a basınca anında geri bildirim: mikrofon kapanır, düğme kilitlenir, durum "değerlendiriliyor" olur (ağır model işinden önce)
+  {
+    const once = hatalar.length;
+    try {
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 1));
+      const o = await sayfa.evaluate(() => {
+        const T = window.__TECVID.canliTest, bar = document.getElementById('canliBar'); bar.hidden = false;
+        let durdu = 0, kes = 0;
+        const C = { n: 1, W: [{ a: 1, wi: 0, s: 0, e: 4 }], acilan: 0, rms: [], tani: [], t0: Date.now(), bitti: false, mesgul: false, toplam: () => 0, al: () => new Float32Array(0),
+          isl: { disconnect() { kes++; } }, kaynak: { disconnect() { kes++; } }, akis: { getTracks: () => [{ stop() { durdu++; } }] }, sirala: f => Promise.resolve(f()), ctx: { close() { } }, sonIlerleme: Date.now(), elBul: () => [] };
+        T.kur(C); T.durdur(true);   // beklemeden: eşzamanlı kısım hemen bitmiş olmalı
+        return { mic: durdu, kes, durum: bar.dataset.durum, kilitli: bar.querySelector('#canliDur').disabled, metin: bar.querySelector('.canli-durum').textContent };
+      });
+      kontrol('durdur: mikrofon hemen kapanıyor, düğme kilitleniyor, durum "değerlendiriliyor"', o.mic === 1 && o.kes === 2 && o.durum === 'bitir' && o.kilitli === true && /değerlendiriliyor/.test(o.metin), JSON.stringify(o));
+      await sayfa.waitForTimeout(300);
+      kontrol('durdur: sonunda hatasız bitiyor', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('durdur', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;
