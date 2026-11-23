@@ -7,6 +7,9 @@ const ROOT = path.resolve(__dirname, '../../www');
 const TIP = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css',
   '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm' };
 
+// Test dış ağa çıkmaz: yalnız localhost; Firebase/ses siteleri gibi dış istekler hemen reddedilir (CI'da takılıp sayfanın 'load' olayını geciktirmesin)
+const yerelContext = async (tarayici, ops) => { const c = await tarayici.newContext(ops); await c.route(u => u.hostname !== 'localhost', r => r.abort()); return c; };
+
 const sunucu = http.createServer((q, r) => {
   let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html';
   const f = path.join(ROOT, p);
@@ -32,7 +35,7 @@ const EKRANLAR = [
   await new Promise(c => sunucu.listen(0, c));
   const url = `http://localhost:${sunucu.address().port}/`;
   const tarayici = await chromium.launch();
-  const sayfa = await (await tarayici.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' })).newPage();
+  const sayfa = await (await yerelContext(tarayici,{ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' })).newPage();
   const hatalar = [];
   sayfa.on('pageerror', e => hatalar.push('pageerror: ' + e.message));
   sayfa.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|net::ERR/.test(m.text())) hatalar.push('console: ' + m.text()); });
@@ -43,7 +46,7 @@ const EKRANLAR = [
   const KAPSAM = process.argv.includes('--kapsam');
   if (KAPSAM) await sayfa.coverage.startJSCoverage({ resetOnNavigation: false });
   await sayfa.addInitScript(() => { try { localStorage.setItem('hk.test', '1'); } catch (e) { } });
-  await sayfa.goto(url, { waitUntil: 'load' });
+  await sayfa.goto(url, { waitUntil: 'domcontentloaded' });
   await sayfa.waitForFunction(() => window.__TECVID, null, { timeout: 15000 }).catch(() => { });
   kontrol('uygulama açıldı (__TECVID var)', await sayfa.evaluate(() => !!window.__TECVID));
 
@@ -135,7 +138,7 @@ const EKRANLAR = [
   {
     const once = hatalar.length;
     try {
-      const pg = await (await tarayici.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' })).newPage();
+      const pg = await (await yerelContext(tarayici,{ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' })).newPage();
       pg.on('pageerror', e => hatalar.push('pageerror: ' + e.message));
       await pg.addInitScript(() => {
         const L = () => JSON.parse(localStorage.getItem('mockcloud') || '{}'), W = o => localStorage.setItem('mockcloud', JSON.stringify(o));
@@ -148,7 +151,7 @@ const EKRANLAR = [
       });
       const yerel = () => pg.evaluate(() => JSON.parse(localStorage.getItem('tecvid-ogren.profiller')).liste.map(p => p.id));
       const bulut = () => pg.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('mockcloud')).profiller).filter(p => !p.silindi).map(p => p.id));
-      await pg.goto(url); await pg.waitForFunction(() => window.__TECVID); await pg.waitForTimeout(1200);
+      await pg.goto(url, { waitUntil: 'domcontentloaded' }); await pg.waitForFunction(() => window.__TECVID); await pg.waitForTimeout(1200);
       await pg.evaluate(() => window.__TECVID.git('profiller'));
       await pg.click('[data-duz="pa"]'); await pg.fill('[data-form="pa"] .fAd', 'Ayse2'); await pg.click('[data-form="pa"] [data-fy="cocuk"]'); await pg.click('[data-kaydet="pa"]');
       await pg.waitForTimeout(600);
