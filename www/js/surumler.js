@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.48';
+  const SURUM = '1.0.49';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.49', t: '2026-11-23', durum: 'Web', l: [
+      'Kur\'an sayfasında "Takip" düğmesi "Sen oku" oldu; altta küçük durum etiketi (Dinliyorum / Bekliyorum / Kelimeyi eşleştiremedim) ve sayfa boyunca ilerleme çubuğu',
+      'Takılırsan "Bu kelimeyi geç" ile devam edersin; ‹ › okları ile ayet ayet ilerleyebilirsin',
+      'Okurken kesin hataların altı çizilir; "Hatalarımı göster" ile o oturumdaki hataları ayrıntısıyla görür, tekrar okuyabilirsin',
+      'Takip sorunları için "Tanı kaydını kopyala" düğmesi eklendi (ses kaydedilmez, yalnızca metin ve sayılar)',
+    ] },
     { s: '1.0.48', t: '2026-11-20', durum: 'APK', l: [
       'Profil silme düzeltildi: silinen profil artık geri gelmiyor (bulut eşitlemesi silmeyi hemen tanıyor)',
       'Geri Al: silmeyi 10 saniye içinde geri alabilirsin, profil ilerlemesiyle birlikte döner',
