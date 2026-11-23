@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../../www');
 const TIP = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css',
-  '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm' };
+  '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm', '.mjs': 'text/javascript', '.onnx': 'application/octet-stream' };
 
 // Test dış ağa çıkmaz: yalnız localhost; Firebase/ses siteleri gibi dış istekler hemen reddedilir (CI'da takılıp sayfanın 'load' olayını geciktirmesin)
 const yerelContext = async (tarayici, ops) => { const c = await tarayici.newContext(ops); await c.route(u => u.hostname !== 'localhost', r => r.abort()); return c; };
@@ -151,6 +151,22 @@ const EKRANLAR = [
       await sayfa.waitForTimeout(300);
       kontrol('durdur: sonunda hatasız bitiyor', hatalar.length === once, hatalar.slice(once).join(' | '));
     } catch (e) { kontrol('durdur', false, e.message.split('\n')[0]); }
+  }
+
+  // Okuma modeli (yapay zekâ) Web Worker'da açılıyor ve ses çözüyor: ekran model hesaplarken donmasın
+  {
+    const once = hatalar.length;
+    try {
+      const o = await sayfa.evaluate(async () => {
+        await new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'js/okuma.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+        await Okuma.modelAc();
+        const ses = new Float32Array(16000 * 2); for (let i = 0; i < ses.length; i++) ses[i] = 0.1 * Math.sin(i / 9) + 0.02 * (Math.random() - 0.5);
+        const d = await Okuma.dinle(ses);
+        return { proxy: ort.env.wasm.proxy === true, heard: typeof d.heard, times: Array.isArray(d.times) };
+      });
+      kontrol('okuma modeli: Web Worker\'da açılıyor ve ses çözüyor', o.proxy && o.heard === 'string' && o.times, JSON.stringify(o));
+      kontrol('okuma modeli: hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('okuma modeli', false, e.message.split('\n')[0]); }
   }
 
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı

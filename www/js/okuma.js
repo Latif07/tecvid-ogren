@@ -67,6 +67,8 @@
     if (!window.ort) await scriptYukle('js/ort/ort.wasm.min.js');
     window.ort.env.wasm.wasmPaths = new URL('js/ort/', location.href).href;
     window.ort.env.wasm.numThreads = 1;
+    // Model ayrı bir iş parçacığında (Web Worker) çalışır: Durdur ve düğmeler model hesaplarken donmaz (8 sn sesin hesabında ekran kilidi ~870 ms → ~125 ms)
+    if (typeof Worker !== 'undefined') window.ort.env.wasm.proxy = true;
     return window.ort;
   }
   // Model uygulamayla birlikte gelir; web sürümünde service worker önbelleğe alır
