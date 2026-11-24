@@ -2004,8 +2004,9 @@
           <button class="btn genis ez-basla" id="ezBasla">${t('Başla · yaklaşık {0} dk', dk)}</button>
           <p class="kucukyazi ez-bugun-not">${t('Sırayla gider; biri bitince sıradakine geçersin.')}</p>`
         : `<p>${t('Bugün için ezber planı yok. Aşağıdan bir sûre ekle.')}</p>`}
-        <p class="kucukyazi ez-hedef">${t('Günlük yeni ders:')} ${[1, 3, 5, 10].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hedef="${k}">${t('{0} ayet', k)}</button>`).join(' ')}</p>
+        <p class="kucukyazi ez-hedef">${t('Günlük yeni ders:')} ${[1, 3, 5, 10, 999].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hedef="${k}">${k === 999 ? t('Hepsi') : t('{0} ayet', k)}</button>`).join(' ')}</p>
       </section>
+      <button class="btn genis ez-tekrarla" data-git="tekrarlaSec">🔁 ${t('Tekrarla')} <small>${t('bir sûreyi istediğin kadar tekrarla')}</small></button>
       <h2 class="baslik">${t('Ezberlerim')}</h2>
       ${liste.length ? `<div class="ez-izgara">${liste.map(e => `<button class="ez-sure" data-ez-sure="${e.n}">${halka(e)}<b>${esc(sureNoAdi(e.n))}</b><small>${durum(e)}</small></button>`).join('')}</div>` : `<p class="soluk">${t('Henüz ezber listen boş.')}</p>`}
       <button class="btn genis ikincil ez-ekle" data-git="ezberEkle">${t('➕ Sûre ekle')}</button>
@@ -2026,6 +2027,150 @@
     // Yeni dersin ayet aralığı sûre verisiyle hesaplanır: yüklü değilse yükle ve yenile
     if (yeniG && !SURE(yeniG.n)) sureYukle(yeniG.n).then(() => { if (ekranYigini[ekranYigini.length - 1][0] === 'ezber') ciz(); }).catch(() => { });
   };
+
+  // ------------------------------------------------------------ Tekrarla: bir sûreyi istediğin kadar tekrarla (ezber oynatıcısı)
+  // Ayarlar S.ayar.tk'da: tekrar, bekle (sn), hiz, oto (bitince başa dön), kaydir, ses, latin, meal, basamak (1 → 1-2 → 1-2-3), boy, gizle ('hepsi' | 'yari')
+  const TK_VARSAYILAN = { tekrar: 5, bekle: 1, hiz: 1, oto: false, kaydir: true, ses: true, latin: true, meal: false, basamak: false, boy: 1, gizle: 'hepsi' };
+  const TK_TEKRAR = [1, 2, 3, 5, 7, 10, 15, 20, 30, 50, 99], TK_BEKLE = [0, 1, 2, 3, 5, 10];
+  const tkAyar = () => Object.assign({}, TK_VARSAYILAN, S.ayar.tk || {});
+  const tkYaz = (k, v) => { S.ayar.tk = Object.assign(tkAyar(), { [k]: v }); kaydet(); };
+  const tkHizli = () => (window.__TECVID_HIZLI ? 50 : 1);   // yalnız testler: beklemeleri kısaltır
+  let TK = null;   // { n, bas, bit, calma, log }
+  EKRAN.tekrarlaSec = function () {
+    app.innerHTML = `${ust(t('Tekrarla'))}<main>
+      <p class="soluk">${t('Bir sûre seç: bütün ayetlerini tekrar sayısı, bekleme ve hızı ayarlayarak dinle, gizleyip okuyarak ezberle.')}</p>
+      <label class="ara-kutu">${IKON.ara}<span class="gorunmez">${t('Sûre ara')}</span><input id="tkAra" type="search" placeholder="${t('Sûre ara: İkra, Yâsîn, 36…')}"></label>
+      <div id="tkListe"><p class="soluk">${t('Yükleniyor…')}</p></div></main>`;
+    kuranIndex().then(l => {
+      const yer = $('#tkListe'); if (!yer) return;
+      if (!l) { yer.innerHTML = `<p class="hata">${t('Sûre listesi açılamadı.')}</p>`; return; }
+      const kisa = [1, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114], benim = Object.keys(S.ezber || {}).map(Number);
+      const sira = benzersiz([...benim, ...kisa, ...l.map(x => x.n)]);
+      const satir = n => { const x = l.find(y => y.n === n); if (!x) return ''; const e = ezb(n);
+        return `<button class="tk-sure-satir" data-tk-sure="${n}" data-ara="${esc(trSade(`${n} ${sureAdi(x)} ${x.tr || ''} ${x.en || ''}`))}"><span class="no">${n}</span><b>${esc(sureAdi(x))}</b><small>${t('{0} ayet', x.a)}</small><span class="tam">${e && e.tam ? '✓' : ''}</span></button>`; };
+      yer.innerHTML = sira.map(satir).join('');
+      yer.querySelectorAll('[data-tk-sure]').forEach(b => b.onclick = () => git('tekrarla', +b.dataset.tkSure));
+      $('#tkAra').oninput = e => { const q = trSade(e.target.value.trim()); yer.querySelectorAll('[data-ara]').forEach(b => { b.hidden = !!q && !b.dataset.ara.includes(q); }); };
+    });
+  };
+  EKRAN.tekrarla = function (n, bas, bit) {
+    n = +n; const x = SURE(n);
+    if (!x) {
+      app.innerHTML = `${ust(esc(sureNoAdi(n)))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`;
+      sureYukle(n).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'tekrarla' && +ek[1][0] === n) ciz(); }).catch(() => toast(t('Sûre açılamadı.')));
+      return;
+    }
+    if (CANLI) canliDurdur(true);
+    if (TK && TK.calma) { TK.calma.iptal = true; sesDurdur(); }
+    const top = x.ayet.length, o0 = tkAyar();
+    if (o0.meal && !mealSecili().every(k => mealVeri(k, n))) {   // meal açıksa önce yüklenir
+      app.innerHTML = `${ust(esc(sureNoAdi(n)))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`;
+      Promise.all(mealSecili().map(k => mealKaynakYukle(k, n))).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'tekrarla' && +ek[1][0] === n) ciz(); }).catch(() => { tkYaz('meal', false); toast(t('Meal açılamadı.')); ciz(); });
+      return;
+    }
+    const eski = TK && TK.n === n ? TK : null;
+    bas = Math.min(top, Math.max(1, +bas || (eski ? eski.bas : 1))); bit = Math.min(top, Math.max(bas, +bit || (eski ? eski.bit : top)));
+    TK = { n, bas, bit, calma: null, log: [] };
+    const OKU = (window.OKUNUS || {})[DIL === 'en' ? 'en' : 'tr'] || {}, okunusVar = !!OKU[`${n}:1`], e = ezb(n);
+    const ayetHTML = a => {
+      const r = `${n}:${a}`; let ofs = 0;
+      const kel = x.ayet[a - 1].split(' ').map((w, wi) => { const ic = kelimeHTML(r, w, ofs); ofs += w.length + 1; return `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${ic}</span>`; }).join(' ');
+      const meal = mealSecili().map(k => [k, (mealVeri(k, n) || [])[a - 1]]).filter(z => z[1]);
+      return `<div class="ez-ayet tk-ayet ${a < bas || a > bit ? 'tk-disari' : ''}" id="ayet-${a}" data-a="${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${meal.map(([k, m]) => `<p class="ko-meal">${esc(m)}${meal.length > 1 ? ` <small class="soluk">· ${esc(k.ad)}</small>` : ''}</p>`).join('')}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
+    };
+    const besmele = n !== 1 && n !== 9 ? `<div class="besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : '';
+    const sayac = (id, deger) => `<b id="${id}">${deger}</b>`;
+    const onay = (id, ad, acik) => `<label class="tk-onay"><input type="checkbox" id="${id}" ${acik ? 'checked' : ''}><span>${ad}</span></label>`;
+    app.innerHTML = `${ust(esc(sureNoAdi(n)))}<main class="ez-ekran tk-ekran">
+      <details class="kart tk-ust" id="tkAyarKutu"><summary><b>⚙️ ${t('Ayarlar')}</b> <span class="soluk kucukyazi">${bas}–${bit}. ${t('ayet')}</span></summary>
+        <div class="tk-satir tk-aralik"><span>${t('Ayetler')}</span><input id="tkBas" type="number" inputmode="numeric" min="1" max="${top}" value="${bas}" aria-label="${t('İlk ayet')}"><span>–</span><input id="tkBit" type="number" inputmode="numeric" min="1" max="${top}" value="${bit}" aria-label="${t('Son ayet')}"><span class="soluk">/ ${top}</span><button class="cip ${bas === 1 && bit === top ? 'aktif' : ''}" id="tkHepsi">${t('Hepsi')}</button></div>
+        <div class="tk-secenek">
+          ${okunusVar ? onay('tkLatin', t('Okunuş'), o0.latin) : ''}${onay('tkMeal', t('Meal'), o0.meal)}${onay('tkSes', t('Ses açık'), o0.ses)}${onay('tkBasamak', t('Basamak yöntemi'), o0.basamak)}
+          ${onay('tkOto', t('Oto tekrar'), o0.oto)}${onay('tkKaydir', t('Oto kaydır'), o0.kaydir)}${onay('tkEzber', t('Ezberlendi'), !!(e && e.tam))}
+        </div>
+        <div class="tk-satir"><span>${t('Okuma hızı')}</span>${[0.75, 1, 1.25, 1.5].map(h => `<button class="cip ${o0.hiz === h ? 'aktif' : ''}" data-tk-hiz="${h}">${h}×</button>`).join('')}<span class="tk-boy"><button class="cip" id="tkKucult" aria-label="${t('Yazıyı küçült')}">A−</button><button class="cip" id="tkBuyut" aria-label="${t('Yazıyı büyüt')}">A+</button></span></div>
+        <div class="tk-satir"><span>${t('Gizleyerek oku')}</span>${[['hepsi', t('Tamamı')], ['yari', t('Yarısı')]].map(([v, ad]) => `<button class="cip ${o0.gizle === v ? 'aktif' : ''}" data-tk-gizle="${v}">${ad}</button>`).join('')}</div>
+        <p class="kucukyazi soluk tk-not" id="tkNot">${t('Basamak yöntemi: önce 1. ayet, sonra 1–2, sonra 1–2–3… her basamak tekrar sayısı kadar. Gizle ve oku: kelimeler gizlenir, okudukça açılır.')}</p>
+      </details>
+      <div class="tk-hizli"><button class="btn kucuk" id="tkGizleOku">🙈 ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
+      <section class="kart ez-kart tk-kart ${o0.latin ? '' : 'tk-latin-kapali'} ${o0.meal ? '' : 'tk-meal-kapali'}" id="tkKart" style="--ar-olcek:${o0.boy}">${besmele}${Array.from({ length: top }, (_, i) => ayetHTML(i + 1)).join('')}</section>
+      <div class="canli-bar" id="canliBar" hidden>${canliBarHTML()}</div>
+    </main>
+    <div class="tk-alt" id="tkAlt"><p class="tk-durum" id="tkDurum">${t('Hazır')}</p>
+      <div class="tk-alt-satir">
+        <div class="tk-say"><small>${t('Bekleme (sn)')}</small><div><button class="tk-yuv" data-tk-say="bekle-" aria-label="${t('Bekleme azalt')}">−</button>${sayac('tkBekle', o0.bekle)}<button class="tk-yuv" data-tk-say="bekle+" aria-label="${t('Bekleme artır')}">+</button></div></div>
+        <button class="btn tk-basla" id="tkBasla">▶ ${t('BAŞLA')}</button>
+        <div class="tk-say"><small>${t('Tekrar')}</small><div><button class="tk-yuv" data-tk-say="tekrar-" aria-label="${t('Tekrar azalt')}">−</button>${sayac('tkTekrar', o0.tekrar)}<button class="tk-yuv" data-tk-say="tekrar+" aria-label="${t('Tekrar artır')}">+</button></div></div>
+      </div></div>`;
+    const kart = $('#tkKart'), durum = m => { const d = $('#tkDurum'); if (d) d.textContent = m; };
+    // ---- ayarlar
+    const git_ = (b2, b3) => { ekranYigini[ekranYigini.length - 1] = ['tekrarla', [n, b2, b3]]; ciz(); };
+    const aralik = () => { const b2 = Math.min(top, Math.max(1, +$('#tkBas').value || 1)), b3 = Math.min(top, Math.max(b2, +$('#tkBit').value || top)); git_(b2, b3); };
+    $('#tkBas').onchange = aralik; $('#tkBit').onchange = aralik; $('#tkHepsi').onclick = () => git_(1, top);
+    const onayBagla = (id, f) => { const el = $('#' + id); if (el) el.onchange = () => f(el.checked); };
+    onayBagla('tkLatin', v => { tkYaz('latin', v); kart.classList.toggle('tk-latin-kapali', !v); });
+    onayBagla('tkMeal', v => { tkYaz('meal', v); if (v && !mealSecili().every(k => mealVeri(k, n))) ciz(); else kart.classList.toggle('tk-meal-kapali', !v); });
+    onayBagla('tkSes', v => tkYaz('ses', v)); onayBagla('tkBasamak', v => tkYaz('basamak', v)); onayBagla('tkOto', v => tkYaz('oto', v)); onayBagla('tkKaydir', v => tkYaz('kaydir', v));
+    onayBagla('tkEzber', v => { if (v) ezberIsaretle(n, top); else { const z = ezb(n); if (z) { z.tam = false; z.a = Math.min(z.a || 0, top - 1); kaydet(); } } });
+    app.querySelectorAll('[data-tk-hiz]').forEach(b => b.onclick = () => { const h = +b.dataset.tkHiz; tkYaz('hiz', h); if (ses && TK.calma) ses.playbackRate = h; app.querySelectorAll('[data-tk-hiz]').forEach(z => z.classList.toggle('aktif', z === b)); });
+    const boyla = d => { const y = Math.min(1.5, Math.max(0.6, +(tkAyar().boy + d).toFixed(2))); tkYaz('boy', y); kart.style.setProperty('--ar-olcek', y); };
+    $('#tkKucult').onclick = () => boyla(-0.1); $('#tkBuyut').onclick = () => boyla(0.1);
+    app.querySelectorAll('[data-tk-gizle]').forEach(b => b.onclick = () => { tkYaz('gizle', b.dataset.tkGizle); app.querySelectorAll('[data-tk-gizle]').forEach(z => z.classList.toggle('aktif', z === b)); });
+    app.querySelectorAll('[data-tk-say]').forEach(b => b.onclick = () => {
+      const [ad, yon] = [b.dataset.tkSay.slice(0, -1), b.dataset.tkSay.slice(-1) === '+' ? 1 : -1], liste = ad === 'tekrar' ? TK_TEKRAR : TK_BEKLE, simdiki = tkAyar()[ad];
+      let i = liste.findIndex(v => v >= simdiki); if (i < 0) i = liste.length - 1; if (liste[i] !== simdiki && yon < 0) i++;   // aralarda kalan eski değer
+      const v = liste[Math.min(liste.length - 1, Math.max(0, i + yon))]; tkYaz(ad, v); $(ad === 'tekrar' ? '#tkTekrar' : '#tkBekle').textContent = v;
+    });
+    // ---- oynatma
+    const bekle = (ms, is) => new Promise(coz => { const bit_ = Date.now() + ms / tkHizli(), tik = () => (is.iptal || !document.body.contains(kart) || Date.now() >= bit_) ? coz() : setTimeout(tik, 40); tik(); });
+    const oynat = (a, is) => new Promise(coz => {
+      const o = tkAyar(), words = x.ayet[a - 1].split(' ').length;
+      TK.log.push(a);
+      document.querySelectorAll('.tk-ayet.calan').forEach(y => y.classList.remove('calan'));
+      const el = document.getElementById('ayet-' + a); if (el) { el.classList.add('calan'); if (o.kaydir && !window.__TECVID_HIZLI) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      if (!o.ses) return bekle(Math.max(1500, words * 600 / o.hiz), is).then(coz);
+      const au = new Audio(sesKaynak(ayetUrl(`${n}:${a}`))); ses = au; au.playbackRate = o.hiz;
+      au.onended = () => coz(); au.onerror = () => { is.hata = true; coz(); };
+      au.play().catch(() => { is.hata = true; coz(); });
+      const izle = () => { if (is.iptal || !document.body.contains(kart)) { au.pause(); coz(); } else if (!au.ended && !au.error) setTimeout(izle, 200); }; izle();
+    });
+    const tkDur = () => { if (TK.calma) { TK.calma.iptal = true; TK.calma = null; } sesDurdur(); document.querySelectorAll('.tk-ayet.calan').forEach(y => y.classList.remove('calan')); const b = $('#tkBasla'); if (b) { b.textContent = '▶ ' + t('BAŞLA'); b.classList.remove('caliyor'); } };
+    async function tkBasla() {
+      if (CANLI) await canliDurdur(true);
+      const is = { iptal: false, hata: false }; TK.calma = is; TK.log = [];
+      const b = $('#tkBasla'); b.textContent = '⏹ ' + t('DURDUR'); b.classList.add('caliyor');
+      const plan = []; if (tkAyar().basamak) for (let k = bas; k <= bit; k++) plan.push(Array.from({ length: k - bas + 1 }, (_, i) => bas + i)); else for (let a = bas; a <= bit; a++) plan.push([a]);
+      let tur = 0;
+      do {
+        tur++;
+        for (let u = 0; u < plan.length; u++) for (let r = 1; r <= tkAyar().tekrar; r++) for (const a of plan[u]) {
+          if (is.iptal || !document.body.contains(kart)) return tkDur();
+          durum(`${t('Tekrar {0}/{1}', r, tkAyar().tekrar)} · ${t('Ayet {0}', a)}${tkAyar().basamak ? ' · ' + t('Basamak {0}/{1}', u + 1, plan.length) : ''}${tkAyar().oto && tur > 1 ? ' · ' + t('Tur {0}', tur) : ''}`);
+          await oynat(a, is);
+          if (is.hata) { tkDur(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); durum(t('Hazır')); return; }
+          if (is.iptal) return tkDur();
+          await bekle(tkAyar().bekle * 1000, is);
+        }
+      } while (tkAyar().oto && !is.iptal && document.body.contains(kart));
+      tkDur(); durum(t('Bitti. Tekrar başlatabilirsin.'));
+    }
+    $('#tkBasla').onclick = () => { if (TK.calma) { tkDur(); durum(t('Durdu')); } else tkBasla(); };
+    // ---- gizle ve oku (mikrofon takip motoru)
+    $('#tkGizleOku').onclick = async () => {
+      if (CANLI) return canliDurdur();
+      if (TK.calma) tkDur();
+      const alt = $('#tkAlt'); if (alt) alt.hidden = true;
+      const yari = tkAyar().gizle === 'yari';
+      await canliBaslat(n, bas, { bit, gizle: yari ? (a, wi) => wi % 2 === 1 : () => true, bitince: C_ => {
+        canliSonucGoster(C_);
+        const kapat = $('#canliKapat'), geri = () => { const al = $('#tkAlt'); if (al) al.hidden = false; };
+        if (kapat) { const f = kapat.onclick; kapat.onclick = () => { f(); geri(); }; } else geri();
+      } });
+      if (!CANLI && alt) alt.hidden = false;   // başlatılamadıysa (izin yok vb.) alt çubuk geri gelir
+    };
+    $('#tkGoster').onclick = () => { if (CANLI) canliDurdur(true); const al = $('#tkAlt'); if (al) al.hidden = false; ciz(); };
+  };
+
   // Hatim takvimi ve sayfa sayfa okuma (Ezber > Diğer)
   EKRAN.hatim = function () {
     const hd = hatimDurum();
@@ -2766,7 +2911,7 @@
     const tekrar = S.ayar.ezTekrar || 3, gizliAdim = Z.adim >= 2;
     app.innerHTML = `${ust(baslik)}${cubuk}<main class="ez-ekran">
       <p class="ez-yonerge">${yonerge}</p>
-      ${Z.adim === 0 ? `<p class="kucukyazi soluk">${t('Her ayet kaç kez okunsun?')} ${[1, 3, 5].map(k => `<button class="cip ${tekrar === k ? 'aktif' : ''}" data-ez-tekrar="${k}">${k}×</button>`).join(' ')}</p>` : ''}
+      ${Z.adim === 0 ? `<p class="kucukyazi soluk">${t('Her ayet kaç kez okunsun?')} ${[1, 3, 5, 10, 20].map(k => `<button class="cip ${tekrar === k ? 'aktif' : ''}" data-ez-tekrar="${k}">${k}×</button>`).join(' ')}</p>` : ''}
       ${Z.adim === 3 && Z.mod === 'yeni' ? `<p class="kucukyazi"><button class="cip ${Z.ilkKelime ? 'aktif' : ''}" id="ezIlk">${t('İlk kelime görünsün')}</button></p>` : ''}
       <section class="kart ez-kart" id="ezKart">${besmele}${ayetler.join('')}</section>
       <div id="ezSonuc"></div>
@@ -4862,5 +5007,5 @@
   basla();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { tk: () => TK, TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();

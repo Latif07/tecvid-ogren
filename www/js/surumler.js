@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.50';
+  const SURUM = '1.0.51';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.51', t: '2026-11-24', durum: 'Web', l: [
+      'Ezber sekmesinde yeni "Tekrarla": bir sûrenin bütün ayetlerini tekrar sayısı (99\'a kadar), bekleme süresi ve ses hızıyla dinle; oto tekrar ve oto kaydırma',
+      '"Basamak yöntemi": önce 1. ayet, sonra 1–2, sonra 1–2–3… birikimli ezber',
+      '"Gizle ve oku": kelimeleri gizleyip okudukça açarak ezberini dene; "Ezberlendi" kutusuyla sûreyi işaretle',
+      'Günlük yeni ders için "Hepsi" seçeneği; Dinle adımında 10× ve 20× tekrar',
+    ] },
     { s: '1.0.50', t: '2026-11-24', durum: 'Web', l: [
       'Kur\'an sekmesinde yeni "Git": sûre ve ayet (örn. Bakara 185), sayfa numarası ya da cüz seçip doğrudan o yere açılırsın',
       'Ayet numarasına dokununca "Ayet ekranı": ayet, sayfa ve cüz bilgisi, meal, önceki / sonraki ayet ve okuma tek ekranda',
