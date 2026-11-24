@@ -30,12 +30,10 @@ jobs:
           npx playwright install --with-deps chromium
           node tools/test/smoke.js
 
-  yayinla:
+  derle:
+    # Paket ayrı işte yüklenir; yayınlama sonraki işte başlar (aynı saniyede başlayınca 'artifact bulunamadı' hatası veriyordu)
     needs: test
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.dagit.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Sürüm numarasını yaz (önbellek yenilensin)
@@ -46,5 +44,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: www
+
+  yayinla:
+    needs: derle
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.dagit.outputs.page_url }}
+    steps:
       - id: dagit
         uses: actions/deploy-pages@v4
