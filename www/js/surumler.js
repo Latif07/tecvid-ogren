@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.49';
+  const SURUM = '1.0.50';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.50', t: '2026-11-24', durum: 'Web', l: [
+      'Kur\'an sekmesinde yeni "Git": sûre ve ayet (örn. Bakara 185), sayfa numarası ya da cüz seçip doğrudan o yere açılırsın',
+      'Ayet numarasına dokununca "Ayet ekranı": ayet, sayfa ve cüz bilgisi, meal, önceki / sonraki ayet ve okuma tek ekranda',
+      'Birden çok meal göstermeye hazırlandı; yeni mealler kaynağı ve lisansı doğrulanınca eklenecek',
+      'Durdur düğmesi artık hemen tepki veriyor; yapay zekâ modeli ayrı çalıştığı için ekran donmuyor',
+    ] },
     { s: '1.0.49', t: '2026-11-23', durum: 'Web', l: [
       'Kur\'an sayfasında "Takip" düğmesi "Sen oku" oldu; altta küçük durum etiketi (Dinliyorum / Bekliyorum / Kelimeyi eşleştiremedim) ve sayfa boyunca ilerleme çubuğu',
       'Takılırsan "Bu kelimeyi geç" ile devam edersin; ‹ › okları ile ayet ayet ilerleyebilirsin',

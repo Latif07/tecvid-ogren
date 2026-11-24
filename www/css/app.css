@@ -1314,3 +1314,22 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ko-ic .ko-ok { min-width: 44px; font-size: 1.3rem; padding: 4px 10px; }
 .canli-eylem { margin-top: 8px; }
 .canli-eylem .btn { font-size: .85rem; padding: 6px 12px; }
+
+.canli-bar[data-durum="bitir"] .canli-nokta { background: var(--ana); animation: canliAtim 1.2s ease-in-out infinite; }
+.canli-bar[data-durum="bitir"] .ko-ic .canli-durum { color: var(--ana); background: color-mix(in srgb, var(--ana) 13%, transparent); }
+.canli-bar .btn.kirmizi-btn:disabled { opacity: .65; }
+
+/* Git kartı ve ayet ekranı */
+.ko-git summary { cursor: pointer; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ko-git-ic { display: grid; gap: 10px; margin-top: 10px; }
+.ko-git-satir { display: flex; gap: 8px; align-items: end; }
+.ko-git-satir .alan { flex: 1; margin: 0; } .ko-git-satir .ko-git-no { flex: 0 0 84px; }
+.ko-git-satir select, .ko-git-satir input { width: 100%; }
+.ayet-ekran { width: min(520px, 100%); max-height: 88vh; overflow-y: auto; position: relative; padding-top: 22px; }
+.ayet-ekran-kapat { position: absolute; top: 8px; right: 8px; border: 0; background: var(--cizgi); border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; }
+.ayet-ekran-baslik { text-align: center; margin: 0 0 2px; font-size: 1.05rem; }
+.ayet-ekran-ar { font-size: 1.3rem; line-height: 2; margin: 8px 0; padding: 8px 10px; text-align: center; }
+.ayet-ekran-meal { background: color-mix(in srgb, var(--ana) 7%, transparent); border-radius: 12px; padding: 8px 12px; margin: 8px 0; }
+.ayet-ekran-meal h3 { margin: 0 0 4px; font-size: .85rem; color: var(--soluk); text-transform: none; }
+.ayet-ekran-meal p { margin: 0; line-height: 1.55; }
+.ayet-ekran-dugme { display: flex; gap: 8px; justify-content: center; margin: 12px 0; flex-wrap: wrap; }

@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../../www');
 const TIP = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css',
-  '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm' };
+  '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm', '.mjs': 'text/javascript', '.onnx': 'application/octet-stream' };
 
 // Test dış ağa çıkmaz: yalnız localhost; Firebase/ses siteleri gibi dış istekler hemen reddedilir (CI'da takılıp sayfanın 'load' olayını geciktirmesin)
 const yerelContext = async (tarayici, ops) => { const c = await tarayici.newContext(ops); await c.route(u => u.hostname !== 'localhost', r => r.abort()); return c; };
@@ -132,6 +132,92 @@ const EKRANLAR = [
       kontrol('takip: kelimeyi geç → bir kelime ilerler, gri işaretlenir, durum sıfırlanır', sonuc.gec[0] === 1 && sonuc.gec[1] === true && sonuc.gec[2] === 'dinle' && sonuc.gec[3] === true, JSON.stringify(sonuc.gec));
       kontrol('takip: durum testi hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
     } catch (e) { kontrol('takip durum', false, e.message.split('\n')[0]); }
+  }
+
+  // Durdur'a basınca anında geri bildirim: mikrofon kapanır, düğme kilitlenir, durum "değerlendiriliyor" olur (ağır model işinden önce)
+  {
+    const once = hatalar.length;
+    try {
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 1));
+      const o = await sayfa.evaluate(() => {
+        const T = window.__TECVID.canliTest, bar = document.getElementById('canliBar'); bar.hidden = false;
+        let durdu = 0, kes = 0;
+        const C = { n: 1, W: [{ a: 1, wi: 0, s: 0, e: 4 }], acilan: 0, rms: [], tani: [], t0: Date.now(), bitti: false, mesgul: false, toplam: () => 0, al: () => new Float32Array(0),
+          isl: { disconnect() { kes++; } }, kaynak: { disconnect() { kes++; } }, akis: { getTracks: () => [{ stop() { durdu++; } }] }, sirala: f => Promise.resolve(f()), ctx: { close() { } }, sonIlerleme: Date.now(), elBul: () => [] };
+        T.kur(C); T.durdur(true);   // beklemeden: eşzamanlı kısım hemen bitmiş olmalı
+        return { mic: durdu, kes, durum: bar.dataset.durum, kilitli: bar.querySelector('#canliDur').disabled, metin: bar.querySelector('.canli-durum').textContent };
+      });
+      kontrol('durdur: mikrofon hemen kapanıyor, düğme kilitleniyor, durum "değerlendiriliyor"', o.mic === 1 && o.kes === 2 && o.durum === 'bitir' && o.kilitli === true && /değerlendiriliyor/.test(o.metin), JSON.stringify(o));
+      await sayfa.waitForTimeout(300);
+      kontrol('durdur: sonunda hatasız bitiyor', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('durdur', false, e.message.split('\n')[0]); }
+  }
+
+  // Okuma modeli (yapay zekâ) Web Worker'da açılıyor ve ses çözüyor: ekran model hesaplarken donmasın
+  {
+    const once = hatalar.length;
+    try {
+      const o = await sayfa.evaluate(async () => {
+        await new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'js/okuma.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+        await Okuma.modelAc();
+        const ses = new Float32Array(16000 * 2); for (let i = 0; i < ses.length; i++) ses[i] = 0.1 * Math.sin(i / 9) + 0.02 * (Math.random() - 0.5);
+        const d = await Okuma.dinle(ses);
+        return { proxy: ort.env.wasm.proxy === true, heard: typeof d.heard, times: Array.isArray(d.times) };
+      });
+      kontrol('okuma modeli: Web Worker\'da açılıyor ve ses çözüyor', o.proxy && o.heard === 'string' && o.times, JSON.stringify(o));
+      kontrol('okuma modeli: hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('okuma modeli', false, e.message.split('\n')[0]); }
+  }
+
+  // Kur'an: Git (sûre+ayet, sayfa, cüz), ayet ekranı, birden çok meal
+  {
+    const once = hatalar.length;
+    try {
+      const baslik = () => sayfa.evaluate(() => document.querySelector('#app').innerText.slice(0, 200));
+      await sayfa.evaluate(() => window.__TECVID.git('sureler'));
+      await sayfa.waitForFunction(() => document.querySelectorAll('#gitSure option').length > 100, null, { timeout: 8000 });
+      await sayfa.evaluate(() => { document.getElementById('koGit').open = true; });
+      await sayfa.selectOption('#gitSure', '2'); await sayfa.fill('#gitAyet', '300'); await sayfa.click('#gitAyetBtn');
+      kontrol('git: sûrede olmayan ayet reddediliyor (Bakara 300)', !(await sayfa.$('.ko-a[data-ayet="2:185"]')) && /286/.test(await sayfa.evaluate(() => { const l = [...document.querySelectorAll('.toast')]; return l.length ? l[l.length - 1].textContent : ''; })));
+      await sayfa.fill('#gitAyet', '185'); await sayfa.click('#gitAyetBtn'); await sayfa.waitForSelector('.ko-a[data-ayet="2:185"]');
+      kontrol('git: Bakara 185 → sayfa 28 (Medine mushafı) açıldı, ayet sayfada', /Sayfa 28/.test(await baslik()));
+      await sayfa.evaluate(() => window.__TECVID.git('sureler')); await sayfa.waitForSelector('#gitSayfa', { state: 'attached' });
+      await sayfa.evaluate(() => { document.getElementById('koGit').open = true; });
+      await sayfa.fill('#gitSayfa', '604'); await sayfa.click('#gitSayfaBtn'); await sayfa.waitForSelector('.ko-sayfa');
+      kontrol('git: sayfa 604 açıldı', /Sayfa 604/.test(await baslik()));
+      await sayfa.evaluate(() => window.__TECVID.git('sureler')); await sayfa.waitForSelector('#gitCuz', { state: 'attached' });
+      await sayfa.evaluate(() => { document.getElementById('koGit').open = true; });
+      await sayfa.selectOption('#gitCuz', '2'); await sayfa.click('#gitCuzBtn'); await sayfa.waitForSelector('.ko-a[data-ayet="2:142"]');
+      kontrol('git: 2. cüz → Bakara 142\'den açıldı', true);
+      // ayet ekranı
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 28, '2:185')); await sayfa.waitForSelector('[data-ko-ayet="2:185"]');
+      await sayfa.click('[data-ko-ayet="2:185"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('.ayet-ekran #aeIleri');
+      const ae = () => sayfa.evaluate(() => document.querySelector('.ayet-ekran').innerText);
+      let m = await ae();
+      kontrol('ayet ekranı: Bakara, Ayet 185 / 286, sayfa 28, cüz 2, meal görünüyor', /Ayet: 185 \/ 286/.test(m) && /Sayfa 28/.test(m) && /Cüz 2/.test(m) && /Ramazan/.test(m), m.slice(0, 120).replace(/\n/g, ' | '));
+      await sayfa.click('#aeIleri'); await sayfa.waitForFunction(() => /Ayet: 186/.test(document.querySelector('.ayet-ekran').innerText));
+      await sayfa.click('#aeGeri'); await sayfa.waitForFunction(() => /Ayet: 185/.test(document.querySelector('.ayet-ekran').innerText));
+      kontrol('ayet ekranı: sonraki / önceki ayet', true);
+      await sayfa.click('#aeKapat');
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 49, '2:286')); await sayfa.waitForSelector('[data-ko-ayet="2:286"]');
+      await sayfa.click('[data-ko-ayet="2:286"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('#aeIleri'); await sayfa.click('#aeIleri');
+      await sayfa.waitForFunction(() => /Ayet: 1 \/ 200/.test(document.querySelector('.ayet-ekran').innerText), null, { timeout: 8000 });
+      kontrol('ayet ekranı: sûre sonundan sonraki sûreye geçiyor (Bakara 286 → Âl-i İmrân 1)', true);
+      await sayfa.click('#aeKapat');
+      // birden çok meal: ikinci (sahte) kaynak ekle, Aa menüsünden seçim ve alt alta gösterim
+      await sayfa.evaluate(() => { window.__TECVID.MEAL_KAYNAK.push({ id: 'deneme', dil: 'tr', ad: 'Deneme Meali', yol: 'tr', kaynak: 'test' }); window.__TECVID.S().ayar.mealler = ['diyanet', 'deneme']; });
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 28, '2:185')); await sayfa.waitForSelector('#koAyar');
+      await sayfa.click('#koAyar');
+      kontrol('meal: birden çok kaynak varsa Aa menüsünde "Mealler" seçimi çıkıyor', !!(await sayfa.$('[data-grup="mealler"] [data-ka="deneme"]')));
+      await sayfa.click('[data-grup="gorunum"] [data-ka="meal"]'); await sayfa.waitForSelector('.ko-meal');
+      const adet = await sayfa.evaluate(() => document.querySelectorAll('.ko-a[data-ayet="2:185"] .ko-meal').length);
+      kontrol('meal: iki kaynak alt alta gösteriliyor', adet === 2, 'adet=' + adet);
+      await sayfa.click('[data-ko-ayet="2:185"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('.ayet-ekran-meal');
+      kontrol('ayet ekranı: iki meal bölümü', (await sayfa.evaluate(() => document.querySelectorAll('.ayet-ekran-meal').length)) === 2);
+      await sayfa.click('#aeKapat');
+      await sayfa.evaluate(() => { window.__TECVID.MEAL_KAYNAK.pop(); delete window.__TECVID.S().ayar.mealler; });
+      kontrol('git ve ayet ekranı hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('git / ayet ekranı / meal', false, e.message.split('\n')[0]); }
   }
 
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
