@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.51';
+  const SURUM = '1.0.52';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.52', t: '2026-11-24', durum: 'Web', l: [
+      'Kur\'an sekmesinde günlük ayet hedefi ve cüz ilerlemesi: "Bugün 8/10 ayet", "Cüz 2/30 · %5"',
+      'Yeni "Ayet ayet oku" okuma kartı: ayet, meal, oku ve tekrar; "Okudum ›" ile sonraki ayete geç, sayfanın bütün ayetleri okununca sayfa da sayılır',
+      'Yeni "İstatistik": Bugün / Hafta / Son 60 gün; okunan ayet ve sayfa, okuduğun gün, seri ve haftalık çubuklar',
+      'Ayet hedefi Aa menüsünden seçilir (5 / 10 / 20 / 50 / 100); sayfa hedefi ve hoca ödevi aynen çalışır',
+    ] },
     { s: '1.0.51', t: '2026-11-24', durum: 'Web', l: [
       'Ezber sekmesinde yeni "Tekrarla": bir sûrenin bütün ayetlerini tekrar sayısı (99\'a kadar), bekleme süresi ve ses hızıyla dinle; oto tekrar ve oto kaydırma',
       '"Basamak yöntemi": önce 1. ayet, sonra 1–2, sonra 1–2–3… birikimli ezber',

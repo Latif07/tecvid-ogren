@@ -259,6 +259,41 @@ const EKRANLAR = [
     } catch (e) { kontrol('tekrarla', false, e.message.split('\n')[0]); }
   }
 
+  // Kur'an: ayet bazlı hedef, okuma kartı ("Okudum"), istatistikler
+  {
+    const once = hatalar.length;
+    try {
+      const S_ = () => sayfa.evaluate(() => { const k = window.__TECVID.S().kuran || {}; const g = new Date().toISOString().slice(0, 10); return { ay: ((k.ay || {})[g] || []).slice(), gun: ((k.gun || {})[g] || []).slice(), son: k.son, hedef: k.ayetHedef }; });
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [] }; window.__TECVID.git('sureler'); });
+      await sayfa.waitForSelector('[data-git^="ayetKart"]');
+      const ust = await sayfa.evaluate(() => document.querySelector('.ko-ust').innerText);
+      kontrol('okuma: Kur\'an sekmesinde ayet hedefi, "Ayet ayet oku" ve İstatistik var', /0\/10 ayet/.test(ust) && /Ayet ayet oku/.test(ust) && /İstatistik/.test(ust), ust.replace(/\n/g, ' | ').slice(0, 120));
+      await sayfa.click('[data-git^="ayetKart"]'); await sayfa.waitForSelector('#akOkudum');
+      for (let i = 0; i < 3; i++) { await sayfa.click('#akOkudum'); await sayfa.waitForTimeout(120); }
+      let d = await S_();
+      kontrol('okuma kartı: 3 kez Okudum → 3 ayet sayıldı, 4. ayete geçildi', d.ay.join() === '1:1,1:2,1:3' && d.son && d.son.a === 3, JSON.stringify(d.ay));
+      const yazi = await sayfa.evaluate(() => document.querySelector('.ak-ekran').innerText);
+      kontrol('okuma kartı: ilerleme "Bugün 3/10 ayet", Ayet 4/7', /Bugün 3\/10 ayet/.test(yazi) && await sayfa.evaluate(() => /Ayet 4\/7/.test(document.querySelector('#app').innerText)), yazi.replace(/\n/g, ' | ').slice(0, 100));
+      // Fâtiha'nın kalanı: sayfanın bütün ayetleri okununca sayfa da sayılır ve 2. sûreye geçilir
+      for (let i = 0; i < 4; i++) { await sayfa.click('#akOkudum'); await sayfa.waitForTimeout(120); }
+      d = await S_();
+      kontrol('okuma kartı: Fâtiha bitince sayfa 1 sayıldı ve Bakara 1\'e geçildi', d.gun.includes(1) && await sayfa.evaluate(() => /Bakara · Ayet 1\//.test(document.querySelector('#app').innerText)), JSON.stringify(d.gun));
+      kontrol('okuma kartı: ‹ önceki ayete döner (sayma değişmez)', await (async () => { const once_ = (await S_()).ay.length; await sayfa.click('#akGeri'); await sayfa.waitForTimeout(250); return (await sayfa.evaluate(() => /Fâtiha · Ayet 7\//.test(document.querySelector('#app').innerText))) && (await S_()).ay.length === once_; })());
+      // İstatistik
+      await sayfa.evaluate(() => window.__TECVID.git('kuranIstatistik')); await sayfa.waitForSelector('.ist-izgara');
+      const ist = await sayfa.evaluate(() => document.querySelector('#app').innerText);
+      kontrol('istatistik: Bugün sekmesinde okunan ayet 7 ve haftalık çubuklar', /7\s*\n?\s*Okunan ayet/.test(ist) && (await sayfa.evaluate(() => document.querySelectorAll('.ist-gun').length)) === 7, ist.replace(/\n/g, ' ').slice(0, 90));
+      await sayfa.click('[data-ist="hafta"]'); await sayfa.waitForFunction(() => document.querySelector('[data-ist="hafta"]').classList.contains('aktif'));
+      await sayfa.click('[data-ist="tumu"]'); await sayfa.waitForFunction(() => /Bir günde en çok ayet/.test(document.querySelector('#app').innerText));
+      kontrol('istatistik: Hafta ve Son 60 gün sekmeleri çalışıyor', true);
+      // Aa menüsünden ayet hedefi
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 1)); await sayfa.waitForSelector('#koAyar'); await sayfa.click('#koAyar');
+      await sayfa.click('[data-grup="ayhedef"] [data-ka="20"]');
+      kontrol('ayet hedefi: Aa menüsünden 20 seçilebiliyor', (await S_()).hedef === 20);
+      kontrol('ayet hedefi, okuma kartı ve istatistik hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('okuma kartı / istatistik', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;

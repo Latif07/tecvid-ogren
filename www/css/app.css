@@ -1370,3 +1370,26 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .tk-ust > summary { cursor: pointer; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .tk-ust[open] > summary { margin-bottom: 10px; }
 .tk-hizli { display: flex; gap: 8px; margin: 0 0 10px; }
+
+/* Kur'an: ayet hedefi, istatistikler, okuma kartı */
+.ko-ay-hedef { margin: 10px 0 4px; display: grid; gap: 4px; }
+.ko-ay-satir { display: flex; justify-content: space-between; font-size: .88rem; font-weight: 650; }
+.ko-ay-bar { height: 8px; border-radius: 99px; background: var(--cizgi); overflow: hidden; }
+.ko-ay-bar i { display: block; height: 100%; background: var(--ana); border-radius: 99px; transition: width .4s; }
+.ko-ay-bar.cuz i { background: var(--altin); } .ko-ay-bar.sure { height: 4px; margin: 4px 0; }
+.ko-ust-dugme { display: flex; gap: 8px; margin: 12px 0 4px; } .ko-ust-dugme .btn { flex: 1; }
+.ist-izgara { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.ist-kutu { background: var(--kart); border: 1px solid var(--cizgi); border-radius: 14px; padding: 12px; text-align: center; }
+.ist-kutu b { display: block; font-size: 1.6rem; } .ist-kutu small { color: var(--soluk); }
+.ist-hafta { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; text-align: center; }
+.ist-gun { display: grid; gap: 2px; justify-items: center; font-size: .78rem; } .ist-gun.bugun small { color: var(--ana); font-weight: 800; }
+.ist-cubuk { display: flex; align-items: flex-end; width: 22px; height: 70px; background: var(--cizgi); border-radius: 6px; overflow: hidden; }
+.ist-cubuk i { display: block; width: 100%; background: var(--ana); border-radius: 6px; min-height: 2px; }
+.ak-ekran { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+.ak-ilerleme { display: grid; gap: 4px; font-size: .88rem; font-weight: 650; }
+.ak-kart { text-align: center; padding: 18px 14px; }
+.ak-ar { font-size: calc(2.1rem * var(--ar-olcek, 1)); line-height: 2.1; background: transparent; margin: 0; }
+.ak-dugme { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.ak-dugme .btn.aktif { border-color: var(--ana); background: color-mix(in srgb, var(--ana) 12%, transparent); }
+.ak-alt { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: 56px 1fr 56px; gap: 10px; align-items: center; max-width: 520px; margin: 0 auto; padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--kart); border-top: 1px solid var(--cizgi); }
+.ak-okudum { min-height: 52px; font-size: 1.05rem; } .ak-alt .btn.ikincil { min-height: 52px; font-size: 1.4rem; }
