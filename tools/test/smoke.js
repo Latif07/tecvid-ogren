@@ -220,6 +220,45 @@ const EKRANLAR = [
     } catch (e) { kontrol('git / ayet ekranı / meal', false, e.message.split('\n')[0]); }
   }
 
+  // Tekrarla (ezber oynatıcısı): liste, oynatma sırası (normal / basamak / oto tekrar), ezberlendi, Hepsi, gizle ve oku
+  {
+    const once = hatalar.length;
+    try {
+      const log = () => sayfa.evaluate(() => window.__TECVID.tk().log.slice());
+      const bitmesiniBekle = () => sayfa.waitForFunction(() => !window.__TECVID.tk().calma, null, { timeout: 15000 });
+      await sayfa.evaluate(() => { window.__TECVID_HIZLI = true; delete window.__TECVID.S().ezber; window.__TECVID.git('tekrarlaSec'); });
+      await sayfa.waitForSelector('[data-tk-sure="1"]');
+      kontrol('tekrarla: sûre listesi (Fâtiha, Nâs…) açılıyor', !!(await sayfa.$('[data-tk-sure="114"]')) && !!(await sayfa.$('[data-tk-sure="105"]')));
+      await sayfa.click('[data-tk-sure="1"]'); await sayfa.waitForSelector('#tkBasla');
+      kontrol('tekrarla: Fâtiha\'nın 7 ayeti ve bütün kontroller var', (await sayfa.evaluate(() => document.querySelectorAll('.tk-ayet').length)) === 7 && !!(await sayfa.$('#tkTekrar')) && !!(await sayfa.$('#tkBekle')) && !!(await sayfa.$('#tkBasamak')) && !!(await sayfa.$('#tkGizleOku')));
+      const ayarla = (o) => sayfa.evaluate(o2 => { window.__TECVID.S().ayar.tk = Object.assign({ tekrar: 1, bekle: 0, ses: false, basamak: false, oto: false, kaydir: true, hiz: 1, latin: true, meal: false, boy: 1, gizle: 'hepsi' }, o2); }, o);
+      const ac = (b2, b3) => sayfa.evaluate(([x, y]) => window.__TECVID.git('tekrarla', 1, x, y), [b2, b3]);
+      // normal: her ayet 2 kez
+      await ayarla({ tekrar: 2 }); await ac(1, 3); await sayfa.waitForSelector('#tkBasla'); await sayfa.click('#tkBasla'); await bitmesiniBekle();
+      let l = await log(); kontrol('tekrarla: her ayet tekrar sayısı kadar (1,1,2,2,3,3)', l.join() === '1,1,2,2,3,3', l.join());
+      // basamak yöntemi: 1 → 1-2 → 1-2-3, her basamak 2 kez
+      await ayarla({ tekrar: 2, basamak: true }); await ac(1, 3); await sayfa.waitForSelector('#tkBasla'); await sayfa.click('#tkBasla'); await bitmesiniBekle();
+      l = await log(); kontrol('tekrarla: basamak yöntemi birikimli (1,1 · 1,2,1,2 · 1,2,3,1,2,3)', l.join() === '1,1,1,2,1,2,1,2,3,1,2,3', l.join());
+      // oto tekrar: bitince başa döner, durdurulana kadar sürer
+      await ayarla({ tekrar: 1, oto: true }); await ac(1, 2); await sayfa.waitForSelector('#tkBasla'); await sayfa.click('#tkBasla');
+      await sayfa.waitForFunction(() => window.__TECVID.tk().log.length >= 7, null, { timeout: 15000 }); await sayfa.click('#tkBasla'); await sayfa.waitForTimeout(150);
+      l = await log(); kontrol('tekrarla: oto tekrar başa dönüyor, Durdur ile duruyor', l.slice(0, 5).join() === '1,2,1,2,1' && !(await sayfa.evaluate(() => window.__TECVID.tk().calma)), l.join());
+      // ezberlendi kutusu
+      await ac(1, 7); await sayfa.waitForSelector('#tkEzber', { state: 'attached' }); await sayfa.evaluate(() => { document.getElementById('tkAyarKutu').open = true; }); await sayfa.check('#tkEzber');
+      kontrol('tekrarla: Ezberlendi işaretlenince sûre ezberde sayılıyor', await sayfa.evaluate(() => !!(window.__TECVID.S().ezber && window.__TECVID.S().ezber['1'] && window.__TECVID.S().ezber['1'].tam)));
+      await sayfa.uncheck('#tkEzber');
+      kontrol('tekrarla: işaret kaldırılınca geri alınıyor', await sayfa.evaluate(() => !window.__TECVID.S().ezber['1'].tam));
+      // gizle ve oku: mikrofon yoksa alt çubuk geri gelir, hata olmaz
+      await sayfa.click('#tkGizleOku'); await sayfa.waitForFunction(() => !document.getElementById('tkAlt').hidden, null, { timeout: 15000 });
+      kontrol('tekrarla: Gizle ve oku mikrofon yokken sorunsuz geri dönüyor', true);
+      // ezber sekmesi: Hepsi
+      await sayfa.evaluate(() => window.__TECVID.git('ezber')); await sayfa.waitForSelector('[data-hedef="999"]'); await sayfa.click('[data-hedef="999"]');
+      kontrol('ezber: günlük yeni ders için "Hepsi" seçilebiliyor', (await sayfa.evaluate(() => window.__TECVID.S().ayar.ezberHedef)) === 999);
+      await sayfa.evaluate(() => { window.__TECVID.S().ayar.ezberHedef = 3; delete window.__TECVID.S().ayar.tk; delete window.__TECVID_HIZLI; });
+      kontrol('tekrarla hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('tekrarla', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;
