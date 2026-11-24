@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Psk. Ayşe Örnek | Psikolog – Online ve Yüz Yüze Terapi</title>
+<meta name="description" content="Bireysel terapi, kaygı, depresyon ve ilişki danışmanlığı. Online ve yüz yüze randevu için hemen yazın.">
+<style>
+:root{--bg:#f7f5f0;--card:#fff;--ink:#2b3a35;--muted:#66756f;--green:#5f8f7b;--green-d:#46705e;--line:#e3e0d6;--wa:#25d366}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+a{color:var(--green-d)}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;background:rgba(247,245,240,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:10}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:700;text-decoration:none;color:var(--ink)}
+nav{display:flex;gap:20px;align-items:center}
+nav a{text-decoration:none;color:var(--muted);font-size:15px}
+.btn{display:inline-block;background:var(--green);color:#fff!important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600;border:0;font-size:16px;cursor:pointer}
+.btn:hover{background:var(--green-d)}
+.btn.wa{background:var(--wa);color:#073b1c!important}
+.btn.ghost{background:transparent;border:2px solid var(--green);color:var(--green-d)!important}
+.hero{padding:72px 0 56px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center}
+.hero h1{font-size:2.4rem;line-height:1.2;margin:0 0 16px}
+.hero p{color:var(--muted);font-size:1.1rem}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.photo{aspect-ratio:4/5;border-radius:24px;background:linear-gradient(160deg,#cfe0d6,#a9c7b8);display:grid;place-items:center;color:#fff;font-size:14px;text-align:center}
+section{padding:56px 0}
+section h2{font-size:1.7rem;margin:0 0 8px}
+.sub{color:var(--muted);margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.steps .num{width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700;margin-bottom:10px}
+.alt{background:#fff;border-block:1px solid var(--line)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0;color:var(--muted)}
+form{display:grid;gap:12px;max-width:520px}
+input,select,textarea{font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:10px;width:100%;background:#fff}
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.note{font-size:.85rem;color:var(--muted)}
+footer{padding:32px 0 90px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+.float{position:fixed;right:16px;bottom:16px;z-index:20;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+@media(max-width:760px){
+ .hero,.contact{grid-template-columns:1fr}
+ .hero{padding-top:36px}.hero h1{font-size:1.9rem}
+ nav a:not(.btn){display:none}
+ .photo{max-height:280px;aspect-ratio:auto;height:240px}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#">Psk. Ayşe Örnek</a>
+  <nav>
+    <a href="#hakkimda">Hakkımda</a><a href="#alanlar">Çalışma Alanları</a><a href="#surec">Süreç</a><a href="#sss">SSS</a>
+    <a class="btn" href="#randevu">Randevu Al</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="wrap hero">
+  <div>
+    <h1>Kendinizi anlamak ve iyi hissetmek için güvenli bir alan</h1>
+    <p>Klinik Psikolog. Yetişkinlere yönelik bireysel terapi; online ve yüz yüze seanslar.</p>
+    <div class="cta">
+      <a class="btn" href="#randevu">Randevu Talep Et</a>
+      <a class="btn wa" id="waHero" href="#">WhatsApp'tan Soru Sor</a>
+    </div>
+  </div>
+  <div class="photo">Fotoğraf buraya<br>(profesyonel, sıcak bir portre)</div>
+</div>
+
+<section id="hakkimda" class="alt"><div class="wrap">
+  <h2>Hakkımda</h2>
+  <p class="sub">Merhaba, ben Ayşe. (Buraya 3–4 cümlelik samimi bir tanıtım: eğitim, deneyim, terapiye bakış açısı.)</p>
+  <div class="grid">
+    <div class="card"><h3>Eğitim</h3><p>Üniversite, lisans / yüksek lisans bilgileri</p></div>
+    <div class="card"><h3>Yaklaşım</h3><p>Bilişsel Davranışçı Terapi, Şema Terapi vb.</p></div>
+    <div class="card"><h3>Deneyim</h3><p>… yıldır bireysel danışmanlık</p></div>
+  </div>
+</div></section>
+
+<section id="alanlar"><div class="wrap">
+  <h2>Çalışma Alanları</h2>
+  <p class="sub">Şu konularda destek veriyorum:</p>
+  <div class="grid">
+    <div class="card"><h3>Kaygı ve Panik</h3><p>Sürekli endişe, panik atak, sınav ve performans kaygısı</p></div>
+    <div class="card"><h3>Depresyon</h3><p>Isteksizlik, mutsuzluk, motivasyon kaybı</p></div>
+    <div class="card"><h3>İlişki Sorunları</h3><p>Partner, aile ve arkadaşlık ilişkilerinde zorlanmalar</p></div>
+    <div class="card"><h3>Stres ve Tükenmişlik</h3><p>İş yaşamı, yoğun tempo, baş etme becerileri</p></div>
+    <div class="card"><h3>Özgüven</h3><p>Kendilik algısı, sınır koyma, karar verme</p></div>
+    <div class="card"><h3>Yas ve Kayıp</h3><p>Zor yaşam olaylarında eşlik</p></div>
+  </div>
+</div></section>
+
+<section id="surec" class="alt"><div class="wrap">
+  <h2>Süreç Nasıl İşliyor?</h2>
+  <p class="sub">İlk adımı atmak zor olabilir; süreç basit.</p>
+  <div class="grid steps">
+    <div class="card"><div class="num">1</div><h3>Mesaj atın</h3><p>WhatsApp veya form ile uygun gün/saati yazın.</p></div>
+    <div class="card"><div class="num">2</div><h3>İlk görüşme</h3><p>Sizi tanır, beklentilerinizi konuşuruz.</p></div>
+    <div class="card"><div class="num">3</div><h3>Düzenli seanslar</h3><p>Haftalık, 50 dakikalık seanslarla ilerleriz.</p></div>
+  </div>
+  <p class="note" style="margin-top:20px">Seans ücreti: … ₺ · Online (Zoom/Meet) ve yüz yüze (… / İstanbul)</p>
+</div></section>
+
+<section id="sss"><div class="wrap">
+  <h2>Sık Sorulan Sorular</h2><p class="sub"></p>
+  <details><summary>Görüşmeler gizli mi?</summary><p>Evet. Seans içeriği gizlilik ilkesi ve etik kurallar gereği üçüncü kişilerle paylaşılmaz.</p></details>
+  <details><summary>Seans ne kadar sürer, ne sıklıkla görüşülür?</summary><p>Seanslar yaklaşık 50 dakikadır; genellikle haftada bir yapılır.</p></details>
+  <details><summary>Online terapi etkili mi?</summary><p>Birçok konuda yüz yüze terapi kadar etkili olduğu gösterilmiştir. Sessiz bir ortam ve internet bağlantısı yeterlidir.</p></details>
+  <details><summary>İptal / erteleme nasıl yapılır?</summary><p>Seanstan en az 24 saat önce haber vermeniz yeterlidir.</p></details>
+</div></section>
+
+<section id="randevu" class="alt"><div class="wrap contact">
+  <div>
+    <h2>Randevu ve İletişim</h2>
+    <p class="sub">Formu doldurun; mesajınız WhatsApp veya e-posta ile bana ulaşır. Detaylı bilgi vermenize gerek yok, ayrıntıyı seansta konuşuruz.</p>
+    <p><a class="btn wa" id="waContact" href="#">WhatsApp ile yaz</a></p>
+    <p>✉️ <a id="mailLink" href="#">ornek@eposta.com</a><br>📍 Adres / Online</p>
+    <p class="note"><b>Acil durum:</b> Kendinize zarar verme düşüncesi varsa 112'yi arayın.</p>
+  </div>
+  <form id="f">
+    <input name="ad" placeholder="Adınız" required>
+    <input name="tel" type="tel" placeholder="Telefon (isteğe bağlı)">
+    <select name="tur"><option>Online seans</option><option>Yüz yüze seans</option><option>Sadece soru sormak istiyorum</option></select>
+    <input name="zaman" placeholder="Uygun gün/saat (örn. hafta içi akşam)">
+    <textarea name="mesaj" rows="3" placeholder="Kısa not (isteğe bağlı)"></textarea>
+    <button class="btn" type="button" id="sendWa">WhatsApp ile gönder</button>
+    <button class="btn ghost" type="button" id="sendMail">E-posta ile gönder</button>
+  </form>
+</div></section>
+</main>
+
+<footer><div class="wrap">© 2026 Psk. Ayşe Örnek · Bu site bilgilendirme amaçlıdır, tanı ve tedavi yerine geçmez. · <a href="#">KVKK Aydınlatma Metni</a></div></footer>
+
+<a class="btn wa float" id="waFloat" href="#">WhatsApp</a>
+
+<script>
+// Düzenle: telefon (uluslararası biçim, + ve boşluk olmadan) ve e-posta
+const TEL="905000000000", MAIL="ornek@eposta.com";
+const wa=t=>"https://wa.me/"+TEL+"?text="+encodeURIComponent(t);
+const hello="Merhaba, randevu/bilgi almak istiyorum.";
+["waHero","waContact","waFloat"].forEach(i=>document.getElementById(i).href=wa(hello));
+document.getElementById("mailLink").href="mailto:"+MAIL;
+document.getElementById("mailLink").textContent=MAIL;
+function metin(){
+  const d=new FormData(document.getElementById("f"));
+  return `Merhaba, ben ${d.get("ad")||""}.\nSeans türü: ${d.get("tur")}\nUygun zaman: ${d.get("zaman")||"-"}\nTelefon: ${d.get("tel")||"-"}\nNot: ${d.get("mesaj")||"-"}`;
+}
+function kontrol(){const f=document.getElementById("f");if(!f.ad.value.trim()){f.ad.focus();return false}return true}
+document.getElementById("sendWa").onclick=()=>{if(kontrol())open(wa(metin()),"_blank")};
+document.getElementById("sendMail").onclick=()=>{if(kontrol())location.href="mailto:"+MAIL+"?subject="+encodeURIComponent("Randevu talebi")+"&body="+encodeURIComponent(metin())};
+</script>
+</body>
+</html>
