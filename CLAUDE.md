@@ -14,3 +14,4 @@ Tecvid öğreten Capacitor/Android uygulaması. Saf JS, derleme adımı yok. Web
 ## Yapı
 - `www/js/*.js`: özellik başına bir modül (okuma, mahrec, sozluk, dualar...).
 - `tools/`: yardımcı betikler. `docs/`: tanıtım görselleri.
+- Meal ekleme: `tools/build_meal_tanzil.py` (docstring'e bak) + `app.js` içindeki `MEAL_KAYNAK` listesine bir satır. Lisansı önce kontrol et.

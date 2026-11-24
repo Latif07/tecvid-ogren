@@ -169,6 +169,57 @@ const EKRANLAR = [
     } catch (e) { kontrol('okuma modeli', false, e.message.split('\n')[0]); }
   }
 
+  // Kur'an: Git (sûre+ayet, sayfa, cüz), ayet ekranı, birden çok meal
+  {
+    const once = hatalar.length;
+    try {
+      const baslik = () => sayfa.evaluate(() => document.querySelector('#app').innerText.slice(0, 200));
+      await sayfa.evaluate(() => window.__TECVID.git('sureler'));
+      await sayfa.waitForFunction(() => document.querySelectorAll('#gitSure option').length > 100, null, { timeout: 8000 });
+      await sayfa.evaluate(() => { document.getElementById('koGit').open = true; });
+      await sayfa.selectOption('#gitSure', '2'); await sayfa.fill('#gitAyet', '300'); await sayfa.click('#gitAyetBtn');
+      kontrol('git: sûrede olmayan ayet reddediliyor (Bakara 300)', !(await sayfa.$('.ko-a[data-ayet="2:185"]')) && /286/.test(await sayfa.evaluate(() => { const l = [...document.querySelectorAll('.toast')]; return l.length ? l[l.length - 1].textContent : ''; })));
+      await sayfa.fill('#gitAyet', '185'); await sayfa.click('#gitAyetBtn'); await sayfa.waitForSelector('.ko-a[data-ayet="2:185"]');
+      kontrol('git: Bakara 185 → sayfa 28 (Medine mushafı) açıldı, ayet sayfada', /Sayfa 28/.test(await baslik()));
+      await sayfa.evaluate(() => window.__TECVID.git('sureler')); await sayfa.waitForSelector('#gitSayfa', { state: 'attached' });
+      await sayfa.evaluate(() => { document.getElementById('koGit').open = true; });
+      await sayfa.fill('#gitSayfa', '604'); await sayfa.click('#gitSayfaBtn'); await sayfa.waitForSelector('.ko-sayfa');
+      kontrol('git: sayfa 604 açıldı', /Sayfa 604/.test(await baslik()));
+      await sayfa.evaluate(() => window.__TECVID.git('sureler')); await sayfa.waitForSelector('#gitCuz', { state: 'attached' });
+      await sayfa.evaluate(() => { document.getElementById('koGit').open = true; });
+      await sayfa.selectOption('#gitCuz', '2'); await sayfa.click('#gitCuzBtn'); await sayfa.waitForSelector('.ko-a[data-ayet="2:142"]');
+      kontrol('git: 2. cüz → Bakara 142\'den açıldı', true);
+      // ayet ekranı
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 28, '2:185')); await sayfa.waitForSelector('[data-ko-ayet="2:185"]');
+      await sayfa.click('[data-ko-ayet="2:185"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('.ayet-ekran #aeIleri');
+      const ae = () => sayfa.evaluate(() => document.querySelector('.ayet-ekran').innerText);
+      let m = await ae();
+      kontrol('ayet ekranı: Bakara, Ayet 185 / 286, sayfa 28, cüz 2, meal görünüyor', /Ayet: 185 \/ 286/.test(m) && /Sayfa 28/.test(m) && /Cüz 2/.test(m) && /Ramazan/.test(m), m.slice(0, 120).replace(/\n/g, ' | '));
+      await sayfa.click('#aeIleri'); await sayfa.waitForFunction(() => /Ayet: 186/.test(document.querySelector('.ayet-ekran').innerText));
+      await sayfa.click('#aeGeri'); await sayfa.waitForFunction(() => /Ayet: 185/.test(document.querySelector('.ayet-ekran').innerText));
+      kontrol('ayet ekranı: sonraki / önceki ayet', true);
+      await sayfa.click('#aeKapat');
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 49, '2:286')); await sayfa.waitForSelector('[data-ko-ayet="2:286"]');
+      await sayfa.click('[data-ko-ayet="2:286"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('#aeIleri'); await sayfa.click('#aeIleri');
+      await sayfa.waitForFunction(() => /Ayet: 1 \/ 200/.test(document.querySelector('.ayet-ekran').innerText), null, { timeout: 8000 });
+      kontrol('ayet ekranı: sûre sonundan sonraki sûreye geçiyor (Bakara 286 → Âl-i İmrân 1)', true);
+      await sayfa.click('#aeKapat');
+      // birden çok meal: ikinci (sahte) kaynak ekle, Aa menüsünden seçim ve alt alta gösterim
+      await sayfa.evaluate(() => { window.__TECVID.MEAL_KAYNAK.push({ id: 'deneme', dil: 'tr', ad: 'Deneme Meali', yol: 'tr', kaynak: 'test' }); window.__TECVID.S().ayar.mealler = ['diyanet', 'deneme']; });
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 28, '2:185')); await sayfa.waitForSelector('#koAyar');
+      await sayfa.click('#koAyar');
+      kontrol('meal: birden çok kaynak varsa Aa menüsünde "Mealler" seçimi çıkıyor', !!(await sayfa.$('[data-grup="mealler"] [data-ka="deneme"]')));
+      await sayfa.click('[data-grup="gorunum"] [data-ka="meal"]'); await sayfa.waitForSelector('.ko-meal');
+      const adet = await sayfa.evaluate(() => document.querySelectorAll('.ko-a[data-ayet="2:185"] .ko-meal').length);
+      kontrol('meal: iki kaynak alt alta gösteriliyor', adet === 2, 'adet=' + adet);
+      await sayfa.click('[data-ko-ayet="2:185"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('.ayet-ekran-meal');
+      kontrol('ayet ekranı: iki meal bölümü', (await sayfa.evaluate(() => document.querySelectorAll('.ayet-ekran-meal').length)) === 2);
+      await sayfa.click('#aeKapat');
+      await sayfa.evaluate(() => { window.__TECVID.MEAL_KAYNAK.pop(); delete window.__TECVID.S().ayar.mealler; });
+      kontrol('git ve ayet ekranı hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('git / ayet ekranı / meal', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;
