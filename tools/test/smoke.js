@@ -454,6 +454,16 @@ const EKRANLAR = [
       await sayfa.waitForSelector('[data-sayfa]', { state: 'attached' });
       for (let g = 0; g < 30 && !(await sayfa.$('[data-git="kart|nun"]')); g++) { const b = await sayfa.$('[data-sayfa]:not([disabled]):last-of-type'); if (!b) break; await b.click(); }
       kontrol('ders son sayfası: "Bu konunun kartı" düğmesi var', !!(await sayfa.$('[data-git="kart|nun"]')));
+      // Tecvid sekmesi: "İleri konular" paneli derse girip geri dönünce açık kalır; Elif-Ba ve kart girişleri her zaman görünür
+      await sayfa.evaluate(() => { window.__TECVID.git('tecvid'); });
+      await sayfa.waitForSelector('details.bolum-grup');
+      kontrol('Tecvid sekmesi: Elif-Ba ve Hap kartlar girişleri görünüyor', (await sayfa.$$('.eb-giris')).length === 2);
+      await sayfa.evaluate(() => { document.querySelector('details.bolum-grup[data-grup-ad="İleri konular"]').open = true; });
+      await sayfa.waitForTimeout(100);
+      await sayfa.click('details.bolum-grup[data-grup-ad="İleri konular"] .bolum');
+      await sayfa.waitForSelector('.geri'); await sayfa.click('.geri');
+      await sayfa.waitForSelector('details.bolum-grup');
+      kontrol('Tecvid sekmesi: derse girip geri dönünce "İleri konular" açık kalıyor', await sayfa.evaluate(() => document.querySelector('details.bolum-grup[data-grup-ad="İleri konular"]').open));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

@@ -88,6 +88,7 @@
     "Doğru okuyuşu bir hocadan dinleyerek öğren. Buradaki metinler sözleri ezberlemen içindir.": "Learn the correct recitation by listening to a teacher. These texts are for memorising the words.",
     "Bu duanın kaydı henüz yok. Doğru okuyuşu hocandan dinle.": "No recording of this du'a yet. Listen to the correct recitation from your teacher.",
     "Takip": "Follow",
+    "Hap bilgi kartları · durak kartı, kontrol modu": "Quick cards · stop-mark card, check mode",
     "Durak işaretleri ne demek?": "What do the stop marks mean?",
     "Durak kartını aç": "Open the stop card",
     "Hap bilgi kartları": "Quick cards",

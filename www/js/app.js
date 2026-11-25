@@ -504,7 +504,7 @@
     if (bas > 0) parca.push('<span class="sil">…</span>');
     for (let i = bas; i < son; i++) {
       const isaret = i + 1 >= a && i + 1 <= b;
-      parca.push(`<span class="${isaret ? 'isaret' : ''}">${kelimeHTML(ex.r, kelimeler[i], ofs[i])}</span>`);
+      parca.push(`<span class="${isaret ? 'isaret' : ''}">${durakIsik(kelimeHTML(ex.r, kelimeler[i], ofs[i]))}</span>`);
     }
     if (son < kelimeler.length) parca.push('<span class="sil">…</span>');
     kelimeHTML.renksiz = false;
@@ -868,7 +868,8 @@
     const kutu = (git_, ik, ad) => `<button class="tecvid-kutu" data-git="${git_}"><span>${ik}</span>${ad}</button>`;
     app.innerHTML = `${ust(t('Tecvid'))}<main>
       <p class="soluk tecvid-ozet">${t('{0} / {1} bölüm geçildi', gecilen, U.length)}</p>
-      ${!gecti('e1') ? `<button class="ders-ince eb-giris" data-git="elifba"><span>🌱 ${t('Elif-Ba odak modu: sıfırdan, adım adım')}</span><b>›</b></button>` : ''}
+      <button class="ders-ince eb-giris" data-git="elifba"><span>🌱 ${t('Elif-Ba odak modu: sıfırdan, adım adım')}</span><b>›</b></button>
+      ${window.KARTLAR ? `<button class="ders-ince eb-giris" data-git="kartlar"><span>🗂️ ${t('Hap bilgi kartları · durak kartı, kontrol modu')}</span><b>›</b></button>` : ''}
       <nav class="tecvid-kutular">
         ${window.HARFKART ? kutu('harfKartlari', '<b class="ar">ب</b>', t('Harf kartları')) : ''}
         ${window.KARTLAR ? kutu('kartlar', '🗂️', t('Hap kartlar')) : ''}
@@ -877,10 +878,14 @@
         ${kutu('kuralAra', IKON.ara, t('Kural ara'))}
       </nav>
       ${GRUPLAR.map(([ad, idler]) => { const l = idler.map(unitById).filter(Boolean), g = l.filter(u => gecti(u.id)).length, simdi = siradaki && idler.includes(siradaki.id);
-        return `<details class="kart bolum-grup ${simdi ? 'simdi' : ''}" ${simdi ? 'open' : ''}><summary><span class="bad"><b>${ad}</b>${simdi ? `<small>${t('Şu an buradasın')}</small>` : ''}</span><span class="${g === l.length ? 'yesil' : 'soluk'} kucukyazi">${g} / ${l.length}${g === l.length ? ' ✓' : ''}</span></summary>
+        return `<details class="kart bolum-grup ${simdi ? 'simdi' : ''}" data-grup-ad="${esc(ad)}" ${(EKRAN.tecvid._acik ? EKRAN.tecvid._acik.has(ad) : simdi) ? 'open' : ''}><summary><span class="bad"><b>${ad}</b>${simdi ? `<small>${t('Şu an buradasın')}</small>` : ''}</span><span class="${g === l.length ? 'yesil' : 'soluk'} kucukyazi">${g} / ${l.length}${g === l.length ? ' ✓' : ''}</span></summary>
           ${idler.includes('m1') ? hkGiris() : ''}<div class="bolumler">${bolumListesi(l)}</div></details>`; }).join('')}
       <p class="soluk kucukyazi">${t('🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, {0} alınca bölüm açılır.', yuzdeStr(GECME))}</p>
     </main>`;
+    app.querySelectorAll('details.bolum-grup').forEach(d => d.addEventListener('toggle', () => {
+      if (!EKRAN.tecvid._acik) EKRAN.tecvid._acik = new Set(Array.from(app.querySelectorAll('details.bolum-grup[open]')).map(x => x.dataset.grupAd));
+      const ad = d.dataset.grupAd; if (d.open) EKRAN.tecvid._acik.add(ad); else EKRAN.tecvid._acik.delete(ad);
+    }));
   };
   EKRAN.mufredat = function () {
     app.innerHTML = `${ust(t('Müfredat'))}<main>
@@ -1008,12 +1013,12 @@
       const hk = i > 0 && i === u.sayfalar.length - 1 && (u.sorular || []).length ? hizliKontrolSoru(u, i) : null;
       const hkSay = hikayeKartlar(u).length;
       const hikayeGir = `<button class="ders-ince hikaye-gir" data-git="hikaye|${id}|0"><span>${u.ikon} ${t('Kısa anlatım')} · ${t('{0} kart, ~{1} dk', hkSay, Math.max(1, Math.round(hkSay / 3)))}</span><b>›</b></button>`;
-      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>${tekBakista(u)}` : '') + `<article class="kart sayfa defter"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>${mahrecHTML(id, i)}${['e1', 'm1', 'm2', 'm3'].includes(id) ? hkGiris() : ''}
+      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>${tekBakista(u)}` : '') + `<article class="kart sayfa defter"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${durakIsik(s.h)}</article>${id === 'u19' ? durakLejant() : ''}${mahrecHTML(id, i)}${['e1', 'm1', 'm2', 'm3'].includes(id) ? hkGiris() : ''}
         ${hk ? `<section class="kart hizli-kontrol"><p class="hk-baslik">${t('🎯 Kendini dene')} <small class="soluk">· ${t('Dersi bitirmeden')}</small></p><p><b>${hk.soru}</b></p><div class="secenekler">${hk.secenek.map((x, j) => `<button class="secenek" data-hk="${j}">${metin(x)}</button>`).join('')}</div><div id="hkSonuc"></div></section>` : ''}
         <div class="satir">
           <button class="btn ikincil" data-sayfa="${i - 1}" ${i === 0 ? 'disabled' : ''}>${t('‹ Önceki')}</button>
           ${i < u.sayfalar.length - 1 ? `<button class="btn" data-sayfa="${i + 1}">${t('Sonraki ›')}</button>` : `<button class="btn" data-sekme="${u.ornek && u.ornek.length ? 'ornek' : 'alistirma'}">${u.ornek && u.ornek.length ? t('Örneklere geç ›') : t('Alıştırmaya geç ›')}</button>`}
-        </div>${i === 0 ? `<div class="ders-inceler">${hikayeGir}${secim}</div>` : ''}${i === u.sayfalar.length - 1 && kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>🗂️ ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}`;
+        </div>${i === 0 ? `<div class="ders-inceler">${hikayeGir}${kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>🗂️ ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}${secim}</div>` : ''}${i === u.sayfalar.length - 1 && kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>🗂️ ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}`;
     } else if (sekme === 'ornek') {
       icerik = `<div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${S.ayar.renkli ? t('Renklerin anlamı') : t('Renkli tecvid kapalı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button></div>
         <div id="lejant" hidden class="kart kucuk">${lejantHTML()}</div>` +
@@ -2137,7 +2142,7 @@
         <div class="tk-satir"><span>${t('Gizleyerek oku')}</span>${[['hepsi', t('Tamamı')], ['yari', t('Yarısı')]].map(([v, ad]) => `<button class="cip ${o0.gizle === v ? 'aktif' : ''}" data-tk-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="kucukyazi soluk tk-not" id="tkNot">${t('Basamak yöntemi: önce 1. ayet, sonra 1–2, sonra 1–2–3… her basamak tekrar sayısı kadar. Gizle ve oku: kelimeler gizlenir, okudukça açılır.')}</p>
       </details>
-      <div class="tk-hizli"><button class="btn kucuk" id="tkGizleOku">🙈 ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
+      <div class="tk-hizli"><button class="btn kucuk" id="tkGizleOku">👁️ ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
       <section class="kart ez-kart tk-kart ${o0.latin ? '' : 'tk-latin-kapali'} ${o0.meal ? '' : 'tk-meal-kapali'}" id="tkKart" style="--ar-olcek:${o0.boy}">${besmele}${Array.from({ length: top }, (_, i) => ayetHTML(i + 1)).join('')}</section>
       <div class="canli-bar" id="canliBar" hidden>${canliBarHTML()}</div>
     </main>
@@ -5085,7 +5090,7 @@
     const k = kartBul(id); if (!k) return EKRAN.kartlar();
     const kontrol = !!EKRAN.kart._kontrol;
     app.innerHTML = `${ust(esc(t(k.ad)))}<main>
-      <div class="satir sola kk-arac"><button class="lejant-ac ${kontrol ? 'aktif' : ''}" id="kkKontrol">🙈 ${t('Kontrol modu')}</button>${kontrol ? `<button class="lejant-ac" id="kkHepsi">${t('Hepsini göster')}</button>` : ''}<button class="lejant-ac" id="kkYazdir">🖨️ ${t('Yazdır')}</button><button class="lejant-ac" id="kkPaylas">📤 ${t('Paylaş')}</button></div>
+      <div class="satir sola kk-arac"><button class="lejant-ac ${kontrol ? 'aktif' : ''}" id="kkKontrol">👁️ ${t('Kontrol modu')}</button>${kontrol ? `<button class="lejant-ac" id="kkHepsi">${t('Hepsini göster')}</button>` : ''}<button class="lejant-ac" id="kkYazdir">🖨️ ${t('Yazdır')}</button><button class="lejant-ac" id="kkPaylas">📤 ${t('Paylaş')}</button></div>
       <article class="kart kk-kart" id="kkKart">${kartGovde(k, kontrol)}</article>
       ${k.unit && k.unit.length ? `<button class="ders-ince" data-git="ders|${k.unit[0]}"><span>${t('Konunun dersine git')}</span><b>›</b></button>` : ''}
       <p class="soluk kucukyazi">${t('Hoca onayı bekliyor.')}</p></main>`;

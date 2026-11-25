@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.55';
+  const SURUM = '1.0.56';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.56', t: '2026-11-25', durum: 'Web', l: [
+      'Tecvid sekmesinde bir derse girip geri dönünce "İleri konular" gibi açık paneller artık kapanmıyor',
+      'Elif-Ba odak modu ve Hap bilgi kartları girişleri Tecvid sekmesinin en üstünde her zaman görünüyor; kart kısayolu dersin ilk sayfasında da var',
+      'Durak ışıkları artık derslerde ve ders örneklerinde de renkli; Vakf dersinde işaretlerin anlamı açılır kutuda',
+      'Daha sade simgeler: Kontrol modu ve "Gizle ve oku" için göz, ders simgeleri yenilendi',
+    ] },
     { s: '1.0.55', t: '2026-11-25', durum: 'Web', l: [
       'Durak ışıkları: Kur\'an sayfasındaki durak işaretleri renkli (kırmızı lâzım, turuncu durmak iyi, sarı câiz, yeşil geçmek iyi, mavi muânaka, mor sekte); Aa menüsünden kapatılır, işaretlerin anlamı orada',
       'Yeni "Hap kartlar": medler, nûn sâkin ve tenvin, mîm sâkin, ğunne ve kalkale, lâm ve râ, vakf kartı (Medine ve Türk mushafı) tek bakışta',
