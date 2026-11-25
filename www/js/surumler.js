@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.52';
+  const SURUM = '1.0.53';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.53', t: '2026-11-25', durum: 'Web', l: [
+      'Derslerde yeni "Tek bakışta" kartı: kuralın adı, kısa özeti ve uzatma miktarı çubuğu (kaç elif, hangisi yaygın); defter görünümlü ders kartları',
+      'Dersin üstünde aynı konudaki derslerin çipleri: bitirdiklerin ✓, bulunduğun ders işaretli, dokununca o derse geçersin',
+      'Ayet ekranında "Bu ayette tecvid": ayetteki kuralların renkli çipleri; dokununca açıklama ve "Dersi aç"',
+      'Ayet ekranında "Paylaş": ayet, meal ve kaynak tek metin olarak paylaşılır',
+    ] },
     { s: '1.0.52', t: '2026-11-24', durum: 'Web', l: [
       'Kur\'an sekmesinde günlük ayet hedefi ve cüz ilerlemesi: "Bugün 8/10 ayet", "Cüz 2/30 · %5"',
       'Yeni "Ayet ayet oku" okuma kartı: ayet, meal, oku ve tekrar; "Okudum ›" ile sonraki ayete geç, sayfanın bütün ayetleri okununca sayfa da sayılır',
