@@ -2698,6 +2698,11 @@
     for (let i = 0; i <= n; i++) if (onc[i] <= best) { best = onc[i]; son = i; }
     return { ok: best <= Math.floor(m * 0.4), son, mesafe: best };
   }
+  // Kademeli tolerans: takılma uzadıkça (ses var, ilerleme yok) hizalamadaki izin verilen hata payı artar
+  function canliTolerans(k, takilmaMs, sesVar) {
+    const oran = sesVar && takilmaMs > 8000 ? 0.6 : sesVar && takilmaMs > 5000 ? 0.5 : sesVar && takilmaMs > 3000 ? 0.42 : 0.35;
+    return Math.max(3, oran * k);
+  }
   const canliKelimeler = a => { if (CANLI && CANLI.elBul) return CANLI.elBul(a); const k = document.getElementById('ayet-' + a); return k ? [...k.querySelectorAll('.ayet .kelime')] : []; };
   const canliEl = (a, wi) => { const l = canliKelimeler(a); return l[Math.min(wi, l.length - 1)]; };
   // ops: { bit: son ayet (yoksa sûre sonu), gizle(a, wi): kelime gizlensin mi (yoksa hepsi), bitince(C_): sonuç şerit yerine buraya }
@@ -2781,7 +2786,7 @@
     const yuzde = Math.max(0, Math.min(100, Math.round(100 * Math.max(0, i) / L.length)));
     const cent = [...document.querySelectorAll('.ko-sayfa .ko-a')].map(a => { const w = [...a.querySelectorAll('.kelime')].find(x => x.textContent.trim()); const k = w ? L.indexOf(w) : -1; return k < 0 ? '' : `<s class="${TAKIP_HATA.has(a.dataset.ayet) ? 'hata' : ''}" style="left:${(100 * k / L.length).toFixed(1)}%"></s>`; }).join('');
     pb.setAttribute('aria-valuenow', yuzde); pb.innerHTML = `<i style="width:${yuzde}%"></i>${cent}<b style="left:${yuzde}%">▶</b>`;
-    const ey = bar.querySelector('.canli-eylem'); if (ey) ey.hidden = !(CANLI && CANLI.durum === 'takildi');
+    const ey = bar.querySelector('.canli-eylem'); if (ey) { ey.hidden = !(CANLI && CANLI.durum === 'takildi'); ey.classList.toggle('buyuk', !!CANLI && Date.now() - CANLI.sonIlerleme > 7000); }
   }
   // Takıldığın kelimeyi geç: gri "okunmadı" olarak işaretlenir, okumaya sonraki kelimeden devam edilir
   function canliKelimeGec() {
@@ -2796,7 +2801,7 @@
     const kk = !!document.querySelector('#canliBar .ko-ic'), dur = Date.now() - C_.sonIlerleme;
     const w = C_.W[Math.min(C_.acilan, C_.W.length - 1)], bekle = C_.durum === 'bekle' && w && C_.acilan < C_.W.length;
     if (kk) {   // Kur'an sayfası: kısa, küçük durum etiketi (renkli nokta + metin)
-      e.textContent = bekle ? t('Bekliyorum · {0}. ayet, {1}. kelime', w.a, w.wi + 1) : C_.durum === 'takildi' ? t('Kelimeyi eşleştiremedim') : t('Dinliyorum · {0}/{1}', C_.acilan, C_.W.length);
+      e.textContent = bekle ? t('Bekliyorum · {0}. ayet, {1}. kelime', w.a, w.wi + 1) : C_.durum === 'takildi' ? (dur > 7000 ? t('Anlayamadım. Biraz yavaş ve net oku ya da kelimeyi geç.') : t('Kelimeyi eşleştiremedim')) : t('Dinliyorum · {0}/{1}', C_.acilan, C_.W.length);
     } else e.textContent = dur > 5000 ? t('Bitirdiysen ⏹ düğmesine dokun.') : t('🎙️ Dinliyorum · {0}/{1} kelime', C_.acilan, C_.W.length);
   }
   function canliSiraIsaretle() {
@@ -2834,7 +2839,7 @@
       // Tanı kaydı (yalnız metin ve sayılar; ses kaydedilmez): her adımda ne duyuldu, ne bekleniyordu, neden ilerlenmedi
       const tani = (karar, ek) => { if (C_.tani.length < 300) C_.tani.push(Object.assign({ s: Math.round((Date.now() - C_.t0) / 100) / 10, pen: +((son - C_.bas) / 16000).toFixed(1), ms, duyulan: h.length, k: A.k, fark: A.mesafe, ac: C_.acilan, karar, duy: h.slice(0, 100), bek: C_.G.slice(C_.c, C_.c + Math.min(100, A.k + 8)) }, ek || {})); };
       // güvenilmeyen hizalama (tekrar okuma, başka ayet, gürültü): ilerleme yok; pencere çok uzarsa eski ses bırakılır
-      if (A.k > 0 && A.mesafe > Math.max(3, 0.35 * A.k)) {
+      if (A.k > 0 && A.mesafe > canliTolerans(A.k, Date.now() - C_.sonIlerleme, C_.durum === 'takildi')) {
         // Hizalama güvenilmez; ama art arda reddedilip ses sürüyorsa sıradaki kelimeyi duyulanın içinde yaklaşık ara
         C_.retSay = (C_.retSay || 0) + 1;
         const wn = C_.W[C_.acilan];
@@ -2948,8 +2953,8 @@
     bar.querySelectorAll('[data-canli-bas]').forEach(b => b.onclick = () => { const a = +b.dataset.canliBas; canliBarSifirla(); canliBaslat(C_.n, a); });
     bar.querySelector('#canliKapat').onclick = () => { canliBarSifirla(); bar.hidden = true; };
   }
-  function canliBarHTML(ok) { return `${ok ? '<div class="canli-ilerleme" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i><b>▶</b></div>' : ''}<div class="canli-ic${ok ? ' ko-ic' : ''}">${ok ? `<button class="btn ikincil ko-ok" id="koOkGeri" aria-label="${t('Önceki ayet')}">‹</button>` : ''}<span class="canli-nokta"></span><span class="canli-durum"></span><button class="btn kirmizi-btn" id="canliDur">${t('⏹ Durdur')}</button>${ok ? `<button class="btn ikincil ko-ok" id="koOkIleri" aria-label="${t('Sonraki ayet')}">›</button>` : ''}</div>${ok ? `<div class="canli-eylem" hidden><button class="btn kucuk" id="koGec">${t('Bu kelimeyi geç ›')}</button></div>` : ''}`; }
-  function canliBarSifirla(ok) { const bar = document.getElementById('canliBar'); if (!bar) return; bar.innerHTML = canliBarHTML(!!ok); bar.querySelector('#canliDur').onclick = () => canliDurdur(); if (ok) { bar.querySelector('#koOkGeri').onclick = ok.geri; bar.querySelector('#koOkIleri').onclick = ok.ileri; bar.querySelector('#koGec').onclick = canliKelimeGec; } document.querySelectorAll('[id^="rapor-"]').forEach(k => { k.hidden = true; k.innerHTML = ''; }); }
+  function canliBarHTML(ok) { return `${ok ? '<div class="canli-ilerleme" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i><b>▶</b></div>' : ''}<div class="canli-ic${ok ? ' ko-ic' : ''}">${ok ? `<button class="btn ikincil ko-ok" id="koOkGeri" aria-label="${t('Önceki ayet')}">‹</button>` : ''}<span class="canli-nokta"></span><span class="canli-durum"></span><button class="btn kirmizi-btn" id="canliDur">${t('⏹ Durdur')}</button>${ok ? `<button class="btn ikincil ko-ok" id="koOkIleri" aria-label="${t('Sonraki ayet')}">›</button>` : ''}</div>${ok ? `<div class="canli-eylem" hidden><button class="btn kucuk" id="koGec">${t('Bu kelimeyi geç ›')}</button><button class="btn kucuk ikincil" id="koTaniHizli" aria-label="${t('Tanı kaydını kopyala')}">🛠</button></div>` : ''}`; }
+  function canliBarSifirla(ok) { const bar = document.getElementById('canliBar'); if (!bar) return; bar.innerHTML = canliBarHTML(!!ok); bar.querySelector('#canliDur').onclick = () => canliDurdur(); if (ok) { bar.querySelector('#koOkGeri').onclick = ok.geri; bar.querySelector('#koOkIleri').onclick = ok.ileri; bar.querySelector('#koGec').onclick = canliKelimeGec; bar.querySelector('#koTaniHizli').onclick = () => { if (CANLI) taniKopyala(CANLI); }; } document.querySelectorAll('[id^="rapor-"]').forEach(k => { k.hidden = true; k.innerHTML = ''; }); }
   // ------------------------------------------------------------ Ezber çalış: tek ekran, adım adım (karar: claude/toplanti-2026-11-16-ezber-ux.md)
   // Adımlar: 0 Dinle · 1 Bakarak oku · 2 Yarısı gizli · 3 Ezberden · 4 Bağla (önceki ayetlerle birlikte; sûrenin ilk dersinde yok).
   // Kısa ayetler günlük ders kadar birlikte çalışılır; uzun ayet (EZ_UZUN kelimeden çok) tek başına.
@@ -5330,5 +5335,5 @@
   basla();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { yakinEsle, tk: () => TK, TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { yakinEsle, canliTolerans, tk: () => TK, TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();

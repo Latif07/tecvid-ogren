@@ -88,6 +88,8 @@
     "Doğru okuyuşu bir hocadan dinleyerek öğren. Buradaki metinler sözleri ezberlemen içindir.": "Learn the correct recitation by listening to a teacher. These texts are for memorising the words.",
     "Bu duanın kaydı henüz yok. Doğru okuyuşu hocandan dinle.": "No recording of this du'a yet. Listen to the correct recitation from your teacher.",
     "Takip": "Follow",
+    "Anlayamadım. Biraz yavaş ve net oku ya da kelimeyi geç.": "I couldn't follow. Read a bit slower and clearer, or skip the word.",
+    "Tanı kaydını kopyala": "Copy diagnostic log",
     "Harf: {0}": "Letter: {0}",
     "Tamamını dinle (yapay ses)": "Listen to all (synthetic voice)",
     "Bu duanın insan kaydı henüz yok.": "There is no human recording of this prayer yet.",
