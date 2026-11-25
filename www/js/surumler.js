@@ -1,9 +1,22 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.59';
+  const SURUM = '1.0.61';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.61', t: '2026-11-26', durum: 'Web', l: [
+      'Notlar: ayet numarasına dokunup 📝 Not, derslerde ve Elif-Ba\'da sayfanın altında 📝 Not; yazılı ve sesli (en çok 60 sn, ses yalnız bu cihazda); notlu ayetin yanında 📝 işareti',
+      'Notlarım: notlar ve yer imleri tek ekranda; filtre, arama, düzenle, sil ve "oraya git"',
+      'Kur\'an sayfasında Dinle: mini oynatıcı (önceki / duraklat / sonraki ayet, hız −/+, ilerleme) ve tam ekran görünümü',
+      'Okuma modu seçimi önizlemeli kartlarla; 7 sayfa teması (Yumuşak aydınlık, Saman kâğıdı, Karanlık, Galaksi, Gün batımı, Amber gece) örnek yazıyla',
+      'Tekrarla: "Sessiz tekrar payı" (ayet süresinin 1×/2×/3×\'i kadar sessizlik) ve "Tekrarlar bitince"',
+      'Sayfada sürüklenebilir kaydırma çubuğu',
+      'Hazırlık: Kelime Meali ve Mushaf resmi görünümleri kaynak/izin gelince açılacak şekilde kodlandı (şu an görünmez)',
+      'Ezber: atlanan ayetler artık ezberlenmiş sayılmıyor (1.0.60)',
+    ] },
+    { s: '1.0.60', t: '2026-11-26', durum: 'Web', l: [
+      'Ezber: ileri bir ayetten başlayınca aradaki atlanan ayetler artık ezberlenmiş sayılmıyor; zayıf listesine girip yarın tekrarda sorulur, bitişte "Atladığım ayetleri çalış" düğmesi çıkar',
+    ] },
     { s: '1.0.59', t: '2026-11-26', durum: 'Web', l: [
       'Sen oku: takılma uzadıkça eşleştirme toleransı kademeli artıyor (3, 5 ve 8 saniyede), sessizken artmıyor',
       'Sen oku: 7 saniyeden uzun takılınca "Biraz yavaş ve net oku ya da kelimeyi geç" uyarısı çıkıyor, "Bu kelimeyi geç" düğmesi büyüyüp nabız atıyor',

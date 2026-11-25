@@ -28,7 +28,7 @@ const EKRANLAR = [
   ['sayfa', '[1]'], ['sure', '[1]'], ['sure', '[2]'], ['sureTest', '[1]'], ['sureTecvid', '[1, 1]'], ['sureTecvidSec'],
   ['mesk', '[1, 1]'], ['meskSec'], ['ezber'], ['ezberCalis', '[1]'], ['ezberEkle'], ['hatim'],
   ['muezzin'], ['okumaRaporu'], ['harfKartlari'], ['harfKarti', '[window.TC.HARFLER[0][0]]'], ['hikaye', `[${U0}, 0]`],
-  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
+  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
 ];
 
 (async () => {
@@ -519,6 +519,119 @@ const EKRANLAR = [
       // Takip: kademeli tolerans (takılma uzadıkça artar) ve büyüyen "geç" düğmesi
       const tol = await sayfa.evaluate(() => { const f = window.__TECVID.canliTolerans; return [f(20, 0, false), f(20, 4000, true), f(20, 6000, true), f(20, 9000, true), f(20, 9000, false)].map(x => +x.toFixed(1)); });
       kontrol('takip: tolerans takılma süresiyle artıyor, sessizken artmıyor', JSON.stringify(tol) === '[7,8.4,10,12,7]', JSON.stringify(tol));
+      // Ezber: ileri ayetten başlanınca atlanan ayetler zayıf listeye girer ve bitişte uyarılır
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ezber = { 2: { a: 2, tam: false, eklendi: Date.now(), son: 0, kutu: 0, vade: 0 } }; window.__TECVID.git('ezberCalis', 2, 'yeni', 5); });
+      await sayfa.waitForSelector('#ayet-5');
+      for (let g = 0; g < 12 && !(await sayfa.$('.ez-bitti')); g++) { const b = await sayfa.$('#ezAtla, #ezIleriAlt'); if (!b) break; await b.click(); await sayfa.waitForTimeout(80); }
+      await sayfa.waitForSelector('.ez-bitti');
+      const atl = await sayfa.evaluate(() => ({ metin: document.querySelector('.ez-bitti').innerText, zayif: (window.__TECVID.S().ezber[2] || {}).zayif, a: (window.__TECVID.S().ezber[2] || {}).a, btn: !!document.querySelector('#ezAtlananCalis') }));
+      kontrol('ezber: atlanan ayetler (3–4) zayıf listeye girip uyarılıyor', atl.btn && /3–4/.test(atl.metin) && JSON.stringify(atl.zayif) === '[3,4]', JSON.stringify(atl));
+      await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; });
+      // Notlar: ayet notu, ders notu, Notlarım (yer imleriyle birleşik), oraya git, düzenle, sil
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.notlar = []; S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [{ n: 1, a: 2, renk: 'kirmizi', t: Date.now() }] }; window.__TECVID.git('sayfa', 28); });
+      await sayfa.waitForSelector('[data-ko-ayet="2:185"]');
+      await sayfa.click('[data-ko-ayet="2:185"]');
+      await sayfa.click('[data-km="not"]');
+      await sayfa.fill('#notMetin', 'Ramazan ayeti, tekrar bak');
+      await sayfa.click('#notKaydet');
+      await sayfa.waitForSelector('.ko-no.ko-not');
+      kontrol('not: ayet notu kaydoluyor, ayet numarasında 📝 işareti çıkıyor', await sayfa.evaluate(() => window.__TECVID.S().notlar.length === 1 && window.__TECVID.S().notlar[0].y === '2:185' && document.querySelector('.ko-no.ko-not').dataset.koAyet === '2:185'));
+      await sayfa.evaluate(() => window.__TECVID.git('ders', 'e1'));
+      await sayfa.waitForSelector('#dersNot');
+      await sayfa.click('#dersNot'); await sayfa.fill('#notMetin', 'Harfler: ب ت ث karıştırıyorum'); await sayfa.click('#notKaydet');
+      await sayfa.evaluate(() => window.__TECVID.git('notlar'));
+      await sayfa.waitForSelector('.not-oge');
+      const nl = await sayfa.evaluate(() => ({ not: document.querySelectorAll('.not-oge').length, im: document.querySelectorAll('.ko-im').length, metin: document.querySelector('#app').innerText }));
+      kontrol('Notlarım: notlar ve yer imleri birlikte listeleniyor', nl.not === 2 && nl.im === 1 && /Ramazan ayeti/.test(nl.metin) && /Harfler/.test(nl.metin), JSON.stringify({ not: nl.not, im: nl.im }));
+      await sayfa.click('[data-not-suz="ders"]');
+      kontrol('Notlarım: Ders notları filtresi yalnız ders notunu gösteriyor', (await sayfa.$$('.not-oge')).length === 1);
+      await sayfa.fill('#notAra', 'ramazan');
+      await sayfa.click('[data-not-suz="notlar"]');
+      kontrol('Notlarım: arama notun metninde buluyor', (await sayfa.$$('.not-oge')).length === 1 && /Ramazan/.test(await sayfa.evaluate(() => document.querySelector('.not-oge').innerText)));
+      await sayfa.click('.not-git');
+      await sayfa.waitForSelector('.ko-sayfa, .ko-a');
+      kontrol('Notlarım: nota dokununca ilgili Kur\'an sayfasına gidiyor (Bakara 185, sayfa 28)', /Sayfa 28/.test(await sayfa.evaluate(() => document.querySelector('#app').innerText)));
+      await sayfa.evaluate(() => window.__TECVID.git('notlar'));
+      await sayfa.waitForSelector('#notAra'); await sayfa.fill('#notAra', ''); await sayfa.click('[data-not-suz="hepsi"]');
+      await sayfa.waitForSelector('[data-not-duzenle]'); await sayfa.click('[data-not-duzenle]');
+      await sayfa.fill('#notMetin', 'Düzeltildi'); await sayfa.click('#notKaydet');
+      kontrol('not: düzenleme kaydoluyor, yeni not açmıyor', await sayfa.evaluate(() => window.__TECVID.S().notlar.length === 2 && window.__TECVID.S().notlar.some(x => x.m === 'Düzeltildi')));
+      await sayfa.click('[data-not-duzenle]'); await sayfa.click('#notSil');
+      kontrol('not: silinen not listeden kalkıyor', (await sayfa.$$('.not-oge')).length === 1);
+      await sayfa.evaluate(() => { window.__TECVID.S().notlar = []; });
+      // Tekrarla: sessiz tekrar payı ve "tekrarlar bitince" ayarları kaydolur
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.tk; window.__TECVID.git('tekrarla', 112, 1, 4); });
+      await sayfa.waitForSelector('[data-tk-pay]', { state: 'attached' });
+      await sayfa.evaluate(() => { document.querySelector('#tkAyarKutu').open = true; });
+      await sayfa.click('[data-tk-pay="2"]'); await sayfa.click('[data-tk-bitince="1"]');
+      const tkp = await sayfa.evaluate(() => { const a = window.__TECVID.S().ayar.tk || {}; return { pay: a.pay, oto: a.oto, chk: document.querySelector('#tkOto').checked }; });
+      kontrol('tekrarla: sessiz tekrar payı ×2 ve "başa dönsün" ayarları kaydoluyor', tkp.pay === 2 && tkp.oto === true && tkp.chk === true, JSON.stringify(tkp));
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.tk; });
+      // Sayfa temaları: 7 tema, seçilince sayfaya uygulanır
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.tema = 'acik'; window.__TECVID.git('sayfa', 3); });
+      await sayfa.waitForSelector('#okuEkran'); await sayfa.click('#koAyar');
+      const tm = await sayfa.evaluate(() => { const b = [...document.querySelectorAll('[data-grup="tema"] [data-ka]')]; return b.map(x => x.dataset.ka); });
+      kontrol('temalar: menüde 7 sayfa teması listeleniyor', JSON.stringify(tm) === '["acik","yumusak","sepya","gece","galaksi","gunbatimi","amber"]', JSON.stringify(tm));
+      await sayfa.evaluate(() => { document.querySelector('[data-grup="tema"] [data-ka="galaksi"]').click(); });
+      await sayfa.waitForSelector('#okuEkran.tema-galaksi');
+      const renk = await sayfa.evaluate(() => getComputedStyle(document.querySelector('#okuEkran')).getPropertyValue('--ko-kagit').trim());
+      kontrol('temalar: Galaksi seçilince sayfa o temaya geçiyor (--ko-kagit)', renk === '#1e2236', renk);
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.tema = 'acik'; });
+      // Mini oynatıcı: Dinle ile açılır; sonraki/önceki ayet, duraklat, hız, büyüt, kapat
+      await sayfa.evaluate(() => {
+        window.__au = []; window.__AudioAsil = window.__AudioAsil || window.Audio;
+        window.Audio = function (src) { this.src = src; this.duration = 6; this.currentTime = 1; this.playbackRate = 1; this.paused = false; this.play = () => Promise.resolve(); this.pause = () => { this.paused = true; }; window.__au.push(this); };
+        window.__TECVID.S().kuran.tema = 'acik'; delete window.__TECVID.S().ayar.hiz; window.__TECVID.git('sayfa', 28);
+      });
+      await sayfa.waitForSelector('#koDinle'); await sayfa.click('#koDinle');
+      await sayfa.waitForSelector('#koMini');
+      const yer0 = await sayfa.evaluate(() => document.querySelector('#koMiniYer').textContent);
+      await sayfa.click('#koMiniIleri');
+      const yer1 = await sayfa.evaluate(() => document.querySelector('#koMiniYer').textContent);
+      kontrol('mini oynatıcı: sonraki ayet düğmesi ayeti değiştiriyor', yer0 !== yer1 && /Bakara/.test(yer1), yer0 + ' → ' + yer1);
+      await sayfa.click('#koMiniGeri');
+      kontrol('mini oynatıcı: önceki ayet düğmesi geri dönüyor', (await sayfa.evaluate(() => document.querySelector('#koMiniYer').textContent)) === yer0);
+      await sayfa.click('#koMiniArti');
+      const hz = await sayfa.evaluate(() => ({ yazi: document.querySelector('#koMiniHiz').textContent, au: window.__au[window.__au.length - 1].playbackRate, kayit: window.__TECVID.S().ayar.hiz }));
+      kontrol('mini oynatıcı: hız + düğmesi 1.25× yapıyor ve sesi etkiliyor', hz.yazi === '1.25×' && hz.au === 1.25 && hz.kayit === 1.25, JSON.stringify(hz));
+      await sayfa.click('#koMiniOyna');
+      kontrol('mini oynatıcı: duraklat sesi durduruyor', await sayfa.evaluate(() => window.__au[window.__au.length - 1].paused === true && document.querySelector('#koMiniOyna').textContent === '▶'));
+      await sayfa.click('#koMiniTam');
+      const tam = await sayfa.evaluate(() => ({ cls: document.querySelector('#koMini').classList.contains('tam'), ar: document.querySelector('#koMiniAr').textContent.length > 5, pos: getComputedStyle(document.querySelector('#koMini')).top }));
+      kontrol('mini oynatıcı: büyütünce tam ekran, Arapça ayet görünüyor', tam.cls && tam.ar && tam.pos === '0px', JSON.stringify(tam));
+      await sayfa.click('#koMiniKucult'); await sayfa.click('#koMiniKapat');
+      kontrol('mini oynatıcı: kapatınca çubuk kalkıyor, Dinle düğmesi sıfırlanıyor', await sayfa.evaluate(() => !document.querySelector('#koMini') && /Dinle/.test(document.querySelector('#koDinle').textContent)));
+      await sayfa.evaluate(() => { window.Audio = window.__AudioAsil; delete window.__TECVID.S().ayar.hiz; });
+      // Kaynak gelince etkinleşen görünümler: kelime meali ve mushaf resmi (sahte kaynakla); kaynak yokken menüde görünmez
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'mushaf'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('#koAyar'); await sayfa.click('#koAyar');
+      kontrol('kelime meali / mushaf resmi: kaynak yokken menüde görünmüyor', await sayfa.evaluate(() => !document.querySelector('.gor-kart [class*="gor-kelime"]') && !document.querySelector('.gor-kart .gor-resim')));
+      await sayfa.route('**/kuran/kelime-meal/test/001.json', r => r.fulfill({ contentType: 'application/json', body: JSON.stringify([['Allah’ın', 'adıyla', 'Rahman', 'Rahim'], ['Hamd', 'Allah’a']]) }));
+      await sayfa.evaluate(() => { window.__TECVID.KELIME_MEAL_KAYNAK.push({ id: 'test', ad: 'Test', kaynak: 'deneme', yol: 'test' }); window.__TECVID.MUSHAF_RESIM.v = { ad: 'Test', kaynak: 'deneme', url: p => 'icons/icon-192.png' }; window.__TECVID.S().kuran.gorunum = 'kelime'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('.kelime-an');
+      const km = await sayfa.evaluate(() => ({ an: document.querySelectorAll('.kelime-an').length, ilk: document.querySelector('.kelime-an').textContent }));
+      kontrol('kelime meali: her kelimenin altında anlam görünüyor', km.an >= 4 && km.ilk === 'Allah’ın', JSON.stringify(km));
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'kelimemeal'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('.kelime-an'); await sayfa.waitForSelector('.ko-meal');
+      kontrol('kelime + meal: kelime anlamı ve ayet meali birlikte', await sayfa.evaluate(() => document.querySelectorAll('.kelime-an').length >= 4 && document.querySelectorAll('.ko-meal').length >= 1));
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'resim'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('.ko-resim');
+      kontrol('mushaf resmi: sayfa resmi gösteriliyor', await sayfa.evaluate(() => /icon-192/.test(document.querySelector('.ko-resim').getAttribute('src'))));
+      await sayfa.evaluate(() => { window.__TECVID.KELIME_MEAL_KAYNAK.length = 0; window.__TECVID.MUSHAF_RESIM.v = null; window.__TECVID.S().kuran.gorunum = 'mushaf'; });
+      // Sürüklenebilir kaydırma çubuğu: sayfa kaydırılınca tutamaç iner, sürüklenince sayfa kayar
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'meal'; window.__TECVID.git('sayfa', 28); });
+      await sayfa.waitForSelector('#koKaydir:not([hidden])', { timeout: 8000 });
+      await sayfa.evaluate(() => window.scrollTo(0, 0)); await sayfa.waitForTimeout(150);
+      const y0 = await sayfa.evaluate(() => parseFloat(document.querySelector('#koKaydirTut').style.top) || 0);
+      await sayfa.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await sayfa.waitForTimeout(250);
+      const y1 = await sayfa.evaluate(() => parseFloat(document.querySelector('#koKaydirTut').style.top) || 0);
+      kontrol('kaydırma çubuğu: sayfa kayınca tutamaç aşağı iniyor', y1 > y0 + 50, y0 + ' → ' + y1);
+      await sayfa.evaluate(() => window.scrollTo(0, 0)); await sayfa.waitForTimeout(200);
+      const kb = await sayfa.evaluate(() => { const r = document.querySelector('#koKaydir').getBoundingClientRect(); return { x: r.left + r.width / 2, y1: r.top + 40, y2: r.top + r.height * 0.6 }; });
+      await sayfa.mouse.move(kb.x, kb.y1); await sayfa.mouse.down(); await sayfa.mouse.move(kb.x, kb.y2, { steps: 6 }); await sayfa.mouse.up();
+      await sayfa.waitForTimeout(150);
+      kontrol('kaydırma çubuğu: sürüklenince sayfa kayıyor', (await sayfa.evaluate(() => window.scrollY)) > 300, String(await sayfa.evaluate(() => window.scrollY)));
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'mushaf'; window.scrollTo(0, 0); });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
