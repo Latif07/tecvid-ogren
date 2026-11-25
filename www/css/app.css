@@ -1420,3 +1420,12 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ae-tc b { color: var(--metin); font-weight: 650; }
 .ae-tc i { width: 10px; height: 10px; border-radius: 50%; background: currentColor; } .ae-tc.aktif { border-color: var(--ana); }
 .ae-tc-bilgi { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ana) 7%, transparent); display: grid; gap: 6px; } .ae-tc-bilgi p { margin: 0; }
+
+/* Kur'an sayfası: gezinme çubuğu, Git penceresi, otomatik kaydırma, sadece meal */
+.ko-ok-btn { min-width: 56px; font-size: 1.5rem; padding: 0 10px; }
+.ko-alt .ko-ileri.okundu { background: color-mix(in srgb, var(--iyi) 14%, var(--kart)); color: var(--iyi); border-color: var(--iyi); }
+.ko-ayar-btn + .ko-ayar-btn { margin-left: 6px; }
+.ko-oto { position: fixed; right: 14px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 7; border: 1.5px solid var(--ana); background: var(--kart); color: var(--ana); border-radius: 99px; padding: 8px 14px; font: inherit; font-weight: 700; box-shadow: 0 3px 10px rgba(0,0,0,.18); cursor: pointer; }
+.git-pencere { width: min(420px, 100%); max-height: 88vh; overflow-y: auto; position: relative; padding-top: 22px; }
+.git-pencere h2 { margin: 0 0 10px; font-size: 1.1rem; }
+.ko-sadece { margin: 6px 0; line-height: 1.7; }

@@ -1,9 +1,16 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.53';
+  const SURUM = '1.0.54';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.54', t: '2026-11-25', durum: 'Web', l: [
+      'Kur\'an sayfasında gezinme düzeldi: › yalnız sonraki sayfaya geçer (okundu saymaz), "✓ Okudum" sayfayı okundu sayıp sonrakine geçer',
+      'Sayfadayken 📍 ile her yere git: sûre ve ayet (Bakara 185), sayfa numarası ya da cüz',
+      'Ayet numarasına dokununca "Bu ayeti okudum": iki ayet okuyup bırakabilirsin, hedefine sayılır',
+      'Yeni görünüm "Sadece meal"; Aa menüsünde otomatik kaydırma (yavaş / orta / hızlı) ve "Bu sayfayı / sûreyi tekrarla" kısayolları',
+      'Tekrarla\'da "Sondan başa" okuma yönü (basamak yönteminde son ayetten geriye doğru)',
+    ] },
     { s: '1.0.53', t: '2026-11-25', durum: 'Web', l: [
       'Derslerde yeni "Tek bakışta" kartı: kuralın adı, kısa özeti ve uzatma miktarı çubuğu (kaç elif, hangisi yaygın); defter görünümlü ders kartları',
       'Dersin üstünde aynı konudaki derslerin çipleri: bitirdiklerin ✓, bulunduğun ders işaretli, dokununca o derse geçersin',
