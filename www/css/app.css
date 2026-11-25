@@ -1465,3 +1465,9 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 }
 
 .mz-kart.calan{outline:2px solid #2e7d32;outline-offset:2px;border-radius:12px}
+
+/* Takip: uzun takılmada "Kelimeyi geç" büyür */
+.canli-eylem.buyuk .btn{font-size:1rem;padding:11px 20px}
+.canli-eylem.buyuk #koGec{animation:gecNabiz 1.4s ease-in-out infinite}
+@keyframes gecNabiz{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.canli-eylem.buyuk #koGec{animation:none}}

@@ -1,9 +1,14 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.58';
+  const SURUM = '1.0.59';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.59', t: '2026-11-26', durum: 'Web', l: [
+      'Sen oku: takılma uzadıkça eşleştirme toleransı kademeli artıyor (3, 5 ve 8 saniyede), sessizken artmıyor',
+      'Sen oku: 7 saniyeden uzun takılınca "Biraz yavaş ve net oku ya da kelimeyi geç" uyarısı çıkıyor, "Bu kelimeyi geç" düğmesi büyüyüp nabız atıyor',
+      'Sen oku: takılınca çıkan 🛠 düğmesiyle tek dokunuşta tanı kaydı kopyalanıyor',
+    ] },
     { s: '1.0.58', t: '2026-11-26', durum: 'Web', l: [
       'Çocuk modu sesi: "Selâmün aleyküm" gibi sözler artık motorun doğal okuyacağı biçimde okunuyor (â, î, û düzeltmesi), konuşma biraz yavaşlatıldı',
     ] },

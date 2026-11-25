@@ -126,7 +126,7 @@ const EKRANLAR = [
         T.kur(null); return o;
       });
       kontrol('takip: sesli ve ilerliyorken "dinliyorum"', sonuc.dinle[0] === 'dinle' && sonuc.dinle[1] === true, JSON.stringify(sonuc.dinle));
-      kontrol('takip: ses var ilerleme yok → "takıldım" + geç düğmesi', sonuc.takildi[0] === 'takildi' && sonuc.takildi[1] === false && /eşleştiremedim/.test(sonuc.takildi[2]), JSON.stringify(sonuc.takildi));
+      kontrol('takip: ses var ilerleme yok → "takıldım" (uzun takılmada yavaş oku uyarısı) + geç düğmesi', sonuc.takildi[0] === 'takildi' && sonuc.takildi[1] === false && /Anlayamadım/.test(sonuc.takildi[2]), JSON.stringify(sonuc.takildi));
       kontrol('takip: sustuysan "bekliyorum" ve kaldığın yer yazıyor', sonuc.bekle[0] === 'bekle' && /ayet, \d+\. kelime/.test(sonuc.bekle[1]), sonuc.bekle[1]);
       kontrol('takip: ilerleme çubuğu dolu (>0)', +sonuc.cubuk > 0, 'aria-valuenow=' + sonuc.cubuk);
       kontrol('takip: kelimeyi geç → bir kelime ilerler, gri işaretlenir, durum sıfırlanır', sonuc.gec[0] === 1 && sonuc.gec[1] === true && sonuc.gec[2] === 'dinle' && sonuc.gec[3] === true, JSON.stringify(sonuc.gec));
@@ -516,6 +516,9 @@ const EKRANLAR = [
       // Çocuk modu sesi: â/î/û düzeltmesi, "Selâmün aleyküm" doğal okunur
       const ok_ = await sayfa.evaluate(() => [window.Sesli.okunus('Selâmün aleyküm! Bârekallah, Fâtiha'), window.Sesli.okunus('Ayn ve Ğayn')]);
       kontrol('çocuk sesi: okunuş düzeltmesi (â→a, Selamün aleyküm)', ok_[0] === 'Selamün aleyküm! Barekallah, Fatiha' && ok_[1] === 'Ayın ve Gayın', JSON.stringify(ok_));
+      // Takip: kademeli tolerans (takılma uzadıkça artar) ve büyüyen "geç" düğmesi
+      const tol = await sayfa.evaluate(() => { const f = window.__TECVID.canliTolerans; return [f(20, 0, false), f(20, 4000, true), f(20, 6000, true), f(20, 9000, true), f(20, 9000, false)].map(x => +x.toFixed(1)); });
+      kontrol('takip: tolerans takılma süresiyle artıyor, sessizken artmıyor', JSON.stringify(tol) === '[7,8.4,10,12,7]', JSON.stringify(tol));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
