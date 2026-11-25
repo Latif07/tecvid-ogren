@@ -478,6 +478,41 @@ const EKRANLAR = [
       // Takip: yumuşak eşleme (bozuk telaffuzlu kelime yine bulunur, alakasız ses bulunmaz)
       const ye = await sayfa.evaluate(() => { const Y = window.__TECVID.yakinEsle; return [Y('xxbismilaxx', 'bismila'), Y('bizmilla', 'bismila'), Y('alhamdulillah', 'bismila'), Y('ab', 'bismila')].map(r => r.ok); });
       kontrol('takip: yumuşak eşleme — tam ve bozuk telaffuz evet, alakasız hayır', JSON.stringify(ye) === '[true,true,false,false]', JSON.stringify(ye));
+      // Müezzinlik: kaydı olmayan metinde yapay sesle dinleme (Selâ)
+      await sayfa.evaluate(() => {
+        window.__tts = [];
+        const ss = window.speechSynthesis;
+        ss.getVoices = () => [];
+        ss.speak = u => { window.__tts.push(u.lang + '|' + u.text.slice(0, 12)); setTimeout(() => u.onend && u.onend(), 20); };
+        ss.cancel = () => { };
+        window.__TECVID.git('muezzinMetin', 'sela');
+      });
+      await sayfa.waitForSelector('#mzTtsHepsi');
+      const satSay = await sayfa.evaluate(() => document.querySelectorAll('.mz-kart').length);
+      await sayfa.click('#mzTtsHepsi');
+      await sayfa.waitForFunction(n => window.__tts.length >= n, satSay, { timeout: 8000 });
+      const tt = await sayfa.evaluate(() => window.__tts.slice());
+      kontrol('müezzinlik: Tamamını dinle (yapay ses) her satırı Arapça sesle okutuyor', tt.length === satSay && tt.every(z => z.startsWith('ar-SA|')), JSON.stringify(tt.slice(0, 2)));
+      await sayfa.evaluate(() => { window.__tts.length = 0; });
+      await sayfa.click('[data-mztts="0"]');
+      await sayfa.waitForFunction(() => window.__tts.length === 1);
+      kontrol('müezzinlik: satır düğmesi yalnız o satırı okutuyor', true);
+      // Kartları yazdır: sayfaya sığıyor (tek sütun, taşma yok)
+      await sayfa.evaluate(() => window.__TECVID.git('kartYazdir'));
+      await sayfa.waitForSelector('.kk-kart');
+      await sayfa.emulateMedia({ media: 'print' });
+      const yz = await sayfa.evaluate(() => { const W = document.documentElement.clientWidth; const k = [...document.querySelectorAll('.kk-kart')]; return { n: k.length, tasan: k.filter(x => x.getBoundingClientRect().right > W + 1 || x.scrollWidth > x.clientWidth + 1).length, grid: getComputedStyle(document.querySelector('.kk-izgara')).display, ust: getComputedStyle(document.querySelector('.ust')).display }; });
+      await sayfa.emulateMedia({ media: 'screen' });
+      kontrol('kartlar: yazdırma görünümü sayfaya sığıyor (taşma yok, tek sütun, üst çubuk gizli)', yz.n === 6 && yz.tasan === 0 && yz.grid === 'block' && yz.ust === 'none', JSON.stringify(yz));
+      // Elif-Ba: harfe dokununca harfin adı söylenir (Kur'an kelimesi değil)
+      await sayfa.evaluate(() => { window.__tts.length = 0; window.__TECVID.S().okunan = window.__TECVID.S().okunan || {}; window.__TECVID.S().okunan.e1 = 7; (window.__TECVID.git)('ders', 'e1'); const D = window.__TECVID; });
+      await sayfa.evaluate(() => { const E = window.__TECVID; });
+      for (let g = 0; g < 8 && !(await sayfa.$('.harf-tablo')); g++) { const b = await sayfa.$('[data-sayfa]:not([disabled]):last-of-type'); if (!b) break; await b.click(); }
+      await sayfa.waitForSelector('.harf-tablo .ar-ses', { state: 'attached' });
+      await sayfa.evaluate(() => { window.__tts.length = 0; document.querySelector('.harf-tablo .ar-ses').click(); });
+      await sayfa.waitForFunction(() => window.__tts.length >= 1);
+      const ha = await sayfa.evaluate(() => window.__tts[0]);
+      kontrol('Elif-Ba: harfe dokununca harfin adı okunuyor (Elif), Kur\'an kelimesi (İyyâke) değil', /\|Elif/.test(ha), ha);
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
