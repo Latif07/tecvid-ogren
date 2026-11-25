@@ -1429,3 +1429,28 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .git-pencere { width: min(420px, 100%); max-height: 88vh; overflow-y: auto; position: relative; padding-top: 22px; }
 .git-pencere h2 { margin: 0 0 10px; font-size: 1.1rem; }
 .ko-sadece { margin: 6px 0; line-height: 1.7; }
+
+/* Durak ışıkları + hap bilgi kartları + Elif-Ba */
+.dm{position:relative;font-weight:700}
+.dm::after{content:'';display:inline-block;width:.35em;height:.35em;border-radius:50%;margin-inline-start:.15em;vertical-align:middle;background:currentColor}
+.dm-lz{color:#d32f2f}.dm-de{color:#ef6c00}.dm-cz{color:#c9a100}.dm-ge{color:#7cb342}.dm-la{color:#2e7d32}.dm-mu{color:#1976d2}.dm-sk{color:#7b1fa2}
+.dm-nokta{display:inline-block;width:.8em;height:.8em;border-radius:50%;margin-inline-end:.4em;vertical-align:middle;background:currentColor}
+.durak-lejant{margin:8px 0}.durak-lejant summary{cursor:pointer;font-size:.9em}
+.dl-sat{display:flex;flex-direction:column;gap:4px;margin:6px 0;font-size:.85em}
+.kart-liste{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.kk-arac{flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.kk-tablo{width:100%;border-collapse:collapse;font-size:.9em}
+.kk-tablo th,.kk-tablo td{border-bottom:1px solid var(--cizgi,#ddd);padding:6px 4px;text-align:start;vertical-align:top}
+.kk-tablo th{white-space:nowrap}
+.kk-harf{font-size:1.3em;direction:rtl;text-align:start}.kk-ornek{font-size:1.25em;direction:rtl}
+.kk-ne,.kk-miktar{color:var(--soluk,#666);font-size:.9em}
+.kk-isaret{white-space:nowrap}
+.kk-gizli{filter:blur(6px);cursor:pointer;user-select:none;background:rgba(0,0,0,.06);border-radius:4px}
+.kk-izgara{display:grid;grid-template-columns:1fr;gap:12px}
+.eb-giris{margin:8px 0}
+@media print{
+  header,nav,.ust,.altbar,.kk-arac,.ders-ince,.soluk.kucukyazi,button{display:none!important}
+  .kk-kart{break-inside:avoid;border:1px solid #999;box-shadow:none;margin:0 0 6mm}
+  .kk-gizli{filter:none!important;background:none!important}
+  .kk-yazdir .kk-izgara{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+}

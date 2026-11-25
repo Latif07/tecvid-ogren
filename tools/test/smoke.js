@@ -28,7 +28,7 @@ const EKRANLAR = [
   ['sayfa', '[1]'], ['sure', '[1]'], ['sure', '[2]'], ['sureTest', '[1]'], ['sureTecvid', '[1, 1]'], ['sureTecvidSec'],
   ['mesk', '[1, 1]'], ['meskSec'], ['ezber'], ['ezberCalis', '[1]'], ['ezberEkle'], ['hatim'],
   ['muezzin'], ['okumaRaporu'], ['harfKartlari'], ['harfKarti', '[window.TC.HARFLER[0][0]]'], ['hikaye', `[${U0}, 0]`],
-  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'],
+  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
 ];
 
 (async () => {
@@ -413,6 +413,61 @@ const EKRANLAR = [
       await pg.reload(); await pg.waitForFunction(() => window.__TECVID); await pg.waitForTimeout(1200);
       kontrol('profil: yeniden açınca silinen profil geri gelmiyor', !(await yerel()).includes('pb') && (await yerel()).length === 2, hatalar.slice(once).join(' | '));
     } catch (e) { kontrol('profil yönetimi', false, e.message.split('\n')[0]); }
+  }
+
+
+  // Durak ışıkları, hap bilgi kartları (kontrol modu), Elif-Ba odak modu
+  {
+    const once = hatalar.length;
+    try {
+      // durak ışıkları: Bakara sayfası (işaretli) açılır, işaretler renkli
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); delete S.ayar.durakIsik; window.__TECVID.git('sayfa', 2); });
+      await sayfa.waitForSelector('.ko-a');
+      const dm = await sayfa.evaluate(() => ({ n: document.querySelectorAll('.dm').length, sinif: [...new Set([...document.querySelectorAll('.dm')].map(x => x.className))].slice(0, 6) }));
+      kontrol('durak ışıkları: sayfada işaretler renkli sarılıyor', dm.n > 0, JSON.stringify(dm));
+      await sayfa.evaluate(() => { window.__TECVID.S().ayar.durakIsik = false; window.__TECVID.git('sayfa', 2); });
+      await sayfa.waitForSelector('.ko-a');
+      kontrol('durak ışıkları: Kapalı yapılınca renklenmiyor', (await sayfa.evaluate(() => document.querySelectorAll('.dm').length)) === 0);
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.durakIsik; });
+      // kartlar
+      await sayfa.evaluate(() => window.__TECVID.git('kartlar'));
+      await sayfa.waitForSelector('.kart-kutu');
+      const say = await sayfa.evaluate(() => document.querySelectorAll('.kart-kutu').length);
+      kontrol('kartlar: 6 kart listeleniyor', say === 6, String(say));
+      await sayfa.evaluate(() => { window.__TECVID.git('kart', 'nun'); });
+      await sayfa.waitForSelector('#kkKart');
+      const nun = await sayfa.evaluate(() => document.querySelector('#kkKart').innerText);
+      kontrol('kart: nûn kartında izhâr/iklâb/ihfâ satırları ve harfler var', /İzhâr|İzhar/i.test(nun) && /Ikl|İkl/i.test(nun) && nun.includes('ء ه ع ح غ خ'), nun.slice(0, 160));
+      await sayfa.click('#kkKontrol');
+      const gz = await sayfa.evaluate(() => document.querySelectorAll('.kk-gizli').length);
+      kontrol('kart: kontrol modu cevapları gizliyor', gz > 3, String(gz));
+      await sayfa.click('.kk-gizli');
+      kontrol('kart: dokununca bir cevap açılıyor', (await sayfa.evaluate(() => document.querySelectorAll('.kk-gizli').length)) === gz - 1);
+      await sayfa.click('#kkHepsi');
+      kontrol('kart: Hepsini göster hepsini açıyor', (await sayfa.evaluate(() => document.querySelectorAll('.kk-gizli').length)) === 0);
+      await sayfa.evaluate(() => { window.__TECVID.git('kart', 'vakf'); });
+      await sayfa.waitForSelector('.kk-isik');
+      const vk = await sayfa.evaluate(() => ({ tablo: document.querySelectorAll('.kk-isik').length, nokta: document.querySelectorAll('.kk-isik .dm-nokta').length }));
+      kontrol('vakf kartı: Medine ve Türk tabloları, renkli noktalar', vk.tablo === 2 && vk.nokta >= 10, JSON.stringify(vk));
+      // ders son sayfasında "Bu konunun kartı"
+      await sayfa.evaluate(() => { const u = window.TC.U.find(x => x.id === 'u7'); window.__TECVID.S().ilerleme.u7 = window.__TECVID.S().ilerleme.u7 || {}; const D = window.__TECVID; D.git('ders', 'u7'); });
+      await sayfa.waitForSelector('[data-sayfa]', { state: 'attached' });
+      for (let g = 0; g < 30 && !(await sayfa.$('[data-git="kart|nun"]')); g++) { const b = await sayfa.$('[data-sayfa]:not([disabled]):last-of-type'); if (!b) break; await b.click(); }
+      kontrol('ders son sayfası: "Bu konunun kartı" düğmesi var', !!(await sayfa.$('[data-git="kart|nun"]')));
+      // Elif-Ba
+      await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
+      await sayfa.waitForSelector('#ebDevam');
+      const eb = await sayfa.evaluate(() => document.querySelectorAll('[data-eb]').length);
+      kontrol('Elif-Ba odak modu: müfredat adımları listeleniyor', eb >= 8, String(eb));
+      await sayfa.click('#ebDevam');
+      await sayfa.waitForFunction(() => document.querySelector('.sayfa'));
+      kontrol('Elif-Ba: Devam et ilk dersi açıyor', true);
+      await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
+      await sayfa.waitForSelector('#ebAna'); await sayfa.click('#ebAna');
+      await sayfa.waitForSelector('nav, .altsekme, [data-sekme], .tab', { state: 'attached' });
+      kontrol('Elif-Ba: Ana uygulamaya dön çalışıyor', true);
+    } catch (e) { kontrol('durak ışıkları / kartlar / Elif-Ba', false, e.message.split('\n')[0]); }
+    kontrol('kartlar bölümünde konsol hatası yok', hatalar.length === once, hatalar.slice(once).join(' | '));
   }
 
   kontrol('konsolda yakalanmamış hata yok', hatalar.length === 0, hatalar.slice(0, 3).join(' | '));
