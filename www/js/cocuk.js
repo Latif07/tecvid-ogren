@@ -98,7 +98,7 @@
         .replace(/\(s\.a\.v\.\)/g, EN ? '(peace be upon him)' : 'sallallahu aleyhi ve sellem')
         .replace(/[\p{Extended_Pictographic}\uFE0F\u200D▶›★☆←→]/gu, '').replace(/[‘’ʿʾ“”"]/g, '');
       // Türkçe konuşma motoru için harf adlarının okunuşu (yazıdaki ad değişmez)
-      if (!EN) metin = metin.replace(/(?<!\p{L})Ğayn(?!\p{L})/gu, 'Gayın').replace(/(?<!\p{L})Ayn(?!\p{L})/gu, 'Ayın');
+      if (!EN) metin = this.okunus(metin);
       metin = metin.replace(/\s+/g, ' ').trim();
       if (!metin) return;
       // Konuşma başlarken çalan ayet/harf sesi durur (sesler üst üste binmesin)
@@ -108,8 +108,15 @@
       const no = ++this._no, bitti = () => { if (this._no === no) { this.konusuyor = false; this._dugme && this._dugme(); this._dugme = null; } };
       this.konusuyor = true;
       // Flush: yeni konuşma öncekini keser; sıra numarası eski isteklerin sonradan başlamasını engeller
-      if (TTS) { TTS.speak({ text: metin, lang, rate: .95, queueStrategy: 0 }).then(bitti, bitti); return; }
-      try { const ss = window.speechSynthesis; if (!ss) return bitti(); ss.cancel(); const u = new SpeechSynthesisUtterance(metin); u.lang = lang; u.rate = .95; u.onend = bitti; u.onerror = bitti; ss.speak(u); } catch (e) { bitti(); }
+      if (TTS) { TTS.speak({ text: metin, lang, rate: .9, queueStrategy: 0 }).then(bitti, bitti); return; }
+      try { const ss = window.speechSynthesis; if (!ss) return bitti(); ss.cancel(); const u = new SpeechSynthesisUtterance(metin); u.lang = lang; u.rate = .9; u.onend = bitti; u.onerror = bitti; ss.speak(u); } catch (e) { bitti(); }
+    },
+    // Konuşma motoru için okunuş düzeltmesi: yazıdaki â/î/û ve dinî terimler motorun doğal okuyacağı hâle getirilir (ekranda yazı değişmez)
+    okunus(metin) {
+      metin = String(metin).replace(/(?<!\p{L})Ğayn(?!\p{L})/gu, 'Gayın').replace(/(?<!\p{L})Ayn(?!\p{L})/gu, 'Ayın');
+      metin = metin.replace(/Selâmün aleyküm/gi, m => (m[0] === 'S' ? 'Selamün aleyküm' : 'selamün aleyküm'))
+        .replace(/Esselâmü aleyküm/gi, 'Es selamü aleyküm').replace(/Bârekallah/gi, 'Barekallah').replace(/Mâşâallah|Maşaallah/gi, 'Maşallah');
+      return metin.replace(/â/g, 'a').replace(/Â/g, 'A').replace(/î/g, 'i').replace(/Î/g, 'İ').replace(/û/g, 'u').replace(/Û/g, 'U');
     },
     _no: 0, konusuyor: false, _dugme: null,
     // Düğmeli konuşma: konuşurken düğme ⏹ olur, tekrar dokununca susar
