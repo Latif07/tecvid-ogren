@@ -180,7 +180,7 @@ window.TC = (function () {
   });
 
   unit({
-    id: 'm2', ad: "Harflerin sıfatları", ikon: '🎭', kurallar: [],
+    id: 'm2', ad: "Harflerin sıfatları", ikon: '🕊️', kurallar: [],
     sayfalar: [
       { t: "Sıfat nedir?", h: `<p>Mahreç harfin <b>adresi</b> ise sıfat onun <b>karakteridir</b>: nefes akıyor mu, ses hapsoluyor mu, kalın mı ince mi?</p><p>Aynı yerden çıkan harfleri sıfatlar ayırır. Örneğin <span class="ar">ت</span> ile <span class="ar">ط</span> aynı mahreçten çıkar, ama <span class="ar">ط</span> kalın ve dolgun, <span class="ar">ت</span> ince ve nefeslidir.</p><p>Sıfatlar ikiye ayrılır: <b>zıtlı</b> (çiftler halinde) ve <b>zıtsız</b> (tek başına).</p>` },
       { t: "Zıtlı sıfatlar (1)", h: `<ul><li><b>Hems</b> (nefesin akması) — 10 harf: <span class="ar">فَحَثَّهُ شَخۡصٌ سَكَتَ</span><br>Zıddı <b>cehr</b>: nefes tutulur, ses güçlüdür (diğer 19 harf).</li><li><b>Şiddet</b> (sesin hapsolması) — 8 harf: <span class="ar">أَجِدۡ قَطٍ بَكَتۡ</span><br>Zıddı <b>rehâvet</b>: ses akar.</li><li><b>Beyniyye / tavassut</b> (ikisi arası) — 5 harf: <span class="ar">لِنۡ عُمَرۡ</span></li></ul>` },
@@ -205,7 +205,7 @@ window.TC = (function () {
   });
 
   unit({
-    id: 'm3', ad: "Karıştırılan harfler", ikon: '🎧', kurallar: [],
+    id: 'm3', ad: "Karıştırılan harfler", ikon: '🔊', kurallar: [],
     sayfalar: [
       { t: "Neden karışıyor?", h: `<p>Türkçede bu seslerin çoğu yok. Bu yüzden şu gruplar kulağa aynı gelir:</p><ul><li><span class="ar">ض ظ ذ ز</span> → hepsi "z" gibi</li><li><span class="ar">ث س ص</span> → hepsi "s" gibi</li><li><span class="ar">ح ه خ</span> → hepsi "h" gibi</li><li><span class="ar">ع ء</span>, <span class="ar">ق ك</span>, <span class="ar">ط ت</span></li></ul><p>Ama Kur'an'da harf değişince anlam değişir:</p><p><span class="ar">عَلِيم</span> (bilen) ↔ <span class="ar">أَلِيم</span> (acı veren)</p><p class="not">Bu bölümü mutlaka <b>sesle</b> çalış. Alıştırma ve testte "Dinle ve bul" soruları var.</p>` },
       { t: "ض ظ ذ ز", h: `<ul><li><span class="ar">ض</span>: dilin kenarı azı dişlerine dayanır; <b>kalın</b>, ses uzar (istitâle)</li><li><span class="ar">ظ</span>: dil ucu üst ön dişlerin ucunda, dil hafif dışarıda; <b>kalın</b></li><li><span class="ar">ذ</span>: <span class="ar">ظ</span> ile aynı yer; <b>ince</b></li><li><span class="ar">ز</span>: dil ucu ön dişlerin arkasında, ıslıklı; <b>ince</b></li></ul><p class="not">İpucu: <span class="ar">ظ</span> ve <span class="ar">ذ</span> okurken dilin ucunu dişlerin arasında hissetmelisin.</p>` },
@@ -242,7 +242,7 @@ window.TC = (function () {
   });
 
   unit({
-    id: 'u1', ad: "Med-i tabîî (doğal uzatma)", ikon: '🎈', kurallar: ['tabii'],
+    id: 'u1', ad: "Med-i tabîî (doğal uzatma)", ikon: '🌿', kurallar: ['tabii'],
     sayfalar: [
       { t: "Balon gibi şişir", h: `<p>Med harfi (<span class="ar">ا و ي</span>) geldiğinde ve <b>arkasında hemze ya da sükûn yoksa</b> harfi <b>1 elif</b> uzatırsın.</p><p><b>1 elif</b> ne kadar? Parmağını açıp kapatma süresi kadar; kabaca iki hareke.</p><p><span class="ar">قَالَ</span> → "kââle" değil, "kâle".</p>` },
       { t: "Neden 'tabîî'?", h: `<p>Çünkü bu uzatma harfin doğasında var. Med harfi olan bir kelime bu uzatma olmadan zaten doğru okunamaz. Diğer bütün medlerin temeli budur. Önce bunu sağlam öğren!</p><p class="not">Ayrıntı: Bir kelimede hemzeden sonra gelen med (<span class="ar">ءَامَنُواْ</span>, "âmenû") da Hafs'ta 1 elif okunur. Buna med-i bedel denir ve tabîî gibi uygulanır.</p>` }
@@ -490,7 +490,7 @@ window.TC = (function () {
   });
 
   unit({
-    id: 'u11', ad: "İhfâ", ikon: '🙈', kurallar: ['ihfa'],
+    id: 'u11', ad: "İhfâ", ikon: '🌫️', kurallar: ['ihfa'],
     sayfalar: [
       { t: "Saklambaç", h: `<p>Nûn sâkin veya tenvinden sonra izhâr, idğâm ve iklâb harfleri <b>dışındaki 15 harften</b> biri gelirse nûn <b>saklanır</b>. Ne tam açık ne tam katılır; ikisinin arası, <b>genizden</b> okunur.</p><p class="ar buyuk">ت ث ج د ذ ز س ش ص ض ط ظ ف ق ك</p><p>Kolay yolu: 6 izhâr + 6 idğâm + 1 iklâb = 13 harf. Kalan 15 harfin hepsi ihfâdır.</p>` },
       { t: "Nasıl okunur?", h: `<p>Dil nûn için damağa tam yapışmaz. Ses burundan çıkar ve sonraki harfe hazırlanılır.</p><p><span class="ar">أَنتُمۡ</span> → "en(n)tum": nûn genizde hafifçe tutulur.</p><p><span class="ar">يُنفِقُونَ</span> → "yun(n)fikûn".</p><p class="not">Medine mushafında ihfâda nûnun üstünde sükûn yazılmaz, tenvin kaydırılmış (<span class="ar">ـٞ ـٗ ـٖ</span>) yazılır ve sonraki harf şeddesizdir.</p>` }
@@ -567,7 +567,7 @@ window.TC = (function () {
   unit({ id: 'x2', ara: true, ad: "Ara sınav 2: Nûn, mîm ve ğunne", ikon: '🏁', kapsar: ['u7', 'u8', 'u9', 'u10', 'u11', 'u12', 'u13'] });
 
   unit({
-    id: 'u14', ad: "İdğâmlar: misleyn, mütecâniseyn, mütekâribeyn", ikon: '🧲', kurallar: ['misleyn', 'mutecaniseyn', 'mutekaribeyn'],
+    id: 'u14', ad: "İdğâmlar: misleyn, mütecâniseyn, mütekâribeyn", ikon: '🧭', kurallar: ['misleyn', 'mutecaniseyn', 'mutekaribeyn'],
     sayfalar: [
       { t: "Harfler birbirine katılınca", h: `<p>İlk harf <b>sakin</b>, ikincisi <b>harekeli</b> olunca ilk harf ikinciye katılır ve tek şeddeli harf gibi okunur. Üç çeşidi vardır:</p><ul><li><b>Misleyn</b> (aynı harfler): <span class="ar">ٱضۡرِب بِّعَصَاكَ</span> → "idrib-bi'asâke"</li><li><b>Mütecâniseyn</b> (mahreci aynı, sıfatı farklı): <span class="ar">قَد تَّبَيَّنَ</span> → "kat-tebeyyene"</li><li><b>Mütekâribeyn</b> (birbirine yakın): <span class="ar">قُل رَّبِّيٓ</span> → "kur-rabbî"</li></ul>` },
       { t: "Mütecâniseyn grupları", h: `<ul><li><span class="ar">ت د ط</span>: <span class="ar">قَد تَّبَيَّنَ</span>, <span class="ar">أَثۡقَلَت دَّعَوَا</span>, <span class="ar">وَقَالَت طَّآئِفَةٞ</span></li><li><span class="ar">ث ذ ظ</span>: <span class="ar">يَلۡهَث ذَّـٰلِكَ</span>, <span class="ar">إِذ ظَّلَمُوٓاْ</span></li><li><span class="ar">ب م</span>: sadece ب önce gelirse: <span class="ar">ٱرۡكَب مَّعَنَا</span></li></ul><p class="not">ط'dan sonra ت gelince ط'nın kalınlığı (itbâk) korunur: <span class="ar">بَسَطتَ</span>. Tam idğâm yapılmaz.</p>` },
@@ -597,7 +597,7 @@ window.TC = (function () {
   });
 
   unit({
-    id: 'u15', ad: "Kalkale", ikon: '🏀', kurallar: ['kalkale'],
+    id: 'u15', ad: "Kalkale", ikon: '🔵', kurallar: ['kalkale'],
     sayfalar: [
       { t: "Top gibi sektir", h: `<p>Beş harf sakin olunca sesleri hafifçe <b>sekerek</b> (titreyerek) çıkar:</p><p class="ar buyuk">ق ط ب ج د</p><p>Akılda tutmak için: <b>"Kutbu cedin"</b> (قُطۡبُ جَدٍّ).</p><p><span class="ar">أَحَدۡ</span> → "ehad" deyip sonunda küçük bir yankı.</p>` },
       { t: "Küçük ve büyük kalkale", h: `<ul><li><b>Kelime ortasında</b> sakin olunca: hafif kalkale. <span class="ar">ٱقۡرَأۡ</span>, <span class="ar">يَلِدۡ</span></li><li><b>Durulduğu yerde</b> (vakf) kalkale daha belirgindir. <span class="ar">ٱلۡفَلَقِ</span> → "el-felak"</li><li>Şeddeli kalkale harfinde durulursa (<span class="ar">وَتَبَّ</span>) en kuvvetli kalkale olur.</li></ul><p class="not">Kalkale harfine sesli harf ekleme! "Ehade" ya da "ehadı" değil, sadece hafif bir sekme.</p>` }

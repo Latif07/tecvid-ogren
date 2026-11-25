@@ -454,6 +454,30 @@ const EKRANLAR = [
       await sayfa.waitForSelector('[data-sayfa]', { state: 'attached' });
       for (let g = 0; g < 30 && !(await sayfa.$('[data-git="kart|nun"]')); g++) { const b = await sayfa.$('[data-sayfa]:not([disabled]):last-of-type'); if (!b) break; await b.click(); }
       kontrol('ders son sayfası: "Bu konunun kartı" düğmesi var', !!(await sayfa.$('[data-git="kart|nun"]')));
+      // Tecvid sekmesi: "İleri konular" paneli derse girip geri dönünce açık kalır; Elif-Ba ve kart girişleri her zaman görünür
+      await sayfa.evaluate(() => { window.__TECVID.git('tecvid'); });
+      await sayfa.waitForSelector('details.bolum-grup');
+      kontrol('Tecvid sekmesi: Elif-Ba ve Hap kartlar girişleri görünüyor', (await sayfa.$$('.eb-giris')).length === 2);
+      await sayfa.evaluate(() => { document.querySelector('details.bolum-grup[data-grup-ad="İleri konular"]').open = true; });
+      await sayfa.waitForTimeout(100);
+      await sayfa.click('details.bolum-grup[data-grup-ad="İleri konular"] .bolum');
+      await sayfa.waitForSelector('.geri'); await sayfa.click('.geri');
+      await sayfa.waitForSelector('details.bolum-grup');
+      kontrol('Tecvid sekmesi: derse girip geri dönünce "İleri konular" açık kalıyor', await sayfa.evaluate(() => document.querySelector('details.bolum-grup[data-grup-ad="İleri konular"]').open));
+      // Ezber: istenen ayetten başla + ezberde meal
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ezber = {}; delete S.ayar.ezMeal; window.__TECVID.git('ezberCalis', 2, 'yeni'); });
+      await sayfa.waitForSelector('#ezNereden');
+      await sayfa.click('#ezNereden');
+      await sayfa.fill('#ezNereNo', '5'); await sayfa.click('#ezNereGit');
+      await sayfa.waitForFunction(() => /·\s*5/.test(document.querySelector('.ust').innerText) && document.querySelector('#ayet-5'));
+      kontrol('ezber: Ayet seç ile istenen ayetten (5) başlıyor', await sayfa.evaluate(() => !document.querySelector('#ayet-1') && !!document.querySelector('#ayet-5')));
+      await sayfa.click('#ezMeal');
+      await sayfa.waitForSelector('.ez-meal', { timeout: 8000 });
+      kontrol('ezber: Meal açılınca ayetlerin altında meal görünüyor', (await sayfa.$$('.ez-meal')).length >= 1);
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.ezMeal; window.__TECVID.S().ezber = {}; });
+      // Takip: yumuşak eşleme (bozuk telaffuzlu kelime yine bulunur, alakasız ses bulunmaz)
+      const ye = await sayfa.evaluate(() => { const Y = window.__TECVID.yakinEsle; return [Y('xxbismilaxx', 'bismila'), Y('bizmilla', 'bismila'), Y('alhamdulillah', 'bismila'), Y('ab', 'bismila')].map(r => r.ok); });
+      kontrol('takip: yumuşak eşleme — tam ve bozuk telaffuz evet, alakasız hayır', JSON.stringify(ye) === '[true,true,false,false]', JSON.stringify(ye));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
