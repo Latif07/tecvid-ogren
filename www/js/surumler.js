@@ -9,6 +9,7 @@
       'Elif-Ba odak modu ve Hap bilgi kartları girişleri Tecvid sekmesinin en üstünde her zaman görünüyor; kart kısayolu dersin ilk sayfasında da var',
       'Durak ışıkları artık derslerde ve ders örneklerinde de renkli; Vakf dersinde işaretlerin anlamı açılır kutuda',
       'Daha sade simgeler: Kontrol modu ve "Gizle ve oku" için göz, ders simgeleri yenilendi',
+      'Ezber: "📍 Ayet seç" ile istediğin ayetten devam edebilirsin; "📖 Meal" ile ezberlerken mealin ayetin altında görünür',
     ] },
     { s: '1.0.55', t: '2026-11-25', durum: 'Web', l: [
       'Durak ışıkları: Kur\'an sayfasındaki durak işaretleri renkli (kırmızı lâzım, turuncu durmak iyi, sarı câiz, yeşil geçmek iyi, mavi muânaka, mor sekte); Aa menüsünden kapatılır, işaretlerin anlamı orada',

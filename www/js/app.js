@@ -2906,6 +2906,9 @@
       return;
     }
     if (CANLI) canliDurdur(true);
+    if (S.ayar.ezMeal && akMealYok !== n && !mealSecili().every(z => mealVeri(z, n))) {
+      Promise.all(mealSecili().map(z => mealKaynakYukle(z, n))).catch(() => { akMealYok = n; }).then(() => { const ek = ekranYigini[ekranYigini.length - 1]; if (ek[0] === 'ezberCalis' && +ek[1][0] === n) ciz(); });
+    }
     ezberEkle(n); const e = ezb(n), top = x.ayet.length;
     if (mod === 'yeni' && !+bas && e.tam) mod = 'tekrar';
     if (mod === 'tekrar' && !e.tam && !e.a) mod = 'yeni';
@@ -2949,7 +2952,7 @@
     const ayetHTML = a => {
       const r = `${n}:${a}`; let o = 0;
       const kel = x.ayet[a - 1].split(' ').map((w, wi) => { const ic = kelimeHTML(r, w, o); o += w.length + 1; return gizle(a, wi) ? `<span class="kelime gizli" data-ac="${kelimeUrl(r, wi + 1)}">${ic}</span>` : `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${ic}</span>`; }).join(' ');
-      return `<div class="ez-ayet" id="ayet-${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${Z.adim === 0 && okunusAcik() && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
+      return `<div class="ez-ayet" id="ayet-${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${Z.adim === 0 && okunusAcik() && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${S.ayar.ezMeal ? mealSecili().map(z => [z, (mealVeri(z, n) || [])[a - 1]]).filter(z => z[1]).map(([z, m]) => `<p class="ko-meal ez-meal">${esc(m)}</p>`).join('') : ''}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
     };
     const ayetler = []; for (let a = okBas; a <= okBit; a++) ayetler.push(ayetHTML(a));
     let besmele = okBas === 1 && n !== 1 && n !== 9 ? `<div class="besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : '';
@@ -2963,6 +2966,10 @@
     const tekrar = S.ayar.ezTekrar || 3, gizliAdim = Z.adim >= 2;
     app.innerHTML = `${ust(baslik)}${cubuk}<main class="ez-ekran">
       <p class="ez-yonerge">${yonerge}</p>
+      <div class="satir sola ez-arac"><button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button>${Z.mod === 'yeni' ? `<button class="cip" id="ezNereden">📍 ${t('Ayet seç')}</button>` : ''}</div>
+      ${Z.mod === 'yeni' ? `<div class="kart ez-nereden" id="ezNerePanel" hidden><p class="kucukyazi soluk">${t('Hangi ayetten çalışmak istiyorsun? (1–{0})', top)}</p>
+        <div class="satir sola"><input id="ezNereNo" type="number" min="1" max="${top}" value="${Z.bas}" inputmode="numeric" aria-label="${t('Ayet numarası')}"><button class="btn kucuk" id="ezNereGit">${t('Buradan başla')}</button></div>
+        <div class="satir sola"><button class="cip" data-ez-bas="1">${t('Baştan')}</button>${e.a ? `<button class="cip" data-ez-bas="${Math.min(top, e.a + 1)}">${t('Kaldığım yer ({0}. ayet)', Math.min(top, e.a + 1))}</button>` : ''}</div></div>` : ''}
       ${Z.adim === 0 ? `<p class="kucukyazi soluk">${t('Her ayet kaç kez okunsun?')} ${[1, 3, 5, 10, 20].map(k => `<button class="cip ${tekrar === k ? 'aktif' : ''}" data-ez-tekrar="${k}">${k}×</button>`).join(' ')}</p>` : ''}
       ${Z.adim === 3 && Z.mod === 'yeni' ? `<p class="kucukyazi"><button class="cip ${Z.ilkKelime ? 'aktif' : ''}" id="ezIlk">${t('İlk kelime görünsün')}</button></p>` : ''}
       <section class="kart ez-kart" id="ezKart">${besmele}${ayetler.join('')}</section>
@@ -2983,6 +2990,11 @@
     };
     app.querySelectorAll('[data-ez-adim]').forEach(b => b.onclick = () => { if (CANLI) return; Z.adim = +b.dataset.ezAdim; ciz(); });
     app.querySelectorAll('[data-ez-tekrar]').forEach(b => b.onclick = () => { S.ayar.ezTekrar = +b.dataset.ezTekrar; kaydet(); ciz(); });
+    $('#ezMeal').onclick = () => { if (CANLI) return; S.ayar.ezMeal = !S.ayar.ezMeal; kaydet(); ciz(); };
+    const en = $('#ezNereden'); if (en) en.onclick = () => { const pn = $('#ezNerePanel'); pn.hidden = !pn.hidden; };
+    const nereyeGit = a => { a = Math.min(top, Math.max(1, +a || 1)); if (CANLI) return; sesDurdur(); EZ = null; ekranDegistir('ezberCalis', n, 'yeni', a); };
+    const eg = $('#ezNereGit'); if (eg) eg.onclick = () => nereyeGit($('#ezNereNo').value);
+    app.querySelectorAll('[data-ez-bas]').forEach(b => b.onclick = () => nereyeGit(b.dataset.ezBas));
     const il = $('#ezIlk'); if (il) il.onclick = () => { Z.ilkKelime = !Z.ilkKelime; ciz(); };
     const at = $('#ezAtla'); if (at) at.onclick = ileri;
     const ia = $('#ezIleriAlt'); if (ia) ia.onclick = ileri;

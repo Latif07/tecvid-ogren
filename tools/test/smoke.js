@@ -464,6 +464,17 @@ const EKRANLAR = [
       await sayfa.waitForSelector('.geri'); await sayfa.click('.geri');
       await sayfa.waitForSelector('details.bolum-grup');
       kontrol('Tecvid sekmesi: derse girip geri dönünce "İleri konular" açık kalıyor', await sayfa.evaluate(() => document.querySelector('details.bolum-grup[data-grup-ad="İleri konular"]').open));
+      // Ezber: istenen ayetten başla + ezberde meal
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ezber = {}; delete S.ayar.ezMeal; window.__TECVID.git('ezberCalis', 2, 'yeni'); });
+      await sayfa.waitForSelector('#ezNereden');
+      await sayfa.click('#ezNereden');
+      await sayfa.fill('#ezNereNo', '5'); await sayfa.click('#ezNereGit');
+      await sayfa.waitForFunction(() => /·\s*5/.test(document.querySelector('.ust').innerText) && document.querySelector('#ayet-5'));
+      kontrol('ezber: Ayet seç ile istenen ayetten (5) başlıyor', await sayfa.evaluate(() => !document.querySelector('#ayet-1') && !!document.querySelector('#ayet-5')));
+      await sayfa.click('#ezMeal');
+      await sayfa.waitForSelector('.ez-meal', { timeout: 8000 });
+      kontrol('ezber: Meal açılınca ayetlerin altında meal görünüyor', (await sayfa.$$('.ez-meal')).length >= 1);
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.ezMeal; window.__TECVID.S().ezber = {}; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
