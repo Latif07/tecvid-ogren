@@ -2643,6 +2643,19 @@
     while (i > 0) { if (j > 0 && D[i][j] === D[i - 1][j - 1] + (h[i - 1] !== R[j - 1] ? 1 : 0)) { i--; j--; } else if (D[i][j] === D[i - 1][j] + 1) i--; else j--; es[i] = Math.max(es[i], j); }
     return { k, mesafe: en, es };
   }
+  // Yumuşak eşleme: sıradaki kelime, duyulan metnin herhangi bir yerinde yaklaşık (en çok %40 hata) geçiyor mu?
+  // (Tam hizalama güvenilmez bulunup ilerleme durduğunda, yanlış/eksik telaffuzla okunan kelimeyi geçirmek için)
+  function yakinEsle(h, w) {
+    const m = w.length, n = h.length; if (m < 3 || n < 2) return { ok: false, son: 0, mesafe: m };
+    let onc = new Int32Array(n + 1), cur = new Int32Array(n + 1), best = Infinity, son = 0;
+    for (let j = 1; j <= m; j++) {
+      cur[0] = j;
+      for (let i = 1; i <= n; i++) cur[i] = Math.min(onc[i] + 1, cur[i - 1] + 1, onc[i - 1] + (h[i - 1] !== w[j - 1] ? 1 : 0));
+      [onc, cur] = [cur, onc];
+    }
+    for (let i = 0; i <= n; i++) if (onc[i] <= best) { best = onc[i]; son = i; }
+    return { ok: best <= Math.floor(m * 0.4), son, mesafe: best };
+  }
   const canliKelimeler = a => { if (CANLI && CANLI.elBul) return CANLI.elBul(a); const k = document.getElementById('ayet-' + a); return k ? [...k.querySelectorAll('.ayet .kelime')] : []; };
   const canliEl = (a, wi) => { const l = canliKelimeler(a); return l[Math.min(wi, l.length - 1)]; };
   // ops: { bit: son ayet (yoksa sûre sonu), gizle(a, wi): kelime gizlensin mi (yoksa hepsi), bitince(C_): sonuç şerit yerine buraya }
@@ -2779,7 +2792,19 @@
       // Tanı kaydı (yalnız metin ve sayılar; ses kaydedilmez): her adımda ne duyuldu, ne bekleniyordu, neden ilerlenmedi
       const tani = (karar, ek) => { if (C_.tani.length < 300) C_.tani.push(Object.assign({ s: Math.round((Date.now() - C_.t0) / 100) / 10, pen: +((son - C_.bas) / 16000).toFixed(1), ms, duyulan: h.length, k: A.k, fark: A.mesafe, ac: C_.acilan, karar, duy: h.slice(0, 100), bek: C_.G.slice(C_.c, C_.c + Math.min(100, A.k + 8)) }, ek || {})); };
       // güvenilmeyen hizalama (tekrar okuma, başka ayet, gürültü): ilerleme yok; pencere çok uzarsa eski ses bırakılır
-      if (A.k > 0 && A.mesafe > Math.max(3, 0.35 * A.k)) { tani('ret', { son: !!sonAdim }); if (sonAdim) yarimDegerlendir(); else if ((son - C_.bas) / 16000 > 12) C_.bas = son - 4 * 16000; return; }
+      if (A.k > 0 && A.mesafe > Math.max(3, 0.35 * A.k)) {
+        // Hizalama güvenilmez; ama art arda reddedilip ses sürüyorsa sıradaki kelimeyi duyulanın içinde yaklaşık ara
+        C_.retSay = (C_.retSay || 0) + 1;
+        const wn = C_.W[C_.acilan];
+        if (!sonAdim && C_.retSay >= 2 && wn) {
+          const ym = yakinEsle(h, C_.G.slice(wn.s, wn.e));
+          if (ym.ok) {
+            canliAc(wn.e); C_.c = Math.max(C_.c, wn.e); C_.retSay = 0;
+            C_.bas = ym.son > 0 && ym.son <= d.times.length ? C_.bas + Math.max(0, Math.round((d.times[ym.son - 1] + 0.08) * 16000)) : son;
+            tani('yumusak', { fark: ym.mesafe }); return;
+          }
+        }
+        tani('ret', { son: !!sonAdim }); if (sonAdim) yarimDegerlendir(); else if ((son - C_.bas) / 16000 > 12) C_.bas = son - 4 * 16000; return; }
       // okuyucu durduysa (son ~0,9 sn sessiz) ya da bitirdiyse: büyük kısmı duyulan kelime de tamamlanmış sayılır (uzun med, vakf)
       const kuyrukSes = seg.subarray(Math.max(0, seg.length - 14400)); let e2 = 0; for (const v of kuyrukSes) e2 += v * v;
       // Sessizlik eşiği ortama göre: gürültü tabanının üstünde, konuşma düzeyinin altında (telefonda oda gürültüsü 0,012'yi aşabiliyor)
@@ -2791,7 +2816,7 @@
       let ilerle = C_.c + A.k - (durdu ? 0 : 1);
       const sira = C_.W[C_.acilan];
       if (durdu && sira && ilerle < sira.e && ilerle >= sira.s + 0.6 * (sira.e - sira.s)) ilerle = sira.e;
-      canliAc(ilerle); tani('ilerle', { il: ilerle, durdu: !!durdu });
+      C_.retSay = 0; canliAc(ilerle); tani('ilerle', { il: ilerle, durdu: !!durdu });
       const zamanBul = hedef => { let hi = -1; for (let i = 0; i <= h.length; i++) if (A.es[i] <= hedef - C_.c) hi = i; return hi > 0 && hi <= d.times.length ? C_.bas + Math.max(0, Math.round((d.times[hi - 1] + 0.08) * 16000)) : null; };
       // biten ayetler: bir sonraki ayetin okunmaya başlandığı görülünce (ya da son adımda tamamı okununca)
       while (C_.bitenAyet < C_.AY.length) {
@@ -5261,5 +5286,5 @@
   basla();
   bulutBagla();
   hatirlatmaKur(false);
-  window.__TECVID = { tk: () => TK, TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
+  window.__TECVID = { yakinEsle, tk: () => TK, TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
 })();
