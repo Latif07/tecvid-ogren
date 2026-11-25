@@ -559,6 +559,14 @@ const EKRANLAR = [
       await sayfa.click('[data-not-duzenle]'); await sayfa.click('#notSil');
       kontrol('not: silinen not listeden kalkıyor', (await sayfa.$$('.not-oge')).length === 1);
       await sayfa.evaluate(() => { window.__TECVID.S().notlar = []; });
+      // Tekrarla: sessiz tekrar payı ve "tekrarlar bitince" ayarları kaydolur
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.tk; window.__TECVID.git('tekrarla', 112, 1, 4); });
+      await sayfa.waitForSelector('[data-tk-pay]', { state: 'attached' });
+      await sayfa.evaluate(() => { document.querySelector('#tkAyarKutu').open = true; });
+      await sayfa.click('[data-tk-pay="2"]'); await sayfa.click('[data-tk-bitince="1"]');
+      const tkp = await sayfa.evaluate(() => { const a = window.__TECVID.S().ayar.tk || {}; return { pay: a.pay, oto: a.oto, chk: document.querySelector('#tkOto').checked }; });
+      kontrol('tekrarla: sessiz tekrar payı ×2 ve "başa dönsün" ayarları kaydoluyor', tkp.pay === 2 && tkp.oto === true && tkp.chk === true, JSON.stringify(tkp));
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.tk; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

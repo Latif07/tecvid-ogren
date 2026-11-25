@@ -2082,7 +2082,7 @@
 
   // ------------------------------------------------------------ Tekrarla: bir sûreyi istediğin kadar tekrarla (ezber oynatıcısı)
   // Ayarlar S.ayar.tk'da: tekrar, bekle (sn), hiz, oto (bitince başa dön), kaydir, ses, latin, meal, basamak (1 → 1-2 → 1-2-3), boy, gizle ('hepsi' | 'yari')
-  const TK_VARSAYILAN = { tekrar: 5, bekle: 1, hiz: 1, oto: false, kaydir: true, ses: true, latin: true, meal: false, basamak: false, yon: 'ileri', boy: 1, gizle: 'hepsi' };
+  const TK_VARSAYILAN = { tekrar: 5, bekle: 1, pay: 0, hiz: 1, oto: false, kaydir: true, ses: true, latin: true, meal: false, basamak: false, yon: 'ileri', boy: 1, gizle: 'hepsi' };
   const TK_TEKRAR = [1, 2, 3, 5, 7, 10, 15, 20, 30, 50, 99], TK_BEKLE = [0, 1, 2, 3, 5, 10];
   const tkAyar = () => Object.assign({}, TK_VARSAYILAN, S.ayar.tk || {});
   const tkYaz = (k, v) => { S.ayar.tk = Object.assign(tkAyar(), { [k]: v }); kaydet(); };
@@ -2141,6 +2141,8 @@
           ${onay('tkOto', t('Oto tekrar'), o0.oto)}${onay('tkKaydir', t('Oto kaydır'), o0.kaydir)}${onay('tkEzber', t('Ezberlendi'), !!(e && e.tam))}
         </div>
         <div class="tk-satir"><span>${t('Okuma hızı')}</span>${[0.75, 1, 1.25, 1.5].map(h => `<button class="cip ${o0.hiz === h ? 'aktif' : ''}" data-tk-hiz="${h}">${h}×</button>`).join('')}<span class="tk-boy"><button class="cip" id="tkKucult" aria-label="${t('Yazıyı küçült')}">A−</button><button class="cip" id="tkBuyut" aria-label="${t('Yazıyı büyüt')}">A+</button></span></div>
+        <div class="tk-satir"><span>${t('Sessiz tekrar payı')}</span>${[[0, t('Sabit bekleme')], [1, t('Ayet süresi ×1')], [2, t('×2')], [3, t('×3')]].map(([v, ad]) => `<button class="cip ${o0.pay === v ? 'aktif' : ''}" data-tk-pay="${v}">${ad}</button>`).join('')}</div>
+        <div class="tk-satir"><span>${t('Tekrarlar bitince')}</span>${[[false, t('Dursun')], [true, t('Başa dönsün')]].map(([v, ad]) => `<button class="cip ${!!o0.oto === v ? 'aktif' : ''}" data-tk-bitince="${v ? 1 : 0}">${ad}</button>`).join('')}</div>
         <div class="tk-satir"><span>${t('Gizleyerek oku')}</span>${[['hepsi', t('Tamamı')], ['yari', t('Yarısı')]].map(([v, ad]) => `<button class="cip ${o0.gizle === v ? 'aktif' : ''}" data-tk-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="kucukyazi soluk tk-not" id="tkNot">${t('Basamak yöntemi: önce 1. ayet, sonra 1–2, sonra 1–2–3… her basamak tekrar sayısı kadar. Gizle ve oku: kelimeler gizlenir, okudukça açılır.')}</p>
       </details>
@@ -2167,6 +2169,8 @@
     app.querySelectorAll('[data-tk-hiz]').forEach(b => b.onclick = () => { const h = +b.dataset.tkHiz; tkYaz('hiz', h); if (ses && TK.calma) ses.playbackRate = h; app.querySelectorAll('[data-tk-hiz]').forEach(z => z.classList.toggle('aktif', z === b)); });
     const boyla = d => { const y = Math.min(1.5, Math.max(0.6, +(tkAyar().boy + d).toFixed(2))); tkYaz('boy', y); kart.style.setProperty('--ar-olcek', y); };
     $('#tkKucult').onclick = () => boyla(-0.1); $('#tkBuyut').onclick = () => boyla(0.1);
+    app.querySelectorAll('[data-tk-pay]').forEach(b => b.onclick = () => { tkYaz('pay', +b.dataset.tkPay); app.querySelectorAll('[data-tk-pay]').forEach(z => z.classList.toggle('aktif', z === b)); });
+    app.querySelectorAll('[data-tk-bitince]').forEach(b => b.onclick = () => { tkYaz('oto', b.dataset.tkBitince === '1'); const oc = $('#tkOto'); if (oc) oc.checked = b.dataset.tkBitince === '1'; app.querySelectorAll('[data-tk-bitince]').forEach(z => z.classList.toggle('aktif', z === b)); });
     app.querySelectorAll('[data-tk-gizle]').forEach(b => b.onclick = () => { tkYaz('gizle', b.dataset.tkGizle); app.querySelectorAll('[data-tk-gizle]').forEach(z => z.classList.toggle('aktif', z === b)); });
     app.querySelectorAll('[data-tk-say]').forEach(b => b.onclick = () => {
       const [ad, yon] = [b.dataset.tkSay.slice(0, -1), b.dataset.tkSay.slice(-1) === '+' ? 1 : -1], liste = ad === 'tekrar' ? TK_TEKRAR : TK_BEKLE, simdiki = tkAyar()[ad];
@@ -2200,10 +2204,12 @@
         for (let u = 0; u < plan.length; u++) for (let r = 1; r <= tkAyar().tekrar; r++) for (const a of plan[u]) {
           if (is.iptal || !document.body.contains(kart)) return tkDur();
           durum(`${t('Tekrar {0}/{1}', r, tkAyar().tekrar)} · ${t('Ayet {0}', a)}${tkAyar().basamak ? ' · ' + t('Basamak {0}/{1}', u + 1, plan.length) : ''}${tkAyar().oto && tur > 1 ? ' · ' + t('Tur {0}', tur) : ''}`);
-          await oynat(a, is);
+          const t0_ = Date.now(); await oynat(a, is);
           if (is.hata) { tkDur(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); durum(t('Hazır')); return; }
           if (is.iptal) return tkDur();
-          await bekle(tkAyar().bekle * 1000, is);
+          // Sessiz tekrar payı: pay > 0 ise bekleme, ayetin süresinin pay katıdır (o sürede sen tekrar edersin)
+          const pay_ = tkAyar().pay; if (pay_ > 0) durum(`${t('Sen tekrar et…')} · ${t('Ayet {0}', a)}`);
+          await bekle(pay_ > 0 ? Math.max(800, (Date.now() - t0_) * tkHizli() * pay_) : tkAyar().bekle * 1000, is);
         }
       } while (tkAyar().oto && !is.iptal && document.body.contains(kart));
       tkDur(); durum(t('Bitti. Tekrar başlatabilirsin.'));
