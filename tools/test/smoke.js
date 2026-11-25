@@ -632,6 +632,10 @@ const EKRANLAR = [
       await sayfa.waitForTimeout(150);
       kontrol('kaydırma çubuğu: sürüklenince sayfa kayıyor', (await sayfa.evaluate(() => window.scrollY)) > 300, String(await sayfa.evaluate(() => window.scrollY)));
       await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'mushaf'; window.scrollTo(0, 0); });
+      // Takip: ortam kontrolü (kısık / gürültülü / normal) ve okuma hızı çarpanı
+      const ok2 = await sayfa.evaluate(() => { const K = window.__TECVID.canliOrtamKontrol, Hc = window.__TECVID.canliHizCarpani, Tl = window.__TECVID.canliTolerans; const rms = (v, n = 20) => Array(n).fill(v);
+        return [K(rms(0.002)).durum, K(rms(0.05)).durum, K(rms(0.02)).durum, K([0.1]).durum, Hc(null), Hc({ ilkIlerleme: Date.now() - 5000, c: 150 }), +Tl(20, 0, false, 1.4).toFixed(1)]; });
+      kontrol('takip: ortam kontrolü ve hız çarpanı', JSON.stringify(ok2) === '["sessiz","gurultulu","ok","ok",1,1.4,9.8]', JSON.stringify(ok2));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
