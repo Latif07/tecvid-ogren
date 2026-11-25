@@ -972,6 +972,21 @@
     EKRAN.ders._hk = { id: u.id, i, q };
     return q;
   }
+  // Ders görünümü (defter kartları): "Tek bakışta" kural kartları, uzatma miktarı çubuğu, aynı konudaki derslerin çipleri
+  const elifCubugu = es => {
+    const m = /^(\d+)(?:[–-](\d+))?\s*elif(?:\s*\(yaygın:\s*(\d+)(?:[–-](\d+))?\))?/.exec(es || ''); if (!m) return '';
+    const a = +m[1], b = +(m[2] || m[1]), y1 = m[3] ? +m[3] : 0, y2 = m[4] ? +m[4] : y1;
+    return `<div class="elif-bar" role="img" aria-label="${t('Uzatma miktarı')}: ${esc(es)}">${[1, 2, 3, 4, 5].map(i => `<span class="${i >= a && i <= b ? 'var' : ''} ${y1 && i >= y1 && i <= y2 ? 'yaygin' : ''}">${i}</span>`).join('')}<b>${t('elif')}</b></div>`;
+  };
+  const tekBakista = u => {
+    const l = (u.kurallar || []).map(k => R[k]).filter(Boolean); if (!l.length) return '';
+    return `<section class="tek-bakista" aria-label="${t('Tek bakışta')}">${l.map(r => `<article class="tb-kart tb-${esc(r.grup || 'med')}"><span class="tb-raptiye" aria-hidden="true"></span><h3>${esc(r.ad)}</h3><p>${esc(r.ozet)}</p>${r.elif ? `<div class="tb-elif"><small>${t('Uzatma miktarı')}</small>${elifCubugu(r.elif)}<p class="soluk kucukyazi">${esc(r.elif)}</p></div>` : ''}</article>`).join('')}</section>`;
+  };
+  const konuCipleri = id => {
+    const g = GRUPLAR.find(([, l]) => l.includes(id)); if (!g || g[1].length < 2) return '';
+    const kisa = u => u.ad.split(/[:(]/)[0].trim();
+    return `<nav class="konu-cipleri" aria-label="${esc(g[0])}"><small>${esc(g[0])}</small><div>${g[1].map(k => { const x = unitById(k); return x ? `<button class="konu-cip ${k === id ? 'aktif' : ''} ${gecti(k) ? 'tamam' : ''}" data-konu="${k}" ${k === id ? 'aria-current="true"' : ''}>${esc(kisa(x))}${gecti(k) ? ' ✓' : ''}</button>` : ''; }).join('')}</div></nav>`;
+  };
   EKRAN.ders = function (id, sekme = 'ders') {
     const u = unitById(id);
     const okunan = S.okunan[id] || 0;
@@ -991,7 +1006,7 @@
       const hk = i > 0 && i === u.sayfalar.length - 1 && (u.sorular || []).length ? hizliKontrolSoru(u, i) : null;
       const hkSay = hikayeKartlar(u).length;
       const hikayeGir = `<button class="ders-ince hikaye-gir" data-git="hikaye|${id}|0"><span>${u.ikon} ${t('Kısa anlatım')} · ${t('{0} kart, ~{1} dk', hkSay, Math.max(1, Math.round(hkSay / 3)))}</span><b>›</b></button>`;
-      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>` : '') + `<article class="kart sayfa"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>${mahrecHTML(id, i)}${['e1', 'm1', 'm2', 'm3'].includes(id) ? hkGiris() : ''}
+      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>${tekBakista(u)}` : '') + `<article class="kart sayfa defter"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${s.h}</article>${mahrecHTML(id, i)}${['e1', 'm1', 'm2', 'm3'].includes(id) ? hkGiris() : ''}
         ${hk ? `<section class="kart hizli-kontrol"><p class="hk-baslik">${t('🎯 Kendini dene')} <small class="soluk">· ${t('Dersi bitirmeden')}</small></p><p><b>${hk.soru}</b></p><div class="secenekler">${hk.secenek.map((x, j) => `<button class="secenek" data-hk="${j}">${metin(x)}</button>`).join('')}</div><div id="hkSonuc"></div></section>` : ''}
         <div class="satir">
           <button class="btn ikincil" data-sayfa="${i - 1}" ${i === 0 ? 'disabled' : ''}>${t('‹ Önceki')}</button>
@@ -1021,8 +1036,10 @@
       </article>`;
     }
     app.innerHTML = `${ust(esc(u.ad))}
+      ${konuCipleri(id)}
       <div class="sekmeler">${sekmeler.map(s => `<button class="${s[0] === sekme ? 'aktif' : ''}" data-sekme="${s[0]}">${s[1]}</button>`).join('')}</div>
       <main>${icerik}</main>`;
+    app.querySelectorAll('[data-konu]').forEach(b => b.onclick = () => { if (b.dataset.konu === id) return; ekranYigini[ekranYigini.length - 1] = ['ders', [b.dataset.konu]]; ciz(); window.scrollTo(0, 0); });
     app.querySelectorAll('[data-sekme]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = ['ders', [id, b.dataset.sekme]]; ciz(); window.scrollTo(0, 0); });
     if (sekme === 'ders') { const sy = app.querySelector('.kart.sayfa'); if (sy) sozlukBagla(sy); }
     if (sekme === 'ornek') app.querySelectorAll('.kart.ornek').forEach(k => sozlukBagla(k));
@@ -1864,18 +1881,32 @@
       let x; try { x = await sureYukle(n); } catch (e) { kutu.innerHTML = `<p class="hata">${t('Sûre açılamadı.')}</p><div class="satir"><button class="btn" id="aeKapat">${t('Kapat')}</button></div>`; kutu.querySelector('#aeKapat').onclick = kapat; return; }
       let mealler = []; try { mealler = await Promise.all(mealSecili().map(async k => [k, ((await mealKaynakYukle(k, n)) || [])[a - 1] || ''])); } catch (e) { }
       const top = ayetSayisi(n), p = sayfaBul(n, a), sayfadaMi = ops.ayetler && ops.ayetler.some(r => r[0] === n && r[1] === a);
+      const sayim = {}; (RENK[`${n}:${a}`] || []).forEach(([, , kd]) => { sayim[kd] = (sayim[kd] || 0) + 1; });
+      const tcKodlar = LEJANT.filter(([kd]) => sayim[kd]);
       kutu.innerHTML = `<button class="ayet-ekran-kapat" id="aeKapat" aria-label="${t('Kapat')}">✕</button>
         <p class="ayet-ekran-baslik"><b>${esc(sureNoAdi(n))}</b> · ${t('Ayet')}: <b>${a}</b> / ${top}</p>
         <p class="kucukyazi soluk ortala">${t('Sayfa {0}', p)} · ${t('Cüz {0}', cuzBul(n, a))}</p>
         <div class="ayet ayet-ekran-ar" dir="rtl" lang="ar">${esc(x.ayet[a - 1] || '')}</div>
         ${mealler.map(([k, m]) => m ? `<section class="ayet-ekran-meal"><h3>${esc(k.ad)}</h3><p>${esc(m)}</p></section>` : '').join('')}
+        ${tcKodlar.length ? `<section class="ayet-ekran-tc"><h3>${t('Bu ayette tecvid')}</h3><div class="ae-tc-cipler">${tcKodlar.map(([kd, ad]) => `<button class="ae-tc tc-${kd}" data-ae-tc="${kd}"><i></i><b>${esc(ad)}${sayim[kd] > 1 ? ` ×${sayim[kd]}` : ''}</b></button>`).join('')}</div><div class="ae-tc-bilgi" id="aeTcBilgi" hidden></div></section>` : ''}
         <div class="ayet-ekran-dugme"><button class="btn ikincil" id="aeGeri" aria-label="${t('Önceki ayet')}">‹ ${t('Önceki ayet')}</button><button class="btn" id="aeOku">▶ ${t('Oku')}</button><button class="btn ikincil" id="aeIleri" aria-label="${t('Sonraki ayet')}">${t('Sonraki ayet')} ›</button></div>
-        <div class="satir sola"><button class="btn ikincil kucuk" id="aeSayfa">📖 ${t('Sayfada göster')}</button><button class="btn ikincil kucuk" id="aeKart">🃏 ${t('Okuma kartı')}</button>${ops.takip && sayfadaMi ? `<button class="btn ikincil kucuk" id="aeTakip">🎙️ ${t('Buradan sen oku')}</button>` : ''}</div>`;
+        <div class="satir sola"><button class="btn ikincil kucuk" id="aeSayfa">📖 ${t('Sayfada göster')}</button><button class="btn ikincil kucuk" id="aeKart">🃏 ${t('Okuma kartı')}</button><button class="btn ikincil kucuk" id="aePaylas">↗ ${t('Paylaş')}</button>${ops.takip && sayfadaMi ? `<button class="btn ikincil kucuk" id="aeTakip">🎙️ ${t('Buradan sen oku')}</button>` : ''}</div>`;
       kutu.querySelector('#aeKapat').onclick = kapat;
       kutu.querySelector('#aeGeri').onclick = () => komsu(-1); kutu.querySelector('#aeIleri').onclick = () => komsu(1);
       kutu.querySelector('#aeOku').onclick = () => cal(ayetUrl(`${n}:${a}`), null, ayetUrl(`${n}:${a}`, KARILER[0].klasor));
       kutu.querySelector('#aeSayfa').onclick = () => { kapat(); git('sayfa', p, `${n}:${a}`); };
       kutu.querySelector('#aeKart').onclick = () => { kapat(); git('ayetKart', n, a); };
+      kutu.querySelector('#aePaylas').onclick = async () => {
+        const metin_ = `${x.ayet[a - 1] || ''}\n\n${mealler.filter(z => z[1]).map(([k, m]) => `${m} (${k.ad})`).join('\n')}\n\n— ${sureNoAdi(n)} ${a}. ${t('ayet')} · ${t('Kur\'an Yolum')}`.replace(/\n{3,}/g, '\n\n');
+        try { if (navigator.share) await navigator.share({ text: metin_ }); else { await navigator.clipboard.writeText(metin_); toast(t('Ayet kopyalandı ✓')); } } catch (e) { if (e && e.name !== 'AbortError') toast(t('Paylaşılamadı.')); }
+      };
+      const TC_DERS = { m2: ['u1', 'tabii'], mt: ['u2', 'muttasil'], mf: ['u3', 'munfasil'], ml: ['u4', 'lazim'], g: ['u13', 'gunne'], h: ['u11', 'ihfa'], dg: ['u8', 'idgamMaal'], db: ['u9', 'idgamBila'], k: ['u10', 'iklab'], q: ['u15', 'kalkale'], s: ['u16', 'semsi'] };
+      kutu.querySelectorAll('[data-ae-tc]').forEach(b => b.onclick = () => {
+        const [uid, rid] = TC_DERS[b.dataset.aeTc] || [], u_ = uid && unitById(uid), r_ = rid && R[rid], bilgi = kutu.querySelector('#aeTcBilgi'); if (!bilgi) return;
+        kutu.querySelectorAll('[data-ae-tc]').forEach(z => z.classList.toggle('aktif', z === b));
+        bilgi.hidden = false; bilgi.innerHTML = `${r_ ? `<p><b>${esc(r_.ad)}</b> — ${esc(r_.ozet)}</p>` : ''}${r_ && r_.elif ? `${elifCubugu(r_.elif)}<p class="soluk kucukyazi">${esc(r_.elif)}</p>` : ''}${u_ ? `<button class="btn kucuk" id="aeTcDers">${t('Dersi aç ›')} <small>${esc(u_.ad)}</small></button>` : ''}`;
+        const db_ = bilgi.querySelector('#aeTcDers'); if (db_) db_.onclick = () => { kapat(); git('ders', uid); };
+      });
       const tk = kutu.querySelector('#aeTakip'); if (tk) tk.onclick = () => { const n_ = n, a_ = a; kapat(); ops.takip(n_, a_); };
     }
     goster();

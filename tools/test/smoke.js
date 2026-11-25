@@ -294,6 +294,36 @@ const EKRANLAR = [
     } catch (e) { kontrol('okuma kartı / istatistik', false, e.message.split('\n')[0]); }
   }
 
+  // Ders görünümü (tek bakışta, uzatma çubuğu, konu çipleri) ve ayet ekranı (Bu ayette tecvid, paylaş)
+  {
+    const once = hatalar.length;
+    try {
+      await sayfa.evaluate(() => window.__TECVID.git('ders', 'u2')); await sayfa.waitForSelector('.tek-bakista');
+      const tb = await sayfa.evaluate(() => ({ kart: document.querySelector('.tb-kart') && document.querySelector('.tb-kart').innerText, var_: [...document.querySelectorAll('.elif-bar span.var')].map(x => x.textContent).join(), yaygin: [...document.querySelectorAll('.elif-bar span.yaygin')].map(x => x.textContent).join(), defter: !!document.querySelector('.kart.sayfa.defter') }));
+      kontrol('ders: "Tek bakışta" kartı kural adı ve özetle', /Med-i muttasıl/.test(tb.kart) && /AYNI kelimede hemze/.test(tb.kart), (tb.kart || '').replace(/\n/g, ' | ').slice(0, 80));
+      kontrol('ders: uzatma çubuğu 2–5 elif dolu, yaygın 4', tb.var_ === '2,3,4,5' && tb.yaygin === '4', JSON.stringify(tb));
+      kontrol('ders: defter görünümlü ders kartı', tb.defter);
+      const cip = await sayfa.evaluate(() => [...document.querySelectorAll('.konu-cip')].map(x => x.textContent + (x.classList.contains('aktif') ? '*' : '')));
+      kontrol('ders: aynı konudaki derslerin çipleri, geçerli ders işaretli', cip.length >= 6 && cip.some(x => /muttasıl\*/.test(x)), cip.join(' | '));
+      await sayfa.click('[data-konu="u3"]'); await sayfa.waitForFunction(() => /munfasıl/i.test(document.querySelector('#app').innerText) && document.querySelector('.konu-cip.aktif').dataset.konu === 'u3');
+      kontrol('ders: çipe dokununca o derse geçiyor', true);
+      // ayet ekranı: Bu ayette tecvid
+      await sayfa.evaluate(() => window.__TECVID.git('sayfa', 2, '2:3')); await sayfa.waitForSelector('[data-ko-ayet="2:3"]');
+      await sayfa.click('[data-ko-ayet="2:3"]'); await sayfa.click('[data-km="ayet"]'); await sayfa.waitForSelector('.ayet-ekran #aeIleri');
+      const nt = await sayfa.evaluate(() => [...document.querySelectorAll('.ae-tc')].map(x => x.innerText.trim()));
+      kontrol('ayet ekranı: "Bu ayette tecvid" kural çipleri (Bakara 3)', nt.length >= 1, nt.join(' | '));
+      await sayfa.click('.ae-tc'); await sayfa.waitForSelector('#aeTcBilgi:not([hidden])');
+      kontrol('ayet ekranı: çipe dokununca açıklama ve "Dersi aç"', !!(await sayfa.$('#aeTcDers')));
+      await sayfa.evaluate(() => { window.__paylas = null; Object.defineProperty(navigator, 'share', { value: async d => { window.__paylas = d.text; }, configurable: true }); });
+      await sayfa.click('#aePaylas'); await sayfa.waitForFunction(() => window.__paylas);
+      const pt = await sayfa.evaluate(() => window.__paylas);
+      kontrol('ayet ekranı: Paylaş ayet, meal ve kaynağı içeriyor', /Bakara 3\. ayet/.test(pt) && /Kur'an Yolum/.test(pt) && pt.length > 60, pt.replace(/\n/g, ' ').slice(0, 80));
+      await sayfa.click('#aeTcDers'); await sayfa.waitForSelector('.tek-bakista, .konu-cipleri');
+      kontrol('ayet ekranı: "Dersi aç" ilgili dersi açıyor', !!(await sayfa.$('.konu-cipleri')));
+      kontrol('ders ve ayet ekranı güzelleştirmesi hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
+    } catch (e) { kontrol('ders / ayet ekranı güzelleştirme', false, e.message.split('\n')[0]); }
+  }
+
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
   {
     const once = hatalar.length;
