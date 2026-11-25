@@ -35,8 +35,8 @@ Kural: her madde ayrı oturum + ayrı commit. Davranış değişmeyecek, sadece 
 
 ### Adımlar
 - [x] 0. Sarmalayıcıyı kaldır, tek dosya genel kapsamda çalışıyor (duman testi geçti)
-- [ ] 1–8. Yukarıdaki bölme sırası
-- [ ] 9. `CLAUDE.md` "Yapı" bölümünü güncelle: hangi özellik hangi dosyada
+- [x] 1–8. Bölme yapıldı (26 Kasım 2026): 9 ardışık dosya, birleşim özgün kodla birebir aynı doğrulandı. Gerçek telefonda doğrulama bekliyor
+- [x] 9. `CLAUDE.md` güncellendi
 
 ### Her adımın bitiş kontrolü
 - [ ] `npm run test:smoke` geçiyor

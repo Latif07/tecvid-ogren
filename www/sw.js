@@ -2,7 +2,7 @@
  * Uygulama dosyaları önce ağdan, ağ yoksa önbellekten gelir; sûre dosyaları açıldıkça önbelleğe girer. */
 const SURUM = 'tecvid-SURUM_YER';
 const KABUK = ['./', 'index.html', 'manifest.webmanifest', 'css/app.css', 'js/capacitor.js', 'js/dil.js', 'js/surumler.js', 'js/content.js', 'js/content-en.js', 'js/ayahs.js',
-  'js/tecvid-renk.js', 'js/sureler.js', 'js/tr-yazim-hazir.js', 'js/okunus.js', 'js/mushaf.js', 'kuran/benzer.json', 'js/mujde.js', 'js/sozluk.js', 'js/muezzin.js', 'js/dualar.js', 'js/mahrec.js', 'js/harfkart.js', 'js/harfkart-kelime.js', 'js/ses-harita.js', 'js/soru-seviye.js', 'js/cocuk.js', 'js/kartlar.js', 'js/app.js', 'js/bulut.js', 'js/firebase-config.js', 'js/firebase/firebase-app.js',
+  'js/tecvid-renk.js', 'js/sureler.js', 'js/tr-yazim-hazir.js', 'js/okunus.js', 'js/mushaf.js', 'kuran/benzer.json', 'js/mujde.js', 'js/sozluk.js', 'js/muezzin.js', 'js/dualar.js', 'js/mahrec.js', 'js/harfkart.js', 'js/harfkart-kelime.js', 'js/ses-harita.js', 'js/soru-seviye.js', 'js/cocuk.js', 'js/kartlar.js', 'js/core.js', 'js/sorular-ekranlar.js', 'js/sinif-ezber.js', 'js/muezzinlik.js', 'js/ezber-canli.js', 'js/kuran.js', 'js/hesap-ekranlari.js', 'js/ders-ekranlari.js', 'js/app.js', 'js/bulut.js', 'js/firebase-config.js', 'js/firebase/firebase-app.js',
   'js/firebase/firebase-auth.js', 'js/firebase/firebase-firestore.js', 'fonts/scheherazade-new-arabic-400-normal.woff2',
   'fonts/scheherazade-new-arabic-700-normal.woff2', 'kuran/index.json', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SURUM).then(c => c.addAll(KABUK)).then(() => self.skipWaiting())); });
