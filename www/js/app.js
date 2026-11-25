@@ -2293,6 +2293,44 @@
       .catch(() => { const m = app.querySelector('main'); if (m) m.innerHTML = `<p class="hata">${t('Metin açılamadı. İnternet bağlantını kontrol et.')}</p>`; });
   }
   // seviye: 0 hiçbiri, 1 yarısı, 2 ilk kelime kalsın, 3 hepsi
+  // Kaydı olmayan metinler için yapay ses (cihazın Arapça konuşma motoru). Makam yok; kayıt gelene kadar geçici çözüm.
+  const MZ_TTS = { no: 0, btn: null };
+  function mzTtsDur() {
+    MZ_TTS.no++; const TTS = window.capEklenti && window.capEklenti('TextToSpeech'); if (TTS) TTS.stop().catch(() => { });
+    try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { }
+    document.querySelectorAll('.mz-kart.calan').forEach(k => k.classList.remove('calan'));
+    if (MZ_TTS.btn) { MZ_TTS.btn.textContent = MZ_TTS.btn.dataset.etiket; MZ_TTS.btn = null; }
+  }
+  function mzTtsSoyle(metin) {
+    const TTS = window.capEklenti && window.capEklenti('TextToSpeech');
+    if (TTS) return TTS.speak({ text: metin, lang: 'ar-SA', rate: 0.7, queueStrategy: 0 });
+    return new Promise((ok, no) => {
+      const ss = window.speechSynthesis; if (!ss) return no(new Error('yok'));
+      const u = new SpeechSynthesisUtterance(metin); u.lang = 'ar-SA'; u.rate = 0.7;
+      const v = (ss.getVoices() || []).find(z => /^ar/i.test(z.lang)); if (v) u.voice = v;
+      u.onend = ok; u.onerror = e => no(e); ss.speak(u);
+    });
+  }
+  function mzTtsVarMi() {
+    if (window.capEklenti && window.capEklenti('TextToSpeech')) return true;
+    const ss = window.speechSynthesis; if (!ss) return false;
+    const l = ss.getVoices ? ss.getVoices() : []; return !l.length || l.some(z => /^ar/i.test(z.lang));
+  }
+  async function mzTtsOku(satirlar, bas, son, btn) {
+    if (MZ_TTS.btn === btn) return mzTtsDur();
+    mzTtsDur(); sesDurdur();
+    if (!mzTtsVarMi()) return toast(t('Cihazında Arapça konuşma sesi yok. Ayarlardan Arapça ses paketi yükleyebilirsin.'));
+    const no = ++MZ_TTS.no; MZ_TTS.btn = btn; btn.dataset.etiket = btn.dataset.etiket || btn.textContent; btn.textContent = '⏹ ' + t('Durdur');
+    try {
+      for (let j = bas; j <= son; j++) {
+        if (MZ_TTS.no !== no) return;
+        const kart = document.getElementById('mz-' + j); if (kart) { kart.classList.add('calan'); kart.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        await mzTtsSoyle(satirlar[j].ar);
+        if (kart) kart.classList.remove('calan');
+      }
+    } catch (e) { if (MZ_TTS.no === no) toast(t('Yapay ses çalınamadı.')); }
+    if (MZ_TTS.no === no) mzTtsDur();
+  }
   function mzSatirHTML(s, i, sev, oku) {
     const gizli = wi => sev === 3 || (sev === 2 && wi > 0) || (sev === 1 && wi % 2 === 1);
     const kel = s.ar.split(' ').map((w, wi) => `<span class="kelime${gizli(wi) ? ' gizli' : ''}">${esc(w)}</span>`).join(' ');
@@ -2301,7 +2339,7 @@
       <div class="ayet" dir="rtl" lang="ar">${kel}</div>
       ${s.ok ? `<p class="okunus${sev ? ' mz-ok-gizli' : ''}" ${sev ? `role="button" tabindex="0" aria-label="${t('Okunuşu göster')}"` : ''}>${esc(s.ok)}</p>` : ''}
       ${s.tr && !sev ? `<p class="meal">${esc(s.tr)}</p>` : ''}
-      <div class="sesler">${s.parcaNo ? `<span class="rozet">${t('Parça {0}/{1}', s.parcaNo, s.parcaSay)}</span>` : ''}${s.n > 1 ? `<span class="rozet">${t('{0} kez söylenir', s.n)}</span>` : ''}${s.ses ? `<button class="sesbtn" data-ses="${s.ses}" data-yedek="${s.yedek}">${t('▶ Dinle')}</button>` : ''}
+      <div class="sesler">${s.parcaNo ? `<span class="rozet">${t('Parça {0}/{1}', s.parcaNo, s.parcaSay)}</span>` : ''}${s.n > 1 ? `<span class="rozet">${t('{0} kez söylenir', s.n)}</span>` : ''}${s.ses ? `<button class="sesbtn" data-ses="${s.ses}" data-yedek="${s.yedek}">${t('▶ Dinle')}</button>` : `<button class="sesbtn ikincil" data-mztts="${i}" data-etiket="🔈 ${t('Dinle')}">🔈 ${t('Dinle')}</button>`}
         ${oku ? `<button class="sesbtn ${oku.tamam ? 'yesil-btn' : 'ikincil'}" data-mzoku="${i}">${oku.tamam ? '✓ ' + t('Doğru') : '🎙️ ' + t('Oku')}</button>` : ''}</div>
       ${oku ? `<div class="mz-sonuc" id="mzSonuc${i}">${oku.html || ''}</div>` : ''}
     </article>`;
@@ -2336,6 +2374,7 @@
   const MZT = { id: '', adim: -1, tamam: {}, html: {} };
   const MZ_GECME = 80;
   EKRAN.muezzinMetin = function (id) {
+    mzTtsDur();
     const x = mzBul(id); if (!x) { ekranYigini.pop(); return ciz(); }
     const satirlar = mzSatirlar(x);
     if (!satirlar) { app.innerHTML = `${ust(esc(x.ad))}<main><p class="soluk">${t('Yükleniyor…')}</p></main>`; mzYukle(x, 'muezzinMetin'); return; }
@@ -2360,7 +2399,8 @@
         ${x.not ? `<p class="mz-not">ℹ️ ${esc(x.not)}</p>` : ''}
         <p>${yonerge}</p>
         ${adim >= 1 ? `<p class="kucukyazi"><b>${t('{0}/{1} satır doğru', dogruSay, satirlar.length)}</b></p>` : ''}
-        <div class="satir sola">${sesler.length ? `<button class="btn ${adim === 0 ? '' : 'ikincil'}" id="mzHepsi">${t('▶ Tamamını dinle')}</button>` : `<span class="soluk kucukyazi">🎙️ ${mzKol(x) === 'dua' ? t('Bu duanın kaydı henüz yok. Doğru okuyuşu hocandan dinle.') : t('Bu metnin müezzin kaydı henüz yok. Doğru okuyuşu hocandan dinle.')}</span>`}
+        <div class="satir sola">${sesler.length ? `<button class="btn ${adim === 0 ? '' : 'ikincil'}" id="mzHepsi">${t('▶ Tamamını dinle')}</button>` : `<button class="btn ${adim === 0 ? '' : 'ikincil'}" id="mzTtsHepsi" data-etiket="🔈 ${t('Tamamını dinle (yapay ses)')}">🔈 ${t('Tamamını dinle (yapay ses)')}</button>
+          <span class="soluk kucukyazi">🎙️ ${mzKol(x) === 'dua' ? t('Bu duanın insan kaydı henüz yok.') : t('Bu metnin müezzin kaydı henüz yok.')} ${t('Yapay ses makamsızdır ve telaffuzu kusurlu olabilir; doğru okuyuşu hocandan dinle.')}</span>`}
           ${adim === 0 ? `<button class="btn ikincil" id="mzDinledim">${t('Dinledim, sonraki adım ›')}</button>` : ''}</div>
         ${kayitHTML('mz-' + x.id, sesler[0] || '')}${sesler[0] ? `<span hidden data-yedek data-ses="${sesler[0]}"></span>` : ''}
       </section>
@@ -2377,6 +2417,8 @@
     const adimaGec = j => { S.mzAdim[x.id] = j; kaydet(); ciz(); window.scrollTo(0, 0); };
     app.querySelectorAll('[data-mzadim]').forEach(b => b.onclick = () => adimaGec(+b.dataset.mzadim));
     const h = $('#mzHepsi'); if (h) h.onclick = () => arkaArka(sesler, h);
+    const th = $('#mzTtsHepsi'); if (th) th.onclick = () => mzTtsOku(satirlar, 0, satirlar.length - 1, th);
+    app.querySelectorAll('[data-mztts]').forEach(b => b.onclick = () => { const j = +b.dataset.mztts; mzTtsOku(satirlar, j, j, b); });
     const dn = $('#mzDinledim'); if (dn) dn.onclick = () => adimaGec(1);
     const ezberle = () => { mzIsaretle(x.id); toast(d.tam ? t('Tekrar kaydedildi ✓') : t('Maşallah! "{0}" ezberlendi 🎉', x.ad)); };
     $('#mzEzber').onclick = () => { ezberle(); if (!d.tam && sonraki) { ekranYigini[ekranYigini.length - 1] = ['muezzinMetin', [sonraki.id]]; } ciz(); };
@@ -4620,7 +4662,9 @@
       if (sp.children.length || sp.classList.contains('ar-ses') || sp.closest('button, .mh-harf')) return;
       const l = arSesler(sp.textContent, uid); if (!l) return;
       sp.classList.add('ar-ses'); sp.setAttribute('role', 'button'); sp.tabIndex = 0; sp.title = t('Dinle');
-      const cal_ = () => { arkaArka(l, sp); if (l.kelime) toast(t('Kur\'an\'dan: {0}', l.kelime)); };
+      // Elif-Ba dersinde tek harfe dokununca harfin ADI söylenir (Elif, Be, Te…); Kur'an kelimesi o harfi içeren örnek olarak yalnız not düşülür
+      const harfAdi = uid === 'e1' && window.Sesli && l.kelime ? ((window.TC.HARFLER || []).find(h => h[0] === sp.textContent.trim()) || [])[1] : '';
+      const cal_ = () => { if (harfAdi) { Sesli.dugmeyle(sp, harfAdi); toast(t('Harf: {0}', harfAdi)); return; } arkaArka(l, sp); if (l.kelime) toast(t('Kur\'an\'dan: {0}', l.kelime)); };
       sp.onclick = cal_; sp.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cal_(); } };
     });
   }

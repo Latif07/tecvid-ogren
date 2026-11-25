@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.56';
+  const SURUM = '1.0.57';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.57', t: '2026-11-26', durum: 'Web', l: [
+      'Müezzinlik: kaydı olmayan metinlerde (Selâ, Ezan, Kamet…) "🔈 Dinle" ve "Tamamını dinle (yapay ses)"; cihazın Arapça sesiyle okunur, makamsızdır (insan kaydı gelene kadar)',
+      'Elif-Ba: harfe dokununca artık harfin adı okunuyor (Elif, Be, Te…); önceden o harfi içeren Kur\'an kelimesi (İyyâke, Sebeben) çalıyordu',
+      'Ders başlıklarının altındaki çizgi artık harflerin altında düz bir çizgi',
+      'Kartları yazdır / PDF: A4 sayfaya sığıyor, kartlar alt alta tek sütun',
+    ] },
     { s: '1.0.56', t: '2026-11-25', durum: 'Web', l: [
       'Tecvid sekmesinde bir derse girip geri dönünce "İleri konular" gibi açık paneller artık kapanmıyor',
       'Elif-Ba odak modu ve Hap bilgi kartları girişleri Tecvid sekmesinin en üstünde her zaman görünüyor; kart kısayolu dersin ilk sayfasında da var',
