@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Siyer Yolum</title>
+<style>
+:root{--bg:#f6f1e7;--kart:#fffdf8;--yazi:#2a2a2a;--soluk:#7a7468;--vurgu:#1f6f5c;--cizgi:#e4dccb;--r:14px;--font:Georgia,'Times New Roman',serif}
+body[data-mod=cocuk]{--bg:#fff6e0;--kart:#fff;--vurgu:#f08a24;--cizgi:#ffd9a0;--r:26px;--font:'Trebuchet MS','Segoe UI',system-ui,sans-serif;font-size:19px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--yazi);font-family:var(--font);line-height:1.55;font-size:17px}
+button{font:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--cizgi);padding:10px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+h1{margin:0;font-size:1.15em;color:var(--vurgu)}
+.mod{display:flex;background:var(--cizgi);border-radius:99px;padding:3px}
+.mod button{border:0;background:none;padding:6px 14px;border-radius:99px;color:var(--soluk)}
+.mod button.on{background:var(--vurgu);color:#fff}
+main{max-width:560px;margin:0 auto;padding:16px}
+.ilerleme{background:var(--kart);border:1px solid var(--cizgi);border-radius:var(--r);padding:12px 16px;margin-bottom:8px}
+.bar{height:8px;background:var(--cizgi);border-radius:9px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--vurgu);transition:width .4s}
+.donem{margin-top:28px}
+.donem h2{margin:0;font-size:1.05em;padding:10px 16px;border-radius:var(--r);color:#fff;background:var(--renk)}
+.donem small{display:block;opacity:.85;font-weight:normal;font-size:.8em}
+.yol{position:relative;padding:8px 0}
+.yol::before{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:3px dashed var(--cizgi);transform:translateX(-50%)}
+.dugum{position:relative;display:flex;margin:14px 0}
+.dugum:nth-child(odd){justify-content:flex-start;padding-right:50%}
+.dugum:nth-child(even){justify-content:flex-end;padding-left:50%}
+.dugum button{display:flex;gap:10px;align-items:center;text-align:left;background:var(--kart);border:2px solid var(--renk);border-radius:var(--r);padding:8px 12px;margin:0 22px;width:100%;box-shadow:0 2px 0 var(--renk)}
+.dugum .no{flex:none;width:34px;height:34px;border-radius:50%;background:var(--renk);color:#fff;display:grid;place-items:center;font-weight:bold}
+.dugum.bitti .no::after{content:"✓"}.dugum.bitti .no span{display:none}
+.dugum .t{font-size:.85em;line-height:1.25}.dugum .t em{display:block;color:var(--soluk);font-style:normal;font-size:.8em}
+.dugum.yakinda button{opacity:.55;border-style:dashed;box-shadow:none}
+.ders{position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:10;display:none}
+.ders.ac{display:block}
+.ders .ic{max-width:560px;margin:0 auto;padding:16px 16px 60px}
+.geri{border:0;background:none;color:var(--vurgu);padding:6px 0;font-size:1em}
+.yil{display:inline-block;background:var(--renk);color:#fff;border-radius:99px;padding:2px 12px;font-size:.85em}
+.ders h3{font-size:1.5em;margin:8px 0}
+.ozet{background:var(--kart);border-left:5px solid var(--renk);padding:12px 14px;border-radius:var(--r)}
+.zaman{margin:18px 0;padding-left:18px;border-left:3px solid var(--renk)}
+.olay{position:relative;margin-bottom:16px}
+.olay::before{content:"";position:absolute;left:-26px;top:7px;width:11px;height:11px;border-radius:50%;background:var(--renk)}
+.olay b{display:block}.olay .kaynak{font-size:.8em;color:var(--soluk)}
+body[data-mod=cocuk] .olay b::before{content:attr(data-e) " "}
+.btn{background:var(--vurgu);color:#fff;border:0;border-radius:99px;padding:12px 22px;width:100%;margin-top:8px}
+.sik{display:block;width:100%;text-align:left;background:var(--kart);border:2px solid var(--cizgi);border-radius:var(--r);padding:12px;margin:8px 0}
+.sik.dogru{border-color:#2e9d5b;background:#e5f6ec}.sik.yanlis{border-color:#d34a4a;background:#fbe8e8}
+.aciklama{color:var(--soluk);font-size:.9em;margin:6px 0}
+.yakinda-not{text-align:center;color:var(--soluk);padding:40px 0}
+</style>
+</head>
+<body data-mod="buyuk">
+<header><h1>🌙 Siyer Yolum</h1>
+<div class="mod"><button data-m="cocuk">🧒 Çocuk</button><button data-m="buyuk" class="on">📖 Büyük</button></div></header>
+<main id="ana"></main>
+<div class="ders" id="ders"><div class="ic" id="ic"></div></div>
+
+<script>
+/* ===== VERİ KALIBI =====
+ Yeni ders eklemek için bir döneme şu şekilde nesne ekle:
+ {id,baslik,yil, cocuk:{ozet,olaylar:[{e:'emoji',b:'başlık',m:'kısa metin'}]},
+  buyuk:{ozet,olaylar:[{b:'başlık',m:'detay',k:'kaynak'}]},
+  sorular:[{s:'soru',sec:['a','b','c'],d:doğruİndeks,a:'açıklama'}]}
+ İçeriği olmayan ders (cocuk/buyuk yok) "yakında" olarak görünür. Örnek içerik taslaktır; yayın öncesi kaynaklarla doğrulanmalı. */
+const DONEMLER=[
+{id:'cocukluk',ad:'Çocukluk',alt:'570 – 595',renk:'#e08a2e',dersler:[
+ {id:'fil',baslik:'Fil Olayı ve Doğum',yil:'570',
+  cocuk:{ozet:'Çok sevilen bir bebek dünyaya geldi: Muhammed (s.a.v.)!',olaylar:[
+   {e:'🐘',b:'Fil geldi',m:'Ebrehe, koca fillerle Kâbe’yi yıkmaya geldi.'},
+   {e:'🐦',b:'Kuşlar yetişti',m:'Allah küçük kuşlar gönderdi, ordu dağıldı.'},
+   {e:'👶',b:'Bebek doğdu',m:'Aynı yıl Mekke’de Hz. Muhammed doğdu.'}]},
+  buyuk:{ozet:'Miladi 570 civarı: Fil Vakası yılında Mekke’de, Hâşimoğulları’nda doğum.',olaylar:[
+   {b:'Fil Vakası',m:'Yemen valisi Ebrehe, Kâbe’yi yıkmak için Mekke üzerine yürüdü ve ordusu helak oldu.',k:'Fîl Sûresi'},
+   {b:'Doğum',m:'Babası Abdullah, doğumundan önce vefat etmişti; dedesi Abdülmuttalib kendisine “Muhammed” adını verdi.',k:'İbn Hişâm, es-Sîre'}]},
+  sorular:[{s:'Peygamberimiz hangi olaydan sonra/yıl doğdu?',sec:['Hicret','Fil Olayı yılı','Bedir'],d:1,a:'Doğum, Fil Olayı yılına denk gelir.'},
+   {s:'Ebrehe neyi yıkmak istedi?',sec:['Kâbe','Mescid-i Nebevî','Tâif'],d:0,a:'Hedef Kâbe’ydi.'}]},
+ {id:'sut',baslik:'Süt Annesi Halime',yil:'570–574'},
+ {id:'amine',baslik:'Annesi ve Dedesinin Vefatı',yil:'576–578'},
+ {id:'sam',baslik:'Şam Yolculuğu ve Rahip Bahira',yil:'583'},
+ {id:'fudul',baslik:'Hılfü’l-Fudûl ve El-Emîn',yil:'~590'}]},
+{id:'genclik',ad:'Gençlik',alt:'595 – 610',renk:'#2f8f83',dersler:[
+ {id:'hatice',baslik:'Hz. Hatice ile Evlilik',yil:'595'},
+ {id:'hacer',baslik:'Hacerülesved Hakemliği',yil:'605'},
+ {id:'hira',baslik:'Hira’da Tefekkür',yil:'~605–610'}]},
+{id:'mekke',ad:'Mekke Dönemi',alt:'610 – 622',renk:'#3d6fb6',dersler:[
+ {id:'vahiy',baslik:'İlk Vahiy',yil:'610'},
+ {id:'gizli',baslik:'Gizli Davet',yil:'610–613'},
+ {id:'acik',baslik:'Açık Davet ve Eziyetler',yil:'613–'},
+ {id:'habese',baslik:'Habeşistan’a Hicret',yil:'615'},
+ {id:'hüzün',baslik:'Hüzün Yılı',yil:'619'},
+ {id:'isra',baslik:'İsrâ ve Mi‘râc',yil:'620'},
+ {id:'akabe',baslik:'Akabe Biatları',yil:'621–622'}]},
+{id:'medine',ad:'Medine Dönemi',alt:'622 – 632',renk:'#8a54b5',dersler:[
+ {id:'hicret',baslik:'Hicret',yil:'622'},
+ {id:'bedir',baslik:'Bedir Savaşı',yil:'624'},
+ {id:'uhud',baslik:'Uhud Savaşı',yil:'625'},
+ {id:'hendek',baslik:'Hendek Savaşı',yil:'627'},
+ {id:'hudeybiye',baslik:'Hudeybiye Antlaşması',yil:'628'},
+ {id:'fetih',baslik:'Mekke’nin Fethi',yil:'630'},
+ {id:'veda',baslik:'Veda Haccı',yil:'632'}]},
+{id:'vefat',ad:'Vefat',alt:'632',renk:'#5a6472',dersler:[
+ {id:'hastalik',baslik:'Son Hastalık ve Vefat',yil:'632'}]},
+{id:'halifeler',ad:'Dört Halife Dönemi',alt:'632 – 661',renk:'#b5483f',dersler:[
+ {id:'ebubekir',baslik:'Hz. Ebû Bekir',yil:'632–634'},
+ {id:'omer',baslik:'Hz. Ömer',yil:'634–644'},
+ {id:'osman',baslik:'Hz. Osman',yil:'644–656'},
+ {id:'ali',baslik:'Hz. Ali',yil:'656–661'}]}
+];
+
+/* ===== DURUM ===== */
+let mod='buyuk',biten={};
+try{mod=localStorage.getItem('sy_mod')||mod;biten=JSON.parse(localStorage.getItem('sy_biten')||'{}')}catch(e){}
+const $=s=>document.querySelector(s);
+const kaydet=()=>{try{localStorage.setItem('sy_mod',mod);localStorage.setItem('sy_biten',JSON.stringify(biten))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function modUygula(){document.body.dataset.mod=mod;document.querySelectorAll('.mod button').forEach(b=>b.classList.toggle('on',b.dataset.m===mod))}
+document.querySelectorAll('.mod button').forEach(b=>b.onclick=()=>{mod=b.dataset.m;kaydet();modUygula();ana();if($('#ders').classList.contains('ac'))ders(aktif.d,aktif.dn)});
+
+function ana(){
+  const tum=DONEMLER.flatMap(d=>d.dersler),n=tum.filter(x=>biten[x.id]).length;
+  let h=`<div class="ilerleme">${mod==='cocuk'?'⭐ Yolculuğumuz':'İlerleme'}: <b>${n}</b> / ${tum.length} ders<div class="bar"><i style="width:${n/tum.length*100}%"></i></div></div>`;
+  let no=0;
+  DONEMLER.forEach(d=>{
+    h+=`<section class="donem" style="--renk:${d.renk}"><h2>${d.ad}<small>${d.alt}</small></h2><div class="yol">`;
+    d.dersler.forEach(x=>{no++;const var_=!!x.cocuk;
+      h+=`<div class="dugum ${biten[x.id]?'bitti':''} ${var_?'':'yakinda'}"><button data-d="${d.id}" data-i="${x.id}"><span class="no"><span>${no}</span></span><span class="t">${esc(x.baslik)}<em>${x.yil}${var_?'':' · yakında'}</em></span></button></div>`});
+    h+='</div></section>'});
+  $('#ana').innerHTML=h;
+  document.querySelectorAll('.dugum button').forEach(b=>b.onclick=()=>{
+    const d=DONEMLER.find(x=>x.id===b.dataset.d);ders(d,d.dersler.find(x=>x.id===b.dataset.i))});
+}
+
+let aktif={};
+function ders(d,x){
+  aktif={d,dn:x};const el=$('#ders');el.style.setProperty('--renk',d.renk);el.classList.add('ac');el.scrollTop=0;
+  const i=$('#ic');
+  let h=`<button class="geri" id="geri">← Yola dön</button><div><span class="yil">${x.yil}</span> <small>${d.ad}</small></div><h3>${esc(x.baslik)}</h3>`;
+  const v=x[mod];
+  if(!v){i.innerHTML=h+`<div class="yakinda-not">${mod==='cocuk'?'🚧 Bu ders yakında hazır olacak!':'Bu dersin içeriği daha sonra eklenecek.'}</div>`;$('#geri').onclick=kapat;return}
+  h+=`<div class="ozet">${esc(v.ozet)}</div><div class="zaman">`;
+  v.olaylar.forEach(o=>h+=`<div class="olay"><b data-e="${o.e||''}">${esc(o.b)}</b>${esc(o.m)}${o.k?`<div class="kaynak">Kaynak: ${esc(o.k)}</div>`:''}</div>`);
+  h+=`</div><button class="btn" id="soru">${mod==='cocuk'?'🎯 Hadi soruları çözelim!':'Kısa sınav'}</button>`;
+  i.innerHTML=h;$('#geri').onclick=kapat;$('#soru').onclick=()=>quiz(x,0,0);
+}
+function kapat(){$('#ders').classList.remove('ac');ana()}
+
+function quiz(x,k,puan){
+  const i=$('#ic'),S=x.sorular;
+  if(k>=S.length){
+    biten[x.id]=1;kaydet();
+    i.innerHTML=`<button class="geri" id="geri">← Yola dön</button><div class="yakinda-not" style="color:var(--yazi)"><div style="font-size:3em">${mod==='cocuk'?'🏆':'✓'}</div><h3>${puan} / ${S.length} doğru</h3><p>${mod==='cocuk'?'Aferin! Ders tamamlandı.':'Ders tamamlandı.'}</p></div>`;
+    $('#geri').onclick=kapat;return}
+  const q=S[k];
+  i.innerHTML=`<button class="geri" id="geri">← Derse dön</button><p><small>Soru ${k+1}/${S.length}</small></p><h3>${esc(q.s)}</h3><div id="sec"></div><div class="aciklama" id="ac"></div>`;
+  $('#geri').onclick=()=>ders(aktif.d,x);
+  q.sec.forEach((s,j)=>{const b=document.createElement('button');b.className='sik';b.textContent=s;
+    b.onclick=()=>{const kutular=[...document.querySelectorAll('.sik')];kutular.forEach((e,n)=>{e.disabled=true;if(n===q.d)e.classList.add('dogru')});
+      if(j!==q.d)b.classList.add('yanlis');
+      $('#ac').textContent=q.a;const ok=j===q.d?1:0;
+      const n=document.createElement('button');n.className='btn';n.textContent='Devam';n.onclick=()=>quiz(x,k+1,puan+ok);$('#ac').after(n)};
+    $('#sec').append(b)});
+}
+modUygula();ana();
+</script>
+</body>
+</html>
