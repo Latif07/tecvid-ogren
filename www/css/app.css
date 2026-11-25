@@ -1471,3 +1471,15 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .canli-eylem.buyuk #koGec{animation:gecNabiz 1.4s ease-in-out infinite}
 @keyframes gecNabiz{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 @media (prefers-reduced-motion:reduce){.canli-eylem.buyuk #koGec{animation:none}}
+
+/* Notlar */
+.not-pencere{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:60}
+.not-kutu{width:100%;max-width:640px;border-radius:18px 18px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
+.not-baslik{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.not-kutu textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px;border:1px solid var(--cizgi);border-radius:12px;background:var(--bg);color:inherit;resize:vertical}
+.not-ses{margin:8px 0;flex-wrap:wrap;gap:6px}
+.not-ara{width:100%;box-sizing:border-box;margin:8px 0;padding:10px 12px;border:1px solid var(--cizgi);border-radius:12px;font:inherit;background:var(--bg);color:inherit}
+.not-oge{border:1px solid var(--cizgi);border-radius:14px;padding:8px 12px;margin-bottom:8px;background:var(--kart)}
+.not-git{display:block;width:100%;text-align:left;background:none;border:0;padding:4px 0;font:inherit;color:inherit}
+.not-metin{display:block;margin-top:4px;color:var(--soluk);font-size:.9em}
+.ko-no.ko-not::after{content:'📝';font-size:.55em;position:relative;top:-.9em;margin-inline-start:2px}

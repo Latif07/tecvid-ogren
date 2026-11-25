@@ -28,7 +28,7 @@ const EKRANLAR = [
   ['sayfa', '[1]'], ['sure', '[1]'], ['sure', '[2]'], ['sureTest', '[1]'], ['sureTecvid', '[1, 1]'], ['sureTecvidSec'],
   ['mesk', '[1, 1]'], ['meskSec'], ['ezber'], ['ezberCalis', '[1]'], ['ezberEkle'], ['hatim'],
   ['muezzin'], ['okumaRaporu'], ['harfKartlari'], ['harfKarti', '[window.TC.HARFLER[0][0]]'], ['hikaye', `[${U0}, 0]`],
-  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
+  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
 ];
 
 (async () => {
@@ -527,6 +527,38 @@ const EKRANLAR = [
       const atl = await sayfa.evaluate(() => ({ metin: document.querySelector('.ez-bitti').innerText, zayif: (window.__TECVID.S().ezber[2] || {}).zayif, a: (window.__TECVID.S().ezber[2] || {}).a, btn: !!document.querySelector('#ezAtlananCalis') }));
       kontrol('ezber: atlanan ayetler (3–4) zayıf listeye girip uyarılıyor', atl.btn && /3–4/.test(atl.metin) && JSON.stringify(atl.zayif) === '[3,4]', JSON.stringify(atl));
       await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; });
+      // Notlar: ayet notu, ders notu, Notlarım (yer imleriyle birleşik), oraya git, düzenle, sil
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.notlar = []; S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [{ n: 1, a: 2, renk: 'kirmizi', t: Date.now() }] }; window.__TECVID.git('sayfa', 28); });
+      await sayfa.waitForSelector('[data-ko-ayet="2:185"]');
+      await sayfa.click('[data-ko-ayet="2:185"]');
+      await sayfa.click('[data-km="not"]');
+      await sayfa.fill('#notMetin', 'Ramazan ayeti, tekrar bak');
+      await sayfa.click('#notKaydet');
+      await sayfa.waitForSelector('.ko-no.ko-not');
+      kontrol('not: ayet notu kaydoluyor, ayet numarasında 📝 işareti çıkıyor', await sayfa.evaluate(() => window.__TECVID.S().notlar.length === 1 && window.__TECVID.S().notlar[0].y === '2:185' && document.querySelector('.ko-no.ko-not').dataset.koAyet === '2:185'));
+      await sayfa.evaluate(() => window.__TECVID.git('ders', 'e1'));
+      await sayfa.waitForSelector('#dersNot');
+      await sayfa.click('#dersNot'); await sayfa.fill('#notMetin', 'Harfler: ب ت ث karıştırıyorum'); await sayfa.click('#notKaydet');
+      await sayfa.evaluate(() => window.__TECVID.git('notlar'));
+      await sayfa.waitForSelector('.not-oge');
+      const nl = await sayfa.evaluate(() => ({ not: document.querySelectorAll('.not-oge').length, im: document.querySelectorAll('.ko-im').length, metin: document.querySelector('#app').innerText }));
+      kontrol('Notlarım: notlar ve yer imleri birlikte listeleniyor', nl.not === 2 && nl.im === 1 && /Ramazan ayeti/.test(nl.metin) && /Harfler/.test(nl.metin), JSON.stringify({ not: nl.not, im: nl.im }));
+      await sayfa.click('[data-not-suz="ders"]');
+      kontrol('Notlarım: Ders notları filtresi yalnız ders notunu gösteriyor', (await sayfa.$$('.not-oge')).length === 1);
+      await sayfa.fill('#notAra', 'ramazan');
+      await sayfa.click('[data-not-suz="notlar"]');
+      kontrol('Notlarım: arama notun metninde buluyor', (await sayfa.$$('.not-oge')).length === 1 && /Ramazan/.test(await sayfa.evaluate(() => document.querySelector('.not-oge').innerText)));
+      await sayfa.click('.not-git');
+      await sayfa.waitForSelector('.ko-sayfa, .ko-a');
+      kontrol('Notlarım: nota dokununca ilgili Kur\'an sayfasına gidiyor (Bakara 185, sayfa 28)', /Sayfa 28/.test(await sayfa.evaluate(() => document.querySelector('#app').innerText)));
+      await sayfa.evaluate(() => window.__TECVID.git('notlar'));
+      await sayfa.waitForSelector('#notAra'); await sayfa.fill('#notAra', ''); await sayfa.click('[data-not-suz="hepsi"]');
+      await sayfa.waitForSelector('[data-not-duzenle]'); await sayfa.click('[data-not-duzenle]');
+      await sayfa.fill('#notMetin', 'Düzeltildi'); await sayfa.click('#notKaydet');
+      kontrol('not: düzenleme kaydoluyor, yeni not açmıyor', await sayfa.evaluate(() => window.__TECVID.S().notlar.length === 2 && window.__TECVID.S().notlar.some(x => x.m === 'Düzeltildi')));
+      await sayfa.click('[data-not-duzenle]'); await sayfa.click('#notSil');
+      kontrol('not: silinen not listeden kalkıyor', (await sayfa.$$('.not-oge')).length === 1);
+      await sayfa.evaluate(() => { window.__TECVID.S().notlar = []; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
