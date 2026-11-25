@@ -513,6 +513,9 @@ const EKRANLAR = [
       await sayfa.waitForFunction(() => window.__tts.length >= 1);
       const ha = await sayfa.evaluate(() => window.__tts[0]);
       kontrol('Elif-Ba: harfe dokununca harfin adı okunuyor (Elif), Kur\'an kelimesi (İyyâke) değil', /\|Elif/.test(ha), ha);
+      // Çocuk modu sesi: â/î/û düzeltmesi, "Selâmün aleyküm" doğal okunur
+      const ok_ = await sayfa.evaluate(() => [window.Sesli.okunus('Selâmün aleyküm! Bârekallah, Fâtiha'), window.Sesli.okunus('Ayn ve Ğayn')]);
+      kontrol('çocuk sesi: okunuş düzeltmesi (â→a, Selamün aleyküm)', ok_[0] === 'Selamün aleyküm! Barekallah, Fatiha' && ok_[1] === 'Ayın ve Gayın', JSON.stringify(ok_));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
