@@ -11,22 +11,32 @@ Kural: her madde ayrı oturum + ayrı commit. Davranış değişmeyecek, sadece 
 - Scriptler `www/index.html` içinde sırayla yükleniyor; çevrimdışı önbellek listesi `www/sw.js` içindeki `KABUK`.
 - Otomatik duman testi var: `npm run test:smoke` (açılış + ana ekranlar + konsol hatası). Ekranların içeriğini denemez, o kısım hâlâ elle.
 
-### Teknik karar (adım 1'de uygulanacak)
-- Ortak çekirdek `window.TC` altında paylaşılır (`window.TC.core = { ... }`), bölümler başında `const { S, kaydet, toast, esc, t } = window.TC.core;` ile alır.
-- `S` yeniden atanıyor mu (`S = ...`) kontrol et. Atanıyorsa `S` yerine `core.S()` getter'ı ya da `core.durum` nesnesi kullan.
-- Yeni her dosya: `index.html`'e `app.js`'ten ÖNCE (çekirdekten SONRA) eklenir ve `sw.js` `KABUK` listesine eklenir. Sürüm numarasını (`surumler.js` / sw cache adı) artır.
+### Teknik karar (26 Kasım 2026, denendi)
+- Eski plan (`window.TC.core` + getter/setter) bırakıldı: `S`, `ekranYigini`, `ses`, `oturum`, `CANLI`, `PR` gibi yeniden atanan değişkenler ve ~400 üst düzey ad var; hepsini elle çevirmek riskli.
+- Yeni yöntem: **IIFE sarmalayıcısını kaldır, dosyayı ardışık klasik scriptlere böl.** Klasik scriptler aynı genel sözlük kapsamını paylaşır: `const/let/function` bir dosyada tanımlanınca diğerinde adıyla görünür. Kodda tek satır değişmez.
+- Denendi: `app.js` sarmalayıcısız çalıştırıldı, duman testi 176/176 geçti. Bulunan tek çakışma: `window.sesDurdur = () => sesDurdur();` (genel kapsamda kendini çağırıp yığını taşırıyordu) kaldırıldı, `function sesDurdur` zaten `window.sesDurdur`.
+- Kurallar:
+  - Dosyalar `index.html`'de `app.js`'in yerinde, bölünme sırasıyla yüklenir (yükleme sırası = eski kod sırası). Her dosya başına `'use strict';`.
+  - `sw.js` `KABUK` listesine her yeni dosya eklenir.
+  - Bir dosya bir üst düzey bloğu ortasından bölünemez (fonksiyon/`EKRAN.x = function` bütün kalır).
+  - Üst düzey ad başka scriptin genel adıyla çakışırsa (`let` ile `function`/`var`) SyntaxError verir; testten yakalanır. Yeni genel `window.X` atamalarında aynı ada dikkat.
+  - Üst düzeyde çalışan ifadeler (ör. `basla();`, `window.__TECVID = ...`) en son dosyada kalır.
+- Bölme sırası (satır aralıkları ~, `grep -n "// ----------"` ile güncelle):
+  1. Çekirdek: profiller, durum, bulut, yardımcılar, ses (satır 1–567) -> `core.js`
+  2. Soru bankası + oturum (567–716, 1072–1393) -> `oturum.js`
+  3. Sınıf, Hocamı bul -> `sinif.js`
+  4. Tekrarla, Ezber, Ezberden oku, Pekiştir -> `ezber.js`
+  5. Müezzinlik -> `muezzinlik.js`
+  6. Kur'an okuma, istatistik, okuma kartı, Notlar, ayet ekranı -> `kuran.js`
+  7. Seviye, profil yönetimi, ilerleme, günlük, ebeveyn -> `ana-ekranlar.js`
+  8. Mahreç, harf kartları, hikâye, kartlar, Elif-Ba -> `ders-ekranlari.js`
+  9. Son: `basla()`, `__TECVID` -> `app.js`
+- Her adım ayrı commit; her adım sonunda `npm run test:smoke` tam geçmeli.
 
 ### Adımlar
-- [ ] 1. Çekirdeği ayır: `js/core.js` (profiller, durum/`kaydet`, bulut eşitleme, yardımcılar, kilitler, ses, yönlendirme/`ciz`/`git`). `app.js` bunu kullansın. Uygulama aynı çalışmalı.
-- [ ] 2. Soru bankası ve seviyeler (satır ~565-730) -> `js/sorular.js`
-- [ ] 3. Oturum: test/alıştırma/tekrar (~1045-1366) -> `js/oturum.js`
-- [ ] 4. Sınıf (hoca-öğrenci) + Hocamı bul (~1366-1756, ~3259-3488) -> `js/sinif.js`
-- [ ] 5. Ezber/hıfz (~1756-2230, ~2364-2847) -> `js/ezber.js`
-- [ ] 6. Müezzinlik (~1992-2190) -> `js/muezzinlik.js` (mevcut `muezzin.js` veri dosyasıyla karıştırma)
-- [ ] 7. Kur'an okuma ve sûre sûre tecvid (~2847-3259, ~3957-4084) -> `js/kuran-okuma.js`
-- [ ] 8. Mahreç dersi, harf kartları, hikâye dersleri (~4115-4361) -> `js/ders-ekranlari.js`
-- [ ] 9. Profil/seviye/ilerleme/günlük plan/ebeveyn özeti (~3556-3940, ~4361-4707) -> `js/ana-ekranlar.js`
-- [ ] 10. `CLAUDE.md` "Yapı" bölümünü güncelle: hangi özellik hangi dosyada.
+- [x] 0. Sarmalayıcıyı kaldır, tek dosya genel kapsamda çalışıyor (duman testi geçti)
+- [ ] 1–8. Yukarıdaki bölme sırası
+- [ ] 9. `CLAUDE.md` "Yapı" bölümünü güncelle: hangi özellik hangi dosyada
 
 ### Her adımın bitiş kontrolü
 - [ ] `npm run test:smoke` geçiyor

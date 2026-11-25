@@ -1,6 +1,5 @@
 /* Kur'an Yolum — uygulama motoru (çevrimdışı çalışır, veriler telefonda ve hesapta saklanır) */
-(function () {
-  'use strict';
+'use strict';
   const { R, U, KAYNAK } = window.TC;
   const AYAH = window.AYAH, RENK = window.TECVID_RENK || {};
   (window.SURELER || []).forEach(x => x.ayet.forEach((a, i) => { AYAH[`${x.n}:${i + 1}`] = a; }));
@@ -276,7 +275,7 @@
   function sesDurdur() {
     const d = calanDur; if (ses) { ses.pause(); ses._iptal = true; ses = null; } dugmeBirak(); if (d) d();
   }
-  window.sesDurdur = () => sesDurdur();
+  // (genel kapsamda function sesDurdur zaten window.sesDurdur'dur)
   window.SesDugme = { caliyor: dugmeCaliyor, birak: dugmeBirak, calan: () => calanDugme };
   function cal(url, btn, yedekUrl, bitince) {
     // Aynı düğmeye (ya da düğmesiz aynı sese) tekrar dokunulursa durdur
@@ -5503,4 +5502,4 @@
   bulutBagla();
   hatirlatmaKur(false);
   window.__TECVID = { KELIME_MEAL_KAYNAK, MUSHAF_RESIM, yakinEsle, canliTolerans, tk: () => TK, TAKIP_HATA, MEAL_KAYNAK, canliTest: { kur: o => { CANLI = o; }, durum: () => canliDurumGuncelle(), gec: () => canliKelimeGec(), sira: () => canliSiraIsaretle(), durdur: x => canliDurdur(x) }, git: (...a) => git(...a), ana: () => anaSayfa(), S: () => S, PR: () => PR, COCUK, mujdeHTML, soruUret, anahtarlar, dogru: () => oturum && oturum.sorular[oturum.i] && oturum.sorular[oturum.i].dogru, U, kaydet: v => { S = v; kaydet(); anaSayfa(); } }; // test için
-})();
+
