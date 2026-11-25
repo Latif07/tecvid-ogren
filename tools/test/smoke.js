@@ -636,6 +636,23 @@ const EKRANLAR = [
       const ok2 = await sayfa.evaluate(() => { const K = window.__TECVID.canliOrtamKontrol, Hc = window.__TECVID.canliHizCarpani, Tl = window.__TECVID.canliTolerans; const rms = (v, n = 20) => Array(n).fill(v);
         return [K(rms(0.002)).durum, K(rms(0.05)).durum, K(rms(0.02)).durum, K([0.1]).durum, Hc(null), Hc({ ilkIlerleme: Date.now() - 5000, c: 150 }), +Tl(20, 0, false, 1.4).toFixed(1)]; });
       kontrol('takip: ortam kontrolü ve hız çarpanı', JSON.stringify(ok2) === '["sessiz","gurultulu","ok","ok",1,1.4,9.8]', JSON.stringify(ok2));
+      // Harf sesi: hocanın kaydı varsa o çalar (Elif-Ba, harf kartı, mahreç); yoksa Elif-Ba'da harfin adı yapay sesle
+      await sayfa.evaluate(async () => {
+        window.__calan = []; window.__AudioAsil2 = window.Audio;
+        window.Audio = function (src) { this.src = src; this.play = () => { window.__calan.push('ses'); return Promise.resolve(); }; this.pause = () => { }; this.onended = null; };
+        await HarfSes.kaydet('h:' + window.TC.HARFLER[1][0], new Blob([new Uint8Array(40)], { type: 'audio/webm' }));
+        window.__tts.length = 0;
+      });
+      await sayfa.evaluate(() => { window.__TECVID.git('harfKarti', window.TC.HARFLER[1][0]); });
+      await sayfa.waitForSelector('#hkHarfSes'); await sayfa.click('#hkHarfSes');
+      await sayfa.waitForFunction(() => window.__calan.length >= 1);
+      kontrol('harf sesi: harf kartında büyük harfe dokununca hocanın kaydı çalıyor (yapay ses değil)', await sayfa.evaluate(() => window.__calan.length === 1 && window.__tts.length === 0));
+      await sayfa.evaluate(() => { window.__calan.length = 0; window.__TECVID.git('harfKartlari'); });
+      await sayfa.waitForSelector('[data-hkses]');
+      await sayfa.evaluate(() => { document.querySelector('[data-hkses="' + window.TC.HARFLER[1][0] + '"]').click(); });
+      await sayfa.waitForFunction(() => window.__calan.length >= 1);
+      kontrol('harf sesi: mahreç şemasında harfin 🔊 düğmesi hocanın kaydını çalıyor ve harf kartına gitmiyor', await sayfa.evaluate(() => window.__calan.length === 1 && !!document.querySelector('[data-hkses]')));
+      await sayfa.evaluate(() => { window.Audio = window.__AudioAsil2; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

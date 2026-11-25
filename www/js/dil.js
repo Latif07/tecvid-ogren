@@ -88,6 +88,8 @@
     "Doğru okuyuşu bir hocadan dinleyerek öğren. Buradaki metinler sözleri ezberlemen içindir.": "Learn the correct recitation by listening to a teacher. These texts are for memorising the words.",
     "Bu duanın kaydı henüz yok. Doğru okuyuşu hocandan dinle.": "No recording of this du'a yet. Listen to the correct recitation from your teacher.",
     "Takip": "Follow",
+    "Hoca sesi: {0}": "Teacher's voice: {0}",
+    "Harfi dinle": "Listen to the letter",
     "Ses çok kısık duyuluyor: telefonu ağzına 20–30 cm yaklaştır, mikrofonu kapatmadığından emin ol.": "The sound is very faint: hold the phone 20–30 cm from your mouth and make sure the mic is not muted.",
     "Ortam gürültülü: sessiz bir yere geç ya da telefonu yaklaştır.": "The room is noisy: move somewhere quiet or bring the phone closer.",
     "Kelime meali": "Word-by-word",

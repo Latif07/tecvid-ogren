@@ -1,9 +1,12 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.62';
+  const SURUM = '1.0.63';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.63', t: '2026-11-26', durum: 'Web', l: [
+      'Harf sesi: hocanın kaydettiği harf sesi varsa her yerde o çalar (Elif-Ba dersi, harf kartının büyük harfi, mahreç dersindeki harfler, mahreç şemasındaki harflerin 🔊 düğmesi); kayıt yoksa Elif-Ba\'da yedek olarak yapay ses',
+    ] },
     { s: '1.0.62', t: '2026-11-26', durum: 'Web', l: [
       'Sen oku: okuma hızına uyum (hızlı okuyanda eşleştirme toleransı biraz artar) ve başladıktan 4 sn sonra mikrofon/ortam kontrolü ("ses çok kısık", "ortam gürültülü" ipucu)',
       'Tanı kaydına ortam durumu ve okuma hızı eklendi',

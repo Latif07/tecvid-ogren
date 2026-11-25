@@ -157,9 +157,16 @@
       sp.classList.add('ar-ses'); sp.setAttribute('role', 'button'); sp.tabIndex = 0; sp.title = t('Dinle');
       // Elif-Ba dersinde tek harfe dokununca harfin ADI söylenir (Elif, Be, Te…); Kur'an kelimesi o harfi içeren örnek olarak yalnız not düşülür
       const harfAdi = uid === 'e1' && window.Sesli && l.kelime ? ((window.TC.HARFLER || []).find(h => h[0] === sp.textContent.trim()) || [])[1] : '';
-      const cal_ = () => { if (harfAdi) { Sesli.dugmeyle(sp, harfAdi); toast(t('Harf: {0}', harfAdi)); return; } arkaArka(l, sp); if (l.kelime) toast(t('Kur\'an\'dan: {0}', l.kelime)); };
+      const cal_ = async () => { if (harfAdi) { const k = await harfSesCal(sp.textContent.trim(), sp, true); toast(k === 'hoca' ? t('Hoca sesi: {0}', harfAdi) : t('Harf: {0}', harfAdi)); return; } arkaArka(l, sp); if (l.kelime) toast(t('Kur\'an\'dan: {0}', l.kelime)); };
       sp.onclick = cal_; sp.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cal_(); } };
     });
+  }
+  // Harf sesi: hocanın kaydı ('h:<harf>', HarfSes) varsa o çalar; yoksa yedek olarak harfin adı yapay sesle okunur (yedek: true)
+  const harfAdiBul = h => ((window.TC.HARFLER || []).find(x => x[0] === h) || [])[1] || '';
+  async function harfSesCal(h, btn, yedek) {
+    if (window.HarfSes && HarfSes.var('h:' + h) && await HarfSes.cal('h:' + h, btn)) return 'hoca';
+    const ad = harfAdiBul(h); if (yedek && ad && window.Sesli) { Sesli.dugmeyle(btn, ad); return 'yapay'; }
+    return '';
   }
   // ------------------------------------------------------------ Mahreç dersi: bölümlü video, Kur'an'dan dinle, kendin oku, hisset
   const MV = { kaynak: 'tevhid', j: {} };
@@ -206,7 +213,8 @@
     };
     bagla();
     // Harfe dokununca: kelime çalar (genel data-ses tıklaması) ve "Sen oku" kutusu o harfe göre açılır
-    app.querySelectorAll('[data-mh]').forEach(b => b.addEventListener('click', () => {
+    app.querySelectorAll('[data-mh]').forEach(b => b.addEventListener('click', ev => {
+      if (window.HarfSes && HarfSes.var('h:' + b.dataset.mh)) { ev.stopPropagation(); harfSesCal(b.dataset.mh, b); }
       app.querySelectorAll('.mh-harf.secili').forEach(x => x.classList.remove('secili')); b.classList.add('secili');
       const h = b.dataset.mh, [r, w, k] = M.kelime(i, h), kutu = $('#mhOku'); kutu.hidden = false;
       kutu.innerHTML = `<p><b class="ar mh-kelime">${k}</b></p><div class="satir sola"><button class="sesbtn" data-ses="${kelimeUrl(r, w)}">▶ ${t('Tekrar dinle')}</button><button class="sesbtn" id="mhSenOku">🎤 ${t('Sen oku')}</button></div><div id="mhSonuc"></div>`;
@@ -253,7 +261,7 @@
   const hkSira = () => { const H = HKV(); return H.MAHRECLER.flatMap(m => m.harfler.filter(h => H.anaMahrec(h).no === m.no)); };
   const hkMahrecAd = m => DIL === 'en' && HKV().EN ? HKV().EN.ad[m.no - 1] : m.ad;
   const hkMahrecAciklama = m => DIL === 'en' && HKV().EN ? HKV().EN.aciklama[m.no - 1] : m.aciklama;
-  const hkHarfBtn = h => `<button class="hkt-harf ${HKV().kalinMi(h) ? 'kalin' : ''}" data-git="harfKarti|${h}" aria-label="${esc(HKV().AD[h])}"><span class="ar">${h}</span><small>${esc(HKV().AD[h])}</small></button>`;
+  const hkHarfBtn = h => `<button class="hkt-harf ${HKV().kalinMi(h) ? 'kalin' : ''}" data-git="harfKarti|${h}" aria-label="${esc(HKV().AD[h])}"><span class="ar">${h}</span><small>${esc(HKV().AD[h])}</small><i class="hkt-hop" data-hkses="${h}" role="button" aria-label="${t('Harfi dinle')}">🔊</i></button>`;
   function hkSemaBagla(kok, secince) {
     kok.querySelectorAll('[data-mno]').forEach(g => {
       const f = e => { e.stopPropagation(); secince(+g.dataset.mno); };
@@ -278,6 +286,7 @@
         ${m.harfler.length ? `<div class="hkt-harfler">${m.harfler.map(hkHarfBtn).join('')}</div>` : `<p class="soluk kucukyazi">${t('Harf yok: nûn ve mîmin ğunnesi buradan çıkar.')}</p>`}</section>`).join('')}
       ${TEST_SURUM ? `<p class="soluk kucukyazi"><span class="rozet uyari">${t('Hoca onayı bekliyor')}</span></p>` : ''}
     </main>`;
+    app.querySelectorAll('[data-hkses]').forEach(i => i.onclick = ev => { ev.stopPropagation(); harfSesCal(i.dataset.hkses, null, true); });
     hkSemaBagla(app, n => { ekranYigini[ekranYigini.length - 1] = ['harfKartlari', [n === secili ? 0 : n]]; ciz(); const y = $('#hkSecili'); if (y) y.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
   };
   const HK_TUR = { hareke: 'Harekeli', sakin: 'Cezimli (sakin)', sedde: 'Şeddeli', med: 'Uzatma (med)' };
@@ -297,7 +306,7 @@
     const ilkKelime = x => ((window.HARF_KELIME || {})[x] || [])[0];
     app.innerHTML = `${ust(t('Harf kartı') + ' · ' + esc(H.AD[h]))}<main>
       <section class="kart hkt-bas">
-        <p class="ar hkt-buyuk ${kalin ? 'kalin' : ''}">${h}</p>
+        <button class="ar hkt-buyuk hkt-buyuk-ses ${kalin ? 'kalin' : ''}" id="hkHarfSes" aria-label="${t('Harfi dinle')}">${h}<small>🔊</small></button>
         <h2 style="margin:0">${esc(H.AD[h])}</h2>
         <p class="soluk" style="margin:.2em 0 .6em">${esc(t(H.KALINLIK[h] || (kalin ? 'Kalın okunur' : 'İnce okunur')))}</p>
         ${halHtml ? `<div class="hkt-haller">${halHtml}</div><p class="soluk kucukyazi">${t('Üstün, esre, ötre. Hoca sesi kaydedilmişse dokununca çalar; yoksa aşağıdaki video ve kelimelerden dinle.')}</p>` : ''}
@@ -335,6 +344,7 @@
       if (!(window.HarfSes && await HarfSes.cal(k, b))) toast(t('Bu hecenin hoca sesi henüz yok. Videodan ya da aşağıdaki kelimelerden dinleyebilirsin.'));
     });
     hkSemaBagla($('#hkSema'), n => git('harfKartlari', n));
+    const hs_ = $('#hkHarfSes'); if (hs_) hs_.onclick = () => harfSesCal(h, hs_, true);
     app.querySelectorAll('[data-hkv]').forEach(b => b.onclick = () => {
       const [kaynak, x] = vid[+b.dataset.hkv];
       sesDurdur();
