@@ -519,6 +519,14 @@ const EKRANLAR = [
       // Takip: kademeli tolerans (takılma uzadıkça artar) ve büyüyen "geç" düğmesi
       const tol = await sayfa.evaluate(() => { const f = window.__TECVID.canliTolerans; return [f(20, 0, false), f(20, 4000, true), f(20, 6000, true), f(20, 9000, true), f(20, 9000, false)].map(x => +x.toFixed(1)); });
       kontrol('takip: tolerans takılma süresiyle artıyor, sessizken artmıyor', JSON.stringify(tol) === '[7,8.4,10,12,7]', JSON.stringify(tol));
+      // Ezber: ileri ayetten başlanınca atlanan ayetler zayıf listeye girer ve bitişte uyarılır
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ezber = { 2: { a: 2, tam: false, eklendi: Date.now(), son: 0, kutu: 0, vade: 0 } }; window.__TECVID.git('ezberCalis', 2, 'yeni', 5); });
+      await sayfa.waitForSelector('#ayet-5');
+      for (let g = 0; g < 12 && !(await sayfa.$('.ez-bitti')); g++) { const b = await sayfa.$('#ezAtla, #ezIleriAlt'); if (!b) break; await b.click(); await sayfa.waitForTimeout(80); }
+      await sayfa.waitForSelector('.ez-bitti');
+      const atl = await sayfa.evaluate(() => ({ metin: document.querySelector('.ez-bitti').innerText, zayif: (window.__TECVID.S().ezber[2] || {}).zayif, a: (window.__TECVID.S().ezber[2] || {}).a, btn: !!document.querySelector('#ezAtlananCalis') }));
+      kontrol('ezber: atlanan ayetler (3–4) zayıf listeye girip uyarılıyor', atl.btn && /3–4/.test(atl.metin) && JSON.stringify(atl.zayif) === '[3,4]', JSON.stringify(atl));
+      await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

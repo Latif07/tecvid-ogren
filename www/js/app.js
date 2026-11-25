@@ -3004,12 +3004,14 @@
           <h2>${Z.mod === 'tekrar' ? t('Tekrar tamam') : t('Bugünkü ezber tamam')}</h2>
           <p>${Z.mod === 'tekrar' ? (Z.zayif && Z.zayif.length ? t('{0} ayette takıldın; yarın yine sorulacak.', Z.zayif.length) : t('Hiç takılmadan okudun. Maşallah!')) : (Z.bas === Z.bit ? t('{0}, {1}. ayet ezberine eklendi.', esc(sureNoAdi(n)), Z.bas) : t('{0}, {1}. ayetler ezberine eklendi.', esc(sureNoAdi(n)), Z.bas + '–' + Z.bit))}</p>
           ${Z.zayif && Z.zayif.length ? `<div class="satir sola">${Z.zayif.map(a => `<button class="btn ikincil" data-ez-calis="${a}">${t('{0}. ayeti çalış', a)}</button>`).join('')}</div>` : ''}
+          ${Z.atlanan && Z.atlanan.length ? `<p class="soluk kucukyazi">${t('Atladığın ayetler: {0}. Bunları da çalışmadan ezberlenmiş sayılmaz; yarın tekrarda sorulacak.', Z.atlanan.length === 1 ? Z.atlanan[0] : Z.atlanan[0] + '–' + Z.atlanan[Z.atlanan.length - 1])}</p><div class="satir sola"><button class="btn ikincil" id="ezAtlananCalis">${t('Atladığım ayetleri çalış')}</button></div>` : ''}
           <div class="ez-bitti-dugmeler">
             ${sira ? `<button class="btn genis" id="ezSiradaki">${t('Sıradaki: {0} ›', esc(ezGorevAd(sira)))}</button>` : ''}
             ${Z.mod === 'yeni' && ee && !ee.tam ? `<button class="btn genis ${sira ? 'ikincil' : ''}" id="ezDevam">${t('Sonraki ayetleri çalış ›')}</button>` : ''}
             <button class="btn genis ikincil" id="ezDon">${t('Ezber\'e dön')}</button>
           </div></section></main>`;
       const sb = $('#ezSiradaki'); if (sb) sb.onclick = () => { const g = ezZincir.shift(); EZ = null; ekranDegistir('ezberCalis', g.n, g.mod, ''); };
+      const ac_ = $('#ezAtlananCalis'); if (ac_) ac_.onclick = () => { const b0 = Z.atlanan[0]; EZ = null; ekranDegistir('ezberCalis', n, 'yeni', b0); };
       const db = $('#ezDevam'); if (db) db.onclick = () => { EZ = null; ekranDegistir('ezberCalis', n, 'yeni', ''); };
       $('#ezDon').onclick = () => { ezZincir = []; geri(); };
       app.querySelectorAll('[data-ez-calis]').forEach(b => b.onclick = () => { EZ = null; ekranDegistir('ezberCalis', n, 'yeni', +b.dataset.ezCalis, 1); });
@@ -3178,8 +3180,11 @@
         else tekrarEttim(n);
         Z.zayif = zayif;
       } else {
+        // İleri bir ayetten başlandıysa arada atlanan ayetler çalışılmamıştır: ezberlenmiş sayılmaz, zayıf listesine (yarın yine sorulur) alınır
+        const onceki_ = ee.a || 0, atlanan = !ee.tam && Z.bas > onceki_ + 1 ? Array.from({ length: Z.bas - onceki_ - 1 }, (_, i) => onceki_ + 1 + i) : [];
         if (Z.bit > (ee.a || 0)) ezberIsaretle(n, Z.bit); else { seriGuncelle(); kaydet(); }
         if (ee.zayif) ee.zayif = ee.zayif.filter(a => a < Z.bas || a > Z.bit);   // çalışılan zayıf ayetler listeden düşer
+        if (atlanan.length) { ee.zayif = Array.from(new Set((ee.zayif || []).concat(atlanan))).sort((x, y) => x - y); Z.atlanan = atlanan; }
         ee.son = simdi(); kaydet();
       }
       Z.bitti = true; ciz(); window.scrollTo(0, 0);

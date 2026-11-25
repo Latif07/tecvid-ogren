@@ -88,6 +88,8 @@
     "Doğru okuyuşu bir hocadan dinleyerek öğren. Buradaki metinler sözleri ezberlemen içindir.": "Learn the correct recitation by listening to a teacher. These texts are for memorising the words.",
     "Bu duanın kaydı henüz yok. Doğru okuyuşu hocandan dinle.": "No recording of this du'a yet. Listen to the correct recitation from your teacher.",
     "Takip": "Follow",
+    "Atladığın ayetler: {0}. Bunları da çalışmadan ezberlenmiş sayılmaz; yarın tekrarda sorulacak.": "Verses you skipped: {0}. They do not count as memorized until you work on them; they will be asked in tomorrow's review.",
+    "Atladığım ayetleri çalış": "Work on the skipped verses",
     "Anlayamadım. Biraz yavaş ve net oku ya da kelimeyi geç.": "I couldn't follow. Read a bit slower and clearer, or skip the word.",
     "Tanı kaydını kopyala": "Copy diagnostic log",
     "Harf: {0}": "Letter: {0}",
