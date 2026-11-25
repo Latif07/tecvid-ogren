@@ -10,9 +10,9 @@ Tecvid öğreten Capacitor/Android uygulaması. Saf JS, derleme adımı yok. Web
 - Cevaplar kısa olsun; istenmeyen refactor veya açıklama yapma.
 
 ## Test
-- `npm run test:smoke` (tools/test/smoke.js): uygulamayı açar, ana ekranları çizer, konsol hatası arar. Kod taşıma/refactor sonrası mutlaka çalıştır; çıktısı kısa. Yeni ekran eklenince `EKRANLAR` listesine ekle. `npm run test:kapsam` kod kapsamını da yazar (app.js ~%41; %100 görünen veri dosyalarını sayma).
+- `npm run test:smoke` (tools/test/smoke.js): uygulamayı açar, ana ekranları çizer, konsol hatası arar. Kod taşıma/refactor sonrası mutlaka çalıştır; çıktısı kısa. Yeni ekran eklenince `EKRANLAR` listesine ekle. `npm run test:kapsam` kod kapsamını da yazar (motor dosyaları ~%41; %100 görünen veri dosyalarını sayma).
 
 ## Yapı
 - `www/js/*.js`: özellik başına bir modül (okuma, mahrec, sozluk, dualar...).
 - `tools/`: yardımcı betikler. `docs/`: tanıtım görselleri.
-- Meal ekleme: `tools/build_meal_tanzil.py` (docstring'e bak) + `app.js` içindeki `MEAL_KAYNAK` listesine bir satır. Lisansı önce kontrol et.
+- Meal ekleme: `tools/build_meal_tanzil.py` (docstring'e bak) + `sinif-ezber.js` içindeki `MEAL_KAYNAK` listesine bir satır. Lisansı önce kontrol et.
