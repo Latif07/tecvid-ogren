@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.61';
+  const SURUM = '1.0.62';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.62', t: '2026-11-26', durum: 'Web', l: [
+      'Sen oku: okuma hızına uyum (hızlı okuyanda eşleştirme toleransı biraz artar) ve başladıktan 4 sn sonra mikrofon/ortam kontrolü ("ses çok kısık", "ortam gürültülü" ipucu)',
+      'Tanı kaydına ortam durumu ve okuma hızı eklendi',
+    ] },
     { s: '1.0.61', t: '2026-11-26', durum: 'Web', l: [
       'Notlar: ayet numarasına dokunup 📝 Not, derslerde ve Elif-Ba\'da sayfanın altında 📝 Not; yazılı ve sesli (en çok 60 sn, ses yalnız bu cihazda); notlu ayetin yanında 📝 işareti',
       'Notlarım: notlar ve yer imleri tek ekranda; filtre, arama, düzenle, sil ve "oraya git"',

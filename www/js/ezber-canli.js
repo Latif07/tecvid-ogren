@@ -30,9 +30,24 @@
     return { ok: best <= Math.floor(m * 0.4), son, mesafe: best };
   }
   // Kademeli tolerans: takılma uzadıkça (ses var, ilerleme yok) hizalamadaki izin verilen hata payı artar
-  function canliTolerans(k, takilmaMs, sesVar) {
+  function canliTolerans(k, takilmaMs, sesVar, hizCarpani) {
     const oran = sesVar && takilmaMs > 8000 ? 0.6 : sesVar && takilmaMs > 5000 ? 0.5 : sesVar && takilmaMs > 3000 ? 0.42 : 0.35;
-    return Math.max(3, oran * k);
+    return Math.max(3, oran * k * (hizCarpani || 1));
+  }
+  // Okuma hızına uyum: hızlı okuyanın hece yutması çoğaldığından hata payı biraz artar (1.0–1.4×).
+  // Hız = şimdiye kadar açılan fonetik harf / okuma süresi; başvuru hızı ~14 harf/sn (sezgisel, telefonda ayarlanacak)
+  function canliHizCarpani(C_) {
+    if (!C_ || !C_.ilkIlerleme || C_.c < 20) return 1;
+    const sn = (Date.now() - C_.ilkIlerleme) / 1000; if (sn < 4) return 1;
+    return Math.min(1.4, Math.max(1, (C_.c / sn) / 14));
+  }
+  // Mikrofon/ortam kontrolü (ilk saniyelerin ses düzeyi): çok kısık ya da gürültülü ortamda ipucu verir
+  function canliOrtamKontrol(rms) {
+    if (!rms || rms.length < 8) return { durum: 'ok' };
+    const sr = rms.slice().sort((x, y) => x - y), q = f => sr[Math.floor(sr.length * f)] || 0, taban = q(0.15), ust = q(0.9);
+    if (ust < 0.006) return { durum: 'sessiz', ipucu: 'Ses çok kısık duyuluyor: telefonu ağzına 20–30 cm yaklaştır, mikrofonu kapatmadığından emin ol.' };
+    if (taban > 0.03) return { durum: 'gurultulu', ipucu: 'Ortam gürültülü: sessiz bir yere geç ya da telefonu yaklaştır.' };
+    return { durum: 'ok' };
   }
   const canliKelimeler = a => { if (CANLI && CANLI.elBul) return CANLI.elBul(a); const k = document.getElementById('ayet-' + a); return k ? [...k.querySelectorAll('.ayet .kelime')] : []; };
   const canliEl = (a, wi) => { const l = canliKelimeler(a); return l[Math.min(wi, l.length - 1)]; };
@@ -88,10 +103,11 @@
     bar.classList.add('dinliyor'); bar.querySelector('#canliDur').textContent = t('⏹ Durdur');
     canliDurumYaz();
     CANLI.zaman = setInterval(() => canliAdim(false), 1000); CANLI.zaman2 = setInterval(canliDurumGuncelle, 500);
+    { const C0 = CANLI; setTimeout(() => { if (CANLI !== C0 || C0.bitti || C0.ortamKontrol) return; C0.ortamKontrol = canliOrtamKontrol(C0.rms); if (C0.ortamKontrol.ipucu && !C0.acilan) toast(t(C0.ortamKontrol.ipucu)); }, 4500); }
   }
   function taniKopyala(C_) {   // takip tanı kaydını panoya kopyalar (ses içermez)
     const sr = C_.rms.slice().sort((x, y) => x - y), q = f => +(sr[Math.floor(sr.length * f)] || 0).toFixed(4);
-    const j = JSON.stringify({ s: 'takip-tani-1', sure: C_.n, cihaz: C_.cihaz, kelime: [C_.acilan, C_.W.length], sesDuzeyi: { p10: q(0.1), p50: q(0.5), p90: q(0.9), maks: q(0.999) }, adimlar: C_.tani });
+    const j = JSON.stringify({ s: 'takip-tani-1', sure: C_.n, cihaz: C_.cihaz, ortam: canliOrtamKontrol(C_.rms).durum, hiz: +canliHizCarpani(C_).toFixed(2), kelime: [C_.acilan, C_.W.length], sesDuzeyi: { p10: q(0.1), p50: q(0.5), p90: q(0.9), maks: q(0.999) }, adimlar: C_.tani });
     (navigator.clipboard ? navigator.clipboard.writeText(j) : Promise.reject()).then(() => toast(t('Tanı kaydı kopyalandı ✓')), () => { window.prompt(t('Tanı kaydını kopyala:'), j); });
   }
   function canliEsik(C_) {   // sessizlik eşiği: gürültü tabanının üstünde, konuşma düzeyinin altında
@@ -170,7 +186,7 @@
       // Tanı kaydı (yalnız metin ve sayılar; ses kaydedilmez): her adımda ne duyuldu, ne bekleniyordu, neden ilerlenmedi
       const tani = (karar, ek) => { if (C_.tani.length < 300) C_.tani.push(Object.assign({ s: Math.round((Date.now() - C_.t0) / 100) / 10, pen: +((son - C_.bas) / 16000).toFixed(1), ms, duyulan: h.length, k: A.k, fark: A.mesafe, ac: C_.acilan, karar, duy: h.slice(0, 100), bek: C_.G.slice(C_.c, C_.c + Math.min(100, A.k + 8)) }, ek || {})); };
       // güvenilmeyen hizalama (tekrar okuma, başka ayet, gürültü): ilerleme yok; pencere çok uzarsa eski ses bırakılır
-      if (A.k > 0 && A.mesafe > canliTolerans(A.k, Date.now() - C_.sonIlerleme, C_.durum === 'takildi')) {
+      if (A.k > 0 && A.mesafe > canliTolerans(A.k, Date.now() - C_.sonIlerleme, C_.durum === 'takildi', canliHizCarpani(C_))) {
         // Hizalama güvenilmez; ama art arda reddedilip ses sürüyorsa sıradaki kelimeyi duyulanın içinde yaklaşık ara
         C_.retSay = (C_.retSay || 0) + 1;
         const wn = C_.W[C_.acilan];
@@ -194,7 +210,7 @@
       let ilerle = C_.c + A.k - (durdu ? 0 : 1);
       const sira = C_.W[C_.acilan];
       if (durdu && sira && ilerle < sira.e && ilerle >= sira.s + 0.6 * (sira.e - sira.s)) ilerle = sira.e;
-      C_.retSay = 0; canliAc(ilerle); tani('ilerle', { il: ilerle, durdu: !!durdu });
+      C_.retSay = 0; if (!C_.ilkIlerleme && ilerle > C_.c) C_.ilkIlerleme = Date.now() - 1000; canliAc(ilerle); tani('ilerle', { il: ilerle, durdu: !!durdu });
       const zamanBul = hedef => { let hi = -1; for (let i = 0; i <= h.length; i++) if (A.es[i] <= hedef - C_.c) hi = i; return hi > 0 && hi <= d.times.length ? C_.bas + Math.max(0, Math.round((d.times[hi - 1] + 0.08) * 16000)) : null; };
       // biten ayetler: bir sonraki ayetin okunmaya başlandığı görülünce (ya da son adımda tamamı okununca)
       while (C_.bitenAyet < C_.AY.length) {
