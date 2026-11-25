@@ -577,6 +577,31 @@ const EKRANLAR = [
       const renk = await sayfa.evaluate(() => getComputedStyle(document.querySelector('#okuEkran')).getPropertyValue('--ko-kagit').trim());
       kontrol('temalar: Galaksi seçilince sayfa o temaya geçiyor (--ko-kagit)', renk === '#1e2236', renk);
       await sayfa.evaluate(() => { window.__TECVID.S().kuran.tema = 'acik'; });
+      // Mini oynatıcı: Dinle ile açılır; sonraki/önceki ayet, duraklat, hız, büyüt, kapat
+      await sayfa.evaluate(() => {
+        window.__au = []; window.__AudioAsil = window.__AudioAsil || window.Audio;
+        window.Audio = function (src) { this.src = src; this.duration = 6; this.currentTime = 1; this.playbackRate = 1; this.paused = false; this.play = () => Promise.resolve(); this.pause = () => { this.paused = true; }; window.__au.push(this); };
+        window.__TECVID.S().kuran.tema = 'acik'; delete window.__TECVID.S().ayar.hiz; window.__TECVID.git('sayfa', 28);
+      });
+      await sayfa.waitForSelector('#koDinle'); await sayfa.click('#koDinle');
+      await sayfa.waitForSelector('#koMini');
+      const yer0 = await sayfa.evaluate(() => document.querySelector('#koMiniYer').textContent);
+      await sayfa.click('#koMiniIleri');
+      const yer1 = await sayfa.evaluate(() => document.querySelector('#koMiniYer').textContent);
+      kontrol('mini oynatıcı: sonraki ayet düğmesi ayeti değiştiriyor', yer0 !== yer1 && /Bakara/.test(yer1), yer0 + ' → ' + yer1);
+      await sayfa.click('#koMiniGeri');
+      kontrol('mini oynatıcı: önceki ayet düğmesi geri dönüyor', (await sayfa.evaluate(() => document.querySelector('#koMiniYer').textContent)) === yer0);
+      await sayfa.click('#koMiniArti');
+      const hz = await sayfa.evaluate(() => ({ yazi: document.querySelector('#koMiniHiz').textContent, au: window.__au[window.__au.length - 1].playbackRate, kayit: window.__TECVID.S().ayar.hiz }));
+      kontrol('mini oynatıcı: hız + düğmesi 1.25× yapıyor ve sesi etkiliyor', hz.yazi === '1.25×' && hz.au === 1.25 && hz.kayit === 1.25, JSON.stringify(hz));
+      await sayfa.click('#koMiniOyna');
+      kontrol('mini oynatıcı: duraklat sesi durduruyor', await sayfa.evaluate(() => window.__au[window.__au.length - 1].paused === true && document.querySelector('#koMiniOyna').textContent === '▶'));
+      await sayfa.click('#koMiniTam');
+      const tam = await sayfa.evaluate(() => ({ cls: document.querySelector('#koMini').classList.contains('tam'), ar: document.querySelector('#koMiniAr').textContent.length > 5, pos: getComputedStyle(document.querySelector('#koMini')).top }));
+      kontrol('mini oynatıcı: büyütünce tam ekran, Arapça ayet görünüyor', tam.cls && tam.ar && tam.pos === '0px', JSON.stringify(tam));
+      await sayfa.click('#koMiniKucult'); await sayfa.click('#koMiniKapat');
+      kontrol('mini oynatıcı: kapatınca çubuk kalkıyor, Dinle düğmesi sıfırlanıyor', await sayfa.evaluate(() => !document.querySelector('#koMini') && /Dinle/.test(document.querySelector('#koDinle').textContent)));
+      await sayfa.evaluate(() => { window.Audio = window.__AudioAsil; delete window.__TECVID.S().ayar.hiz; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

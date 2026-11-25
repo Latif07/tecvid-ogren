@@ -3656,20 +3656,56 @@
     ekran.addEventListener('touchstart', e => { const t_ = e.touches[0]; dx0 = t_.clientX; dy0 = t_.clientY; }, { passive: true });
     ekran.addEventListener('touchend', e => { if (dx0 === null) return; const t_ = e.changedTouches[0], dx = t_.clientX - dx0, dy = t_.clientY - dy0; dx0 = null; if (Math.abs(dx) > 80 && Math.abs(dy) < 60) git_(dx > 0 ? p + 1 : p - 1); }, { passive: true });
     // Sayfayı dinle: sayfadaki ayetler sırayla
+    // Sayfayı dinle: mini oynatıcı (önceki / duraklat / sonraki ayet, hız, ilerleme) ve tam ekran görünümü
     $('#koDinle').onclick = ev => {
       const btn = ev.currentTarget;
-      if (koSure) { koSure.iptal = true; koSure = null; sesDurdur(); btn.textContent = '▶ ' + t('Dinle'); app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan')); return; }
-      const is = { iptal: false }; koSure = is; btn.textContent = '⏹ ' + t('Durdur'); let j = 0;
-      const bitir = () => { if (koSure === is) koSure = null; if (document.body.contains(btn)) btn.textContent = '▶ ' + t('Dinle'); app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan')); };
-      const sonraki = () => {
-        if (is.iptal || !document.body.contains(btn)) return bitir();
-        app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan'));
-        if (j >= ay.length) return bitir();
-        const [n, a] = ay[j++], el = app.querySelector(`.ko-a[data-ayet="${n}:${a}"]`); if (el) { el.classList.add('calan'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-        const au = new Audio(sesKaynak(ayetUrl(`${n}:${a}`))); ses = au; au.playbackRate = S.ayar.hiz || 1;
-        au.onended = () => setTimeout(sonraki, 300); au.onerror = () => { bitir(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); }; au.play().catch(bitir);
+      if (koSure) { koSure.dur(); return; }
+      const is = { iptal: false, j: -1, au: null, duraklat: false }; koSure = is; btn.textContent = '⏹ ' + t('Durdur');
+      const temizle = () => app.querySelectorAll('.ko-a.calan').forEach(x => x.classList.remove('calan'));
+      const bitir = () => { is.iptal = true; clearInterval(is.iz); if (koSure === is) koSure = null; if (document.body.contains(btn)) btn.textContent = '▶ ' + t('Dinle'); temizle(); const m = document.getElementById('koMini'); if (m) m.remove(); };
+      is.dur = () => { is.iptal = true; if (is.au) is.au.onended = null; sesDurdur(); bitir(); };
+      const HIZLAR = [0.75, 1, 1.25, 1.5, 2];
+      const mini = () => {
+        let m = document.getElementById('koMini');
+        if (!m) {
+          m = document.createElement('div'); m.id = 'koMini'; m.className = 'ko-mini'; m.setAttribute('role', 'region'); m.setAttribute('aria-label', t('Oynatıcı'));
+          m.innerHTML = `<button class="ko-mini-kucult" id="koMiniKucult" aria-label="${t('Küçült')}">⌄</button>
+            <div class="ko-mini-tam"><p class="ayet" dir="rtl" lang="ar" id="koMiniAr"></p><p class="ko-meal" id="koMiniMeal"></p><p class="ko-mini-yer" id="koMiniYer2"></p></div>
+            <div class="ko-mini-ust"><div class="ko-mini-ad"><b id="koMiniYer"></b><small id="koMiniKari"></small></div>
+              <button id="koMiniGeri" aria-label="${t('Önceki ayet')}">⏮</button><button id="koMiniOyna" aria-label="${t('Duraklat')}">⏸</button><button id="koMiniIleri" aria-label="${t('Sonraki ayet')}">⏭</button><button id="koMiniTam" aria-label="${t('Büyüt')}">⤢</button><button id="koMiniKapat" aria-label="${t('Kapat')}">✕</button></div>
+            <div class="ko-mini-bar"><i id="koMiniBar"></i></div>
+            <div class="ko-mini-hiz"><button id="koMiniEksi" aria-label="${t('Yavaşlat')}">−</button><span id="koMiniHiz"></span><button id="koMiniArti" aria-label="${t('Hızlandır')}">+</button></div>`;
+          document.body.appendChild(m);
+          m.querySelector('#koMiniKapat').onclick = () => is.dur();
+          m.querySelector('#koMiniTam').onclick = () => m.classList.add('tam');
+          m.querySelector('#koMiniKucult').onclick = () => m.classList.remove('tam');
+          m.querySelector('#koMiniOyna').onclick = () => { if (!is.au) return; is.duraklat = !is.duraklat; if (is.duraklat) is.au.pause(); else is.au.play().catch(() => { }); m.querySelector('#koMiniOyna').textContent = is.duraklat ? '▶' : '⏸'; m.querySelector('#koMiniOyna').setAttribute('aria-label', is.duraklat ? t('Oynat') : t('Duraklat')); };
+          m.querySelector('#koMiniIleri').onclick = () => { if (is.au) is.au.onended = null; sesDurdur(); is.duraklat = false; oynat(is.j + 1); };
+          m.querySelector('#koMiniGeri').onclick = () => { if (is.au) is.au.onended = null; sesDurdur(); is.duraklat = false; oynat(Math.max(0, is.j - 1)); };
+          const hizDeg = d => { const h = S.ayar.hiz || 1, i = Math.min(HIZLAR.length - 1, Math.max(0, HIZLAR.indexOf(h) < 0 ? 1 : HIZLAR.indexOf(h)) + d); S.ayar.hiz = HIZLAR[i]; kaydet(); if (is.au) is.au.playbackRate = HIZLAR[i]; m.querySelector('#koMiniHiz').textContent = HIZLAR[i] + '×'; };
+          m.querySelector('#koMiniEksi').onclick = () => hizDeg(-1); m.querySelector('#koMiniArti').onclick = () => hizDeg(1);
+          m.querySelector('#koMiniHiz').textContent = (S.ayar.hiz || 1) + '×';
+          m.querySelector('#koMiniKari').textContent = kari().ad;
+          is.iz = setInterval(() => {
+            if (is.iptal) return;
+            if (!document.body.contains(btn)) return is.dur();   // başka ekrana geçildi
+            const au = is.au, b = document.getElementById('koMiniBar'); if (au && b && au.duration) b.style.width = Math.min(100, au.currentTime / au.duration * 100) + '%';
+          }, 250);
+        }
+        return m;
       };
-      sesDurdur(); sonraki();
+      const oynat = j => {
+        if (is.iptal || !document.body.contains(btn)) return bitir();
+        temizle(); if (j >= ay.length) return bitir(); if (j < 0) j = 0;
+        is.j = j; const [n, a] = ay[j], el = app.querySelector(`.ko-a[data-ayet="${n}:${a}"]`); if (el) { el.classList.add('calan'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        const m = mini(); m.querySelector('#koMiniYer').textContent = `${sureNoAdi(n)} · ${t('{0}. ayet', a)}`; m.querySelector('#koMiniYer2').textContent = `${sureNoAdi(n)} ${n}:${a}`;
+        const y = SURE(n); m.querySelector('#koMiniAr').textContent = y ? y.ayet[a - 1] : '';
+        m.querySelector('#koMiniMeal').textContent = mealSecili().map(z => (mealVeri(z, n) || [])[a - 1]).filter(Boolean).join(' ');
+        const bar = m.querySelector('#koMiniBar'); if (bar) bar.style.width = '0%';
+        const au = new Audio(sesKaynak(ayetUrl(`${n}:${a}`))); ses = au; is.au = au; au.playbackRate = S.ayar.hiz || 1;
+        au.onended = () => setTimeout(() => oynat(j + 1), 300); au.onerror = () => { is.dur(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); }; au.play().catch(() => is.dur());
+      };
+      sesDurdur(); oynat(0);
     };
     // Ayet menüsü: dinle, yer imi (3 renk), meal, tecvidini çalış
     app.querySelectorAll('[data-ko-ayet]').forEach(b => b.onclick = async ev => {
