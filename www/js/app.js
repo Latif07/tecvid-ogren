@@ -3260,6 +3260,7 @@
   // S.kuran = { hedef: günlük sayfa (0: yok), gun: { 'YYYY-MM-DD': [okunan sayfalar] }, son: { n, a, p }, imler: [{ n, a, renk, t }], gorunum, tema }
   // Görünüm: mushaf (sayfa, kâğıt) · modern (ayet ayet büyük) · meal (ayet + meal). Tema: acik · sepya · gece.
   // Sayfa "okundu" sayılır: "Okudum" denince ya da sayfada en az 30 sn kalınınca. Kaldığın yer: ekrandaki ilk ayet.
+  const KO_TEMALAR = [['acik', 'Açık'], ['yumusak', 'Yumuşak aydınlık'], ['sepya', 'Saman kâğıdı'], ['gece', 'Karanlık'], ['galaksi', 'Galaksi'], ['gunbatimi', 'Gün batımı'], ['amber', 'Amber gece']];
   const KO = () => { const k = S.kuran = S.kuran || {}; for (const [a, v] of Object.entries({ hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik' })) if (k[a] == null) k[a] = v; k.gun = k.gun || {}; k.ay = k.ay || {}; k.imler = k.imler || []; return k; };
   const koBugun = () => (KO().gun[bugun()] || []).length;
   // Ayet bazlı okuma: k.ay = { 'YYYY-MM-DD': ['n:a', ...] } (son 60 gün), k.ayetHedef: günlük ayet hedefi (0: yok). Sayfa hedefi ve hoca ödevi sayfa bazlı kalır.
@@ -3707,7 +3708,7 @@
       m.innerHTML = `<p class="ko-menu-baslik">${t('Görünüm')}</p>
         <div data-grup="gorunum">${sec(t('Okuma'), k.gorunum, [['mushaf', t('Mushaf')], ['modern', t('Modern')], ['meal', t('Meal ile')], ['sadecemeal', t('Sadece meal')]])}</div>
         ${mealKaynaklar().length > 1 ? `<div data-grup="mealler"><p class="kucukyazi soluk ko-menu-et">${t('Mealler')}</p><div class="ko-secim">${mealKaynaklar().map(k => `<button class="${mealSecili().includes(k) ? 'aktif' : ''}" data-ka="${k.id}">${esc(k.ad)}</button>`).join('')}</div></div>` : ''}
-        <div data-grup="tema">${sec(t('Sayfa rengi'), k.tema, [['acik', t('Açık')], ['sepya', t('Sepya')], ['gece', t('Gece')]])}</div>
+        <div data-grup="tema"><p class="kucukyazi soluk ko-menu-et">${t('Sayfa rengi')}</p><div class="tema-liste">${KO_TEMALAR.map(([v, ad]) => `<button class="tema-oge tema-${v} ${k.tema === v ? 'aktif' : ''}" data-ka="${v}"><b>${t(ad)}</b><small>${t('Bu örnek bir metindir.')}</small></button>`).join('')}</div></div>
         <div data-grup="ar">${sec(t('Arapça yazı'), S.ayar.arYazi || 1, [[0.85, 'ع−'], [1, 'ع'], [1.2, 'ع+'], [1.4, 'ع++']])}</div>
         <div data-grup="renkli">${sec(t('Renkli tecvid'), S.ayar.renkli ? 1 : 0, [[1, t('Açık')], [0, t('Kapalı')]])}</div>
         <div data-grup="durak">${sec(t('Durak grupları (cümle cümle)'), S.ayar.durakGrup ? 1 : 0, [[1, t('Açık')], [0, t('Kapalı')]])}</div>

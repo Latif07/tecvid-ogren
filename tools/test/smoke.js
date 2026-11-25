@@ -567,6 +567,16 @@ const EKRANLAR = [
       const tkp = await sayfa.evaluate(() => { const a = window.__TECVID.S().ayar.tk || {}; return { pay: a.pay, oto: a.oto, chk: document.querySelector('#tkOto').checked }; });
       kontrol('tekrarla: sessiz tekrar payı ×2 ve "başa dönsün" ayarları kaydoluyor', tkp.pay === 2 && tkp.oto === true && tkp.chk === true, JSON.stringify(tkp));
       await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.tk; });
+      // Sayfa temaları: 7 tema, seçilince sayfaya uygulanır
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.tema = 'acik'; window.__TECVID.git('sayfa', 3); });
+      await sayfa.waitForSelector('#okuEkran'); await sayfa.click('#koAyar');
+      const tm = await sayfa.evaluate(() => { const b = [...document.querySelectorAll('[data-grup="tema"] [data-ka]')]; return b.map(x => x.dataset.ka); });
+      kontrol('temalar: menüde 7 sayfa teması listeleniyor', JSON.stringify(tm) === '["acik","yumusak","sepya","gece","galaksi","gunbatimi","amber"]', JSON.stringify(tm));
+      await sayfa.evaluate(() => { document.querySelector('[data-grup="tema"] [data-ka="galaksi"]').click(); });
+      await sayfa.waitForSelector('#okuEkran.tema-galaksi');
+      const renk = await sayfa.evaluate(() => getComputedStyle(document.querySelector('#okuEkran')).getPropertyValue('--ko-kagit').trim());
+      kontrol('temalar: Galaksi seçilince sayfa o temaya geçiyor (--ko-kagit)', renk === '#1e2236', renk);
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.tema = 'acik'; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

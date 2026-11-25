@@ -1483,3 +1483,28 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .not-git{display:block;width:100%;text-align:left;background:none;border:0;padding:4px 0;font:inherit;color:inherit}
 .not-metin{display:block;margin-top:4px;color:var(--soluk);font-size:.9em}
 .ko-no.ko-not::after{content:'📝';font-size:.55em;position:relative;top:-.9em;margin-inline-start:2px}
+
+/* Ek sayfa temaları */
+.oku-ekran.tema-yumusak { --ko-kagit: #eceeea; --ko-yazi: #2b2b2b; }
+.oku-ekran.tema-galaksi { --ko-kagit: #1e2236; --ko-yazi: #e4e6f5; }
+.oku-ekran.tema-gunbatimi { --ko-kagit: #14171f; --ko-yazi: #f0dcd2; }
+.oku-ekran.tema-amber { --ko-kagit: #20243a; --ko-yazi: #f2e3c6; }
+.oku-ekran.tema-galaksi .ko-sayfa, .oku-ekran.tema-gunbatimi .ko-sayfa, .oku-ekran.tema-amber .ko-sayfa { border-color: #333a55; }
+.oku-ekran.tema-galaksi .sure-baslik, .oku-ekran.tema-gunbatimi .sure-baslik, .oku-ekran.tema-amber .sure-baslik { background: #2a2f4a; color: #e6d3a3; }
+.oku-ekran.tema-galaksi .kelime:not([class*="tc-"]), .oku-ekran.tema-gunbatimi .kelime:not([class*="tc-"]), .oku-ekran.tema-amber .kelime:not([class*="tc-"]) { color: var(--ko-yazi); }
+.oku-ekran.tema-galaksi .ko-a.calan, .oku-ekran.tema-galaksi .ko-a.ko-vurgu { background: #34395c; }
+.oku-ekran.tema-gunbatimi .ko-a.calan, .oku-ekran.tema-gunbatimi .ko-a.ko-vurgu { background: #3a2b2b; }
+.oku-ekran.tema-amber .ko-a.calan, .oku-ekran.tema-amber .ko-a.ko-vurgu { background: #3d3a2c; }
+.oku-ekran.tema-yumusak .ko-a.calan, .oku-ekran.tema-yumusak .ko-a.ko-vurgu { background: #dde3d4; }
+/* tema seçim listesi (önizlemeli) */
+.tema-liste { display: flex; flex-direction: column; gap: 6px; }
+.tema-oge { display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; border-radius: 10px; padding: 8px; background: var(--ko-kagit, #fff); color: var(--ko-yazi, #222); font: inherit; }
+.tema-oge.aktif { border-color: var(--ana, #0f5a47); }
+.tema-oge small { opacity: .8; }
+.tema-oge.tema-acik { --ko-kagit: #ffffff; --ko-yazi: #1d1d1d; }
+.tema-oge.tema-yumusak { --ko-kagit: #eceeea; --ko-yazi: #2b2b2b; }
+.tema-oge.tema-sepya { --ko-kagit: #f4ead2; --ko-yazi: #3b2f1c; }
+.tema-oge.tema-gece { --ko-kagit: #121212; --ko-yazi: #e6e1d6; }
+.tema-oge.tema-galaksi { --ko-kagit: #1e2236; --ko-yazi: #e4e6f5; }
+.tema-oge.tema-gunbatimi { --ko-kagit: #14171f; --ko-yazi: #f0dcd2; }
+.tema-oge.tema-amber { --ko-kagit: #20243a; --ko-yazi: #f2e3c6; }
