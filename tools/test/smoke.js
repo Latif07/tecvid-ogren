@@ -602,6 +602,36 @@ const EKRANLAR = [
       await sayfa.click('#koMiniKucult'); await sayfa.click('#koMiniKapat');
       kontrol('mini oynatıcı: kapatınca çubuk kalkıyor, Dinle düğmesi sıfırlanıyor', await sayfa.evaluate(() => !document.querySelector('#koMini') && /Dinle/.test(document.querySelector('#koDinle').textContent)));
       await sayfa.evaluate(() => { window.Audio = window.__AudioAsil; delete window.__TECVID.S().ayar.hiz; });
+      // Kaynak gelince etkinleşen görünümler: kelime meali ve mushaf resmi (sahte kaynakla); kaynak yokken menüde görünmez
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'mushaf'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('#koAyar'); await sayfa.click('#koAyar');
+      kontrol('kelime meali / mushaf resmi: kaynak yokken menüde görünmüyor', await sayfa.evaluate(() => !document.querySelector('.gor-kart [class*="gor-kelime"]') && !document.querySelector('.gor-kart .gor-resim')));
+      await sayfa.route('**/kuran/kelime-meal/test/001.json', r => r.fulfill({ contentType: 'application/json', body: JSON.stringify([['Allah’ın', 'adıyla', 'Rahman', 'Rahim'], ['Hamd', 'Allah’a']]) }));
+      await sayfa.evaluate(() => { window.__TECVID.KELIME_MEAL_KAYNAK.push({ id: 'test', ad: 'Test', kaynak: 'deneme', yol: 'test' }); window.__TECVID.MUSHAF_RESIM.v = { ad: 'Test', kaynak: 'deneme', url: p => 'icons/icon-192.png' }; window.__TECVID.S().kuran.gorunum = 'kelime'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('.kelime-an');
+      const km = await sayfa.evaluate(() => ({ an: document.querySelectorAll('.kelime-an').length, ilk: document.querySelector('.kelime-an').textContent }));
+      kontrol('kelime meali: her kelimenin altında anlam görünüyor', km.an >= 4 && km.ilk === 'Allah’ın', JSON.stringify(km));
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'kelimemeal'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('.kelime-an'); await sayfa.waitForSelector('.ko-meal');
+      kontrol('kelime + meal: kelime anlamı ve ayet meali birlikte', await sayfa.evaluate(() => document.querySelectorAll('.kelime-an').length >= 4 && document.querySelectorAll('.ko-meal').length >= 1));
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'resim'; window.__TECVID.git('sayfa', 1); });
+      await sayfa.waitForSelector('.ko-resim');
+      kontrol('mushaf resmi: sayfa resmi gösteriliyor', await sayfa.evaluate(() => /icon-192/.test(document.querySelector('.ko-resim').getAttribute('src'))));
+      await sayfa.evaluate(() => { window.__TECVID.KELIME_MEAL_KAYNAK.length = 0; window.__TECVID.MUSHAF_RESIM.v = null; window.__TECVID.S().kuran.gorunum = 'mushaf'; });
+      // Sürüklenebilir kaydırma çubuğu: sayfa kaydırılınca tutamaç iner, sürüklenince sayfa kayar
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'meal'; window.__TECVID.git('sayfa', 28); });
+      await sayfa.waitForSelector('#koKaydir:not([hidden])', { timeout: 8000 });
+      await sayfa.evaluate(() => window.scrollTo(0, 0)); await sayfa.waitForTimeout(150);
+      const y0 = await sayfa.evaluate(() => parseFloat(document.querySelector('#koKaydirTut').style.top) || 0);
+      await sayfa.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await sayfa.waitForTimeout(250);
+      const y1 = await sayfa.evaluate(() => parseFloat(document.querySelector('#koKaydirTut').style.top) || 0);
+      kontrol('kaydırma çubuğu: sayfa kayınca tutamaç aşağı iniyor', y1 > y0 + 50, y0 + ' → ' + y1);
+      await sayfa.evaluate(() => window.scrollTo(0, 0)); await sayfa.waitForTimeout(200);
+      const kb = await sayfa.evaluate(() => { const r = document.querySelector('#koKaydir').getBoundingClientRect(); return { x: r.left + r.width / 2, y1: r.top + 40, y2: r.top + r.height * 0.6 }; });
+      await sayfa.mouse.move(kb.x, kb.y1); await sayfa.mouse.down(); await sayfa.mouse.move(kb.x, kb.y2, { steps: 6 }); await sayfa.mouse.up();
+      await sayfa.waitForTimeout(150);
+      kontrol('kaydırma çubuğu: sürüklenince sayfa kayıyor', (await sayfa.evaluate(() => window.scrollY)) > 300, String(await sayfa.evaluate(() => window.scrollY)));
+      await sayfa.evaluate(() => { window.__TECVID.S().kuran.gorunum = 'mushaf'; window.scrollTo(0, 0); });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
