@@ -1,81 +1,86 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.75';
+  const SURUM = '1.0.76';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
-    { s: '1.0.75', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.76', t: '2026-11-26', sa: '18:20', l: [
+      'Yenilikler: sürümün tarihine dokununca yayın saati de görünür',
+      'Ezber ekranı: asıl düğme artık büyük "▶ Dinle" (Sonraki küçük düğme oldu); tekrar sayısı tek satırda; üstteki araç çubuğu daha az yer kaplıyor',
+      'Tekrarla: telefonda alttaki "Tekrar +" düğmesi ekrandan taşıyordu, düzeltildi',
+    ] },
+    { s: '1.0.75', t: '2026-11-26', sa: '17:30', durum: 'Web', l: [
       'Kelimeye dokununca artık seçtiğin kârinin sesiyle o ayet okunur; ses her yerde aynı. İstersen Ayarlar > Ses bölümünden "Yalnız o kelimeyi çal"a geçebilirsin',
       'Ezber ve Tekrarla ekranlarında "Aa" düğmesi: Arapça yazı boyutu ve sayfa rengi (açık, sepya, karanlık, galaksi…) buradan seçilir',
     ] },
-    { s: '1.0.74', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.74', t: '2026-11-26', sa: '17:12', durum: 'Web', l: [
       'Ezber (dinleme adımı): ayet numarasına dokununca o ayet seçtiğin sayıda (örn. 5 kez) tekrarlanır, sonra sıradaki ayete geçip aynı şekilde devam eder; hangi ayetin kaçıncı tekrarda olduğu altta görünür',
       'Ezber dinlemesinde "🗣️ Sen de tekrar et": her ayetten sonra ayet süresi kadar sessizlik olur, sen de yüksek sesle tekrar edersin (kapatılabilir)',
       'Sûreyi yeniden açınca en son çalıştığın ayetten devam eder',
       'Yeni başlayanlar için ezber adımları kısaldı: "yarı gizli" adımı atlanır (ilk 10 ayetten sonra tüm adımlar gelir)',
     ] },
-    { s: '1.0.73', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.73', t: '2026-11-26', sa: '16:56', durum: 'Web', l: [
       'Ezber: ayet numarasına (﴿٢﴾) dokununca o ayetin tamamı okunur; üstteki ‹ › düğmeleriyle önceki/sonraki ayete tek dokunuşla geçilir',
       'Ezber ve Tekrarla: "🔤 Okunuş" (Latin) ve "📖 Meal" tek dokunuşluk düğmeler olarak ekranın üstünde; ayarları açmaya gerek yok',
     ] },
-    { s: '1.0.72', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.72', t: '2026-11-26', sa: '16:06', durum: 'Web', l: [
       'Sen oku: Durdur\'a basınca sayfa kendiliğinden değişmez; hatalarına bakabilir, "Sonraki sayfa ›" ile devam edebilirsin',
       'Hatalarım: ayetler aç/kapa listesi (Hepsini aç/kapat); "Listeyi temizle" ve "Kapat" düğmeleri hep görünür; pencere açıkken arkadaki sayfa kaymaz',
       'Aa görünüm menüsü sadeleşti: okuma modu ve sayfa rengi küçük, aynı boyda seçenekler; az kullanılanlar "Daha fazla ayar" altında',
       'Seçtiğin kâri artık Kur\'an ile ilgili her yerde (meşk, çocuk sûreleri dahil) okur',
     ] },
-    { s: '1.0.71', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.71', t: '2026-11-26', sa: '15:37', durum: 'Web', l: [
       'Çocuk modu: "Büyükler" bölümü ebeveyn sorusuyla (küçük bir çarpma) açılır; ebeveyn, çocuğun günlük süresini seçebilir (15 / 30 / 45 / 60 dk). Süre dolunca "Bugünlük yeterli" ekranı çıkar; ebeveyn sorusuyla 10 dk eklenebilir',
       'Özel günler: Kandil, Ramazan, Bayram ve Aşure gibi günlerde (3 gün öncesinden) ana sayfada küçük kart. 2027 tarihleri Diyanet takvimine göre; her yıl yeni tarih eklenir',
       'Kendi okuyuşunu kaydedince "Paylaş": ses dosyasını hocana gönderebilirsin (paylaşım yoksa indirilir)',
       'Görünüm inceltmesi: kartlar arası boşluk, başlık boyu, satır aralığı ve Arapça kelime aralığı biraz artırıldı',
     ] },
-    { s: '1.0.70', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.70', t: '2026-11-26', sa: '15:22', durum: 'Web', l: [
       'Koyu tema okunurluğu: yeşil düğmeler, ezber çipleri, "Şimdi" rozeti ve silme düğmesi artık yeterli kontrastta; Kur\'an sayfasındaki gri ve kehribar tecvid renkleri koyulaştırıldı. Açık ve koyu temada otomatik kontrast testi eklendi',
       'İlk açılış: "Nereden başlayalım?" ekranında yazı boyutu seçilir; "Hiç bilmiyorum" doğrudan Elif-Ba ekranını açar',
       'Tecvid sekmesi sadeleşti: yeni başlayanda tecvid bölümleri "Tüm tecvid bölümleri" altında katlı (görünür düğme 39 → 7); Hap kartlar girişi tekrarsız',
       'Ana sayfada saate göre selam (Hayırlı sabahlar / günler / akşamlar / geceler) ve 3, 7, 14, 30… gün serilerinde nazik kutlama kartı',
       'Ayarlar: Yüksek kontrast, Hareketi azalt ve Geri bildirim gönder (sürüm ve cihaz bilgisiyle; göndereceğin uygulamayı sen seçersin)',
     ] },
-    { s: '1.0.69', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.69', t: '2026-11-26', sa: '12:29', durum: 'Web', l: [
       'Hap kartlar: kartlardaki her harfe, heceye ve kelimeye dokununca okunur (harf: hoca kaydı varsa o, yoksa harfin adı; kelime: Kur\'an\'dan gerçek kâri sesi)',
       'Düzeltme: Kur\'an sayfasının arkasındaki çizgili arka plan kalktı (okuma modu önizlemesinin stili sayfaya sızıyordu); sayfa yazıları daha okunur',
       'Tek ayeti "okudum" deyince altta çıkan bildirim yerine ayet numarasında küçük ✓ işareti',
     ] },
-    { s: '1.0.68', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.68', t: '2026-11-26', sa: '10:38', durum: 'Web', l: [
       'Üç yeni hap kart: Harekeler ve işaretler, Mahreçler (17 mahreç ve harfleri), Karıştırılan harfler; kontrol modu, yazdır ve paylaş hepsinde; ilgili derslerin sayfasında "Bu konunun kartı"',
       'Çizgi ikonlar: günlük ders kartı, Tecvid kısayolları, Kur\'an sekmesi, ezber, kartlar, notlar ve paylaş/yazdır düğmelerinde emoji yerine sade ikon',
     ] },
-    { s: '1.0.67', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.67', t: '2026-11-26', sa: '04:44', durum: 'Web', l: [
       'Ayet ara: Kur\'an sekmesinde 🔎 Ayet ara. Arapça (harekesiz) yazarsan kelimeyle, Türkçe yazarsan meal içinde arar; sonuca dokununca o ayetin sayfasına gidersin (ilk aramada ~1,6 MB dizin indirilir)',
       'Ezber: bugünkü plan Sabak (yeni ders), Sabakî (yakın tekrar), Münzil (uzak tekrar) adlarıyla; "Ezber raporu" ile ilerlemeni hocana paylaş ya da kopyala',
       'Ana sayfada sade çizgi ikonlar (hızlı erişim, Elif-Ba ve Kur\'an kartları, Notlarım, İlerleme)',
       'İngilizce çeviri sözlüğü yalnız İngilizce seçilince yükleniyor (Türkçede ~140 KB daha az)',
     ] },
-    { s: '1.0.66', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.66', t: '2026-11-26', sa: '03:59', durum: 'Web', l: [
       'Dokunma kolaylığı: konu çipleri, süre seçici, Tekrarla düğmeleri ve onay kutuları en az 44 px; 12 px altı yazılar büyütüldü; derste harflerdeki 🔊 ikonu komşu harfin üstüne binmiyor',
       'Ders başındaki konu çipleri artık yatay kaymak yerine alt satıra sarılıyor',
       'Ezber listesi boşken tek, yönlendirici "İlk sûreni ekle" kartı',
       'Ana sayfa (Sıfırdan profil): hızlı erişimde Elif-Ba tekrarı kaldırıldı, yerine Elif-Ba alıştırma geldi',
       '"Hoca onayı bekliyor" iç notları artık yalnız test sürümünde görünüyor (hap kartlar, Elif-Ba alıştırma)',
     ] },
-    { s: '1.0.65', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.65', t: '2026-11-26', sa: '03:33', durum: 'Web', l: [
       'Elif-Ba alıştırmaları (sessiz): Harfi tanı, Adı bul, Eşleştir; yanlış yaptığın harfler daha sık gelir, 3 doğru ve az hatayla harf "öğrenildi" olur (yeşil harf tablosu)',
       'Elif-Ba odak ekranında ve hızlı erişim seçeneklerinde "Alıştırma" kısayolu',
     ] },
-    { s: '1.0.64', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.64', t: '2026-11-26', sa: '03:05', durum: 'Web', l: [
       'Ana sayfa kişiselleştirme: üç başlangıç profili (Sıfırdan başlıyorum, Harfleri biliyorum, Kur\'an okuyorum; ilk açılışta durumuna göre otomatik) ana sayfayı farklı dizer',
       'Ana sayfayı düzenle (sayfanın en altında): kartları aç/kapat, ↑ ↓ ile sırala, en çok kullandığın 4 şeyi hızlı erişim şeridine koy',
       'Yeni kartlar: Elif-Ba (ilerleme + Devam et), Kaldığım yer (Kur\'an), Hızlı erişim, Hızlı ayarlar (günlük hedef, Arapça yazı, renkli tecvid, durak ışıkları)',
     ] },
-    { s: '1.0.63', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.63', t: '2026-11-26', sa: '02:54', durum: 'Web', l: [
       'Harf sesi: hocanın kaydettiği harf sesi varsa her yerde o çalar (Elif-Ba dersi, harf kartının büyük harfi, mahreç dersindeki harfler, mahreç şemasındaki harflerin 🔊 düğmesi); kayıt yoksa Elif-Ba\'da yedek olarak yapay ses',
     ] },
-    { s: '1.0.62', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.62', t: '2026-11-26', sa: '02:46', durum: 'Web', l: [
       'Sen oku: okuma hızına uyum (hızlı okuyanda eşleştirme toleransı biraz artar) ve başladıktan 4 sn sonra mikrofon/ortam kontrolü ("ses çok kısık", "ortam gürültülü" ipucu)',
       'Tanı kaydına ortam durumu ve okuma hızı eklendi',
     ] },
-    { s: '1.0.61', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.61', t: '2026-11-25', sa: '20:41', durum: 'Web', l: [
       'Notlar: ayet numarasına dokunup 📝 Not, derslerde ve Elif-Ba\'da sayfanın altında 📝 Not; yazılı ve sesli (en çok 60 sn, ses yalnız bu cihazda); notlu ayetin yanında 📝 işareti',
       'Notlarım: notlar ve yer imleri tek ekranda; filtre, arama, düzenle, sil ve "oraya git"',
       'Kur\'an sayfasında Dinle: mini oynatıcı (önceki / duraklat / sonraki ayet, hız −/+, ilerleme) ve tam ekran görünümü',
@@ -85,24 +90,24 @@
       'Hazırlık: Kelime Meali ve Mushaf resmi görünümleri kaynak/izin gelince açılacak şekilde kodlandı (şu an görünmez)',
       'Ezber: atlanan ayetler artık ezberlenmiş sayılmıyor (1.0.60)',
     ] },
-    { s: '1.0.60', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.60', t: '2026-11-25', sa: '19:55', durum: 'Web', l: [
       'Ezber: ileri bir ayetten başlayınca aradaki atlanan ayetler artık ezberlenmiş sayılmıyor; zayıf listesine girip yarın tekrarda sorulur, bitişte "Atladığım ayetleri çalış" düğmesi çıkar',
     ] },
-    { s: '1.0.59', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.59', t: '2026-11-25', sa: '19:41', durum: 'Web', l: [
       'Sen oku: takılma uzadıkça eşleştirme toleransı kademeli artıyor (3, 5 ve 8 saniyede), sessizken artmıyor',
       'Sen oku: 7 saniyeden uzun takılınca "Biraz yavaş ve net oku ya da kelimeyi geç" uyarısı çıkıyor, "Bu kelimeyi geç" düğmesi büyüyüp nabız atıyor',
       'Sen oku: takılınca çıkan 🛠 düğmesiyle tek dokunuşta tanı kaydı kopyalanıyor',
     ] },
-    { s: '1.0.58', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.58', t: '2026-11-25', sa: '18:55', durum: 'Web', l: [
       'Çocuk modu sesi: "Selâmün aleyküm" gibi sözler artık motorun doğal okuyacağı biçimde okunuyor (â, î, û düzeltmesi), konuşma biraz yavaşlatıldı',
     ] },
-    { s: '1.0.57', t: '2026-11-26', durum: 'Web', l: [
+    { s: '1.0.57', t: '2026-11-25', sa: '18:15', durum: 'Web', l: [
       'Müezzinlik: kaydı olmayan metinlerde (Selâ, Ezan, Kamet…) "🔈 Dinle" ve "Tamamını dinle (yapay ses)"; cihazın Arapça sesiyle okunur, makamsızdır (insan kaydı gelene kadar)',
       'Elif-Ba: harfe dokununca artık harfin adı okunuyor (Elif, Be, Te…); önceden o harfi içeren Kur\'an kelimesi (İyyâke, Sebeben) çalıyordu',
       'Ders başlıklarının altındaki çizgi artık harflerin altında düz bir çizgi',
       'Kartları yazdır / PDF: A4 sayfaya sığıyor, kartlar alt alta tek sütun',
     ] },
-    { s: '1.0.56', t: '2026-11-25', durum: 'Web', l: [
+    { s: '1.0.56', t: '2026-11-25', sa: '17:51', durum: 'Web', l: [
       'Tecvid sekmesinde bir derse girip geri dönünce "İleri konular" gibi açık paneller artık kapanmıyor',
       'Elif-Ba odak modu ve Hap bilgi kartları girişleri Tecvid sekmesinin en üstünde her zaman görünüyor; kart kısayolu dersin ilk sayfasında da var',
       'Durak ışıkları artık derslerde ve ders örneklerinde de renkli; Vakf dersinde işaretlerin anlamı açılır kutuda',
@@ -110,79 +115,79 @@
       'Sen oku: kelimeyi biraz farklı okuyunca ilerlememe sorunu için yumuşak eşleme eklendi (art arda eşleşmeyince sıradaki kelime duyulanın içinde yaklaşık aranır)',
       'Ezber: "📍 Ayet seç" ile istediğin ayetten devam edebilirsin; "📖 Meal" ile ezberlerken mealin ayetin altında görünür',
     ] },
-    { s: '1.0.55', t: '2026-11-25', durum: 'Web', l: [
+    { s: '1.0.55', t: '2026-11-25', sa: '17:34', durum: 'Web', l: [
       'Durak ışıkları: Kur\'an sayfasındaki durak işaretleri renkli (kırmızı lâzım, turuncu durmak iyi, sarı câiz, yeşil geçmek iyi, mavi muânaka, mor sekte); Aa menüsünden kapatılır, işaretlerin anlamı orada',
       'Yeni "Hap kartlar": medler, nûn sâkin ve tenvin, mîm sâkin, ğunne ve kalkale, lâm ve râ, vakf kartı (Medine ve Türk mushafı) tek bakışta',
       'Kartlarda Kontrol modu (cevaplar gizli, dokununca açılır), yazdır / PDF ve paylaş; derslerin son sayfasında ve günlük dersin sonunda kısayol',
       'Elif-Ba odak modu: Tecvid sekmesinde sıfırdan başlayanlar için sade müfredat ekranı (sesli içerik hoca kaydı bekliyor)',
       'Kart içerikleri ders metinlerinden alındı; hoca onayı bekliyor',
     ] },
-    { s: '1.0.54', t: '2026-11-25', durum: 'Web', l: [
+    { s: '1.0.54', t: '2026-11-25', sa: '17:04', durum: 'Web', l: [
       'Kur\'an sayfasında gezinme düzeldi: › yalnız sonraki sayfaya geçer (okundu saymaz), "✓ Okudum" sayfayı okundu sayıp sonrakine geçer',
       'Sayfadayken 📍 ile her yere git: sûre ve ayet (Bakara 185), sayfa numarası ya da cüz',
       'Ayet numarasına dokununca "Bu ayeti okudum": iki ayet okuyup bırakabilirsin, hedefine sayılır',
       'Yeni görünüm "Sadece meal"; Aa menüsünde otomatik kaydırma (yavaş / orta / hızlı) ve "Bu sayfayı / sûreyi tekrarla" kısayolları',
       'Tekrarla\'da "Sondan başa" okuma yönü (basamak yönteminde son ayetten geriye doğru)',
     ] },
-    { s: '1.0.53', t: '2026-11-25', durum: 'Web', l: [
+    { s: '1.0.53', t: '2026-11-25', sa: '15:29', durum: 'Web', l: [
       'Derslerde yeni "Tek bakışta" kartı: kuralın adı, kısa özeti ve uzatma miktarı çubuğu (kaç elif, hangisi yaygın); defter görünümlü ders kartları',
       'Dersin üstünde aynı konudaki derslerin çipleri: bitirdiklerin ✓, bulunduğun ders işaretli, dokununca o derse geçersin',
       'Ayet ekranında "Bu ayette tecvid": ayetteki kuralların renkli çipleri; dokununca açıklama ve "Dersi aç"',
       'Ayet ekranında "Paylaş": ayet, meal ve kaynak tek metin olarak paylaşılır',
     ] },
-    { s: '1.0.52', t: '2026-11-24', durum: 'Web', l: [
+    { s: '1.0.52', t: '2026-11-24', sa: '21:28', durum: 'Web', l: [
       'Kur\'an sekmesinde günlük ayet hedefi ve cüz ilerlemesi: "Bugün 8/10 ayet", "Cüz 2/30 · %5"',
       'Yeni "Ayet ayet oku" okuma kartı: ayet, meal, oku ve tekrar; "Okudum ›" ile sonraki ayete geç, sayfanın bütün ayetleri okununca sayfa da sayılır',
       'Yeni "İstatistik": Bugün / Hafta / Son 60 gün; okunan ayet ve sayfa, okuduğun gün, seri ve haftalık çubuklar',
       'Ayet hedefi Aa menüsünden seçilir (5 / 10 / 20 / 50 / 100); sayfa hedefi ve hoca ödevi aynen çalışır',
     ] },
-    { s: '1.0.51', t: '2026-11-24', durum: 'Web', l: [
+    { s: '1.0.51', t: '2026-11-24', sa: '16:57', durum: 'Web', l: [
       'Ezber sekmesinde yeni "Tekrarla": bir sûrenin bütün ayetlerini tekrar sayısı (99\'a kadar), bekleme süresi ve ses hızıyla dinle; oto tekrar ve oto kaydırma',
       '"Basamak yöntemi": önce 1. ayet, sonra 1–2, sonra 1–2–3… birikimli ezber',
       '"Gizle ve oku": kelimeleri gizleyip okudukça açarak ezberini dene; "Ezberlendi" kutusuyla sûreyi işaretle',
       'Günlük yeni ders için "Hepsi" seçeneği; Dinle adımında 10× ve 20× tekrar',
     ] },
-    { s: '1.0.50', t: '2026-11-24', durum: 'Web', l: [
+    { s: '1.0.50', t: '2026-11-24', sa: '12:18', durum: 'Web', l: [
       'Kur\'an sekmesinde yeni "Git": sûre ve ayet (örn. Bakara 185), sayfa numarası ya da cüz seçip doğrudan o yere açılırsın',
       'Ayet numarasına dokununca "Ayet ekranı": ayet, sayfa ve cüz bilgisi, meal, önceki / sonraki ayet ve okuma tek ekranda',
       'Birden çok meal göstermeye hazırlandı; yeni mealler kaynağı ve lisansı doğrulanınca eklenecek',
       'Durdur düğmesi artık hemen tepki veriyor; yapay zekâ modeli ayrı çalıştığı için ekran donmuyor',
     ] },
-    { s: '1.0.49', t: '2026-11-23', durum: 'Web', l: [
+    { s: '1.0.49', t: '2026-11-23', sa: '17:06', durum: 'Web', l: [
       'Kur\'an sayfasında "Takip" düğmesi "Sen oku" oldu; altta küçük durum etiketi (Dinliyorum / Bekliyorum / Kelimeyi eşleştiremedim) ve sayfa boyunca ilerleme çubuğu',
       'Takılırsan "Bu kelimeyi geç" ile devam edersin; ‹ › okları ile ayet ayet ilerleyebilirsin',
       'Okurken kesin hataların altı çizilir; "Hatalarımı göster" ile o oturumdaki hataları ayrıntısıyla görür, tekrar okuyabilirsin',
       'Takip sorunları için "Tanı kaydını kopyala" düğmesi eklendi (ses kaydedilmez, yalnızca metin ve sayılar)',
     ] },
-    { s: '1.0.48', t: '2026-11-20', durum: 'APK', l: [
+    { s: '1.0.48', t: '2026-11-21', sa: '02:48', durum: 'APK', l: [
       'Profil silme düzeltildi: silinen profil artık geri gelmiyor (bulut eşitlemesi silmeyi hemen tanıyor)',
       'Geri Al: silmeyi 10 saniye içinde geri alabilirsin, profil ilerlemesiyle birlikte döner',
     ] },
-    { s: '1.0.47', t: '2026-11-20', durum: 'APK', l: [
+    { s: '1.0.47', t: '2026-11-21', sa: '02:27', durum: 'APK', l: [
       'Profil hatası düzeltildi: hızlı çift dokunuşta aynı profil iki kez eklenmiyor',
       'Testte yanlış cevapta artık ne hata yapıldığı açıklanıyor (karıştırılan harfler ve iklâb sorularında)',
     ] },
-    { s: '1.0.46', t: '2026-11-19', durum: 'Web', l: [
+    { s: '1.0.46', t: '2026-11-19', sa: '13:33', durum: 'Web', l: [
       '"Seni tanıyalım" yenilendi: 8 konuda 3\'er soru, kararsız kalınca 2 soru daha; tek yanlış konuyu kaybettirmez',
       'Bir konuyu bilmemek testi bitirmez; "Bu konuyu hiç görmedim, geç" ile tek dokunuşla geçilir',
       'İsteğe bağlı kısa okuma (3 ayet): iyi okuyan harekeler konusunu geçmiş sayılır. Kur\'an okuyan biri artık Elif-Ba\'ya gönderilmez',
       'Sonuç ekranı: konu konu "Biliyorsun / Çalışalım"; her konuyu kendin değiştirebilirsin. Sorular hoca onayı bekliyor',
     ] },
-    { s: '1.0.45', t: '2026-11-19', durum: 'Web', l: [
+    { s: '1.0.45', t: '2026-11-19', sa: '05:01', durum: 'Web', l: [
       'Yeni arayüz: alt menü 4 sekme (Bugün · Tecvid · Kur\'an · Ben), çizgi ikonlar',
       'Kur\'an sekmesinde üstte Oku · Ezberle · Dinle; sûreler cüzlere göre açılır gruplar, arama ve son açtıkların',
       'Tecvid sekmesi: Harf kartları, Testler, Sûre sûre tecvid, Kural ara kısayolları; bölümler açılır gruplar',
       'Ben sekmesi: profil resmi (Google ile girişte), gruplu satırlar; Ayarlar 5 bölüm (Görünüm, Ses ve kâri, Hatırlatma, Dil, Hesap ve yedek). Çocuk modu ayarları Profiller ekranında',
     ] },
-    { s: '1.0.44', t: '2026-11-19', durum: 'Web', l: [
+    { s: '1.0.44', t: '2026-11-19', sa: '04:45', durum: 'Web', l: [
       'Uygulamanın yeni adı: Kur\'an Yolum',
       'Kâri seçimi ve Hocamı bul tek ekranda: üstte seçili kâri, iki sekme (Listeden seç · Sesime göre bul), açılır gruplar ve arama',
     ] },
-    { s: '1.0.43', t: '2026-11-18', durum: 'Web', l: [
+    { s: '1.0.43', t: '2026-11-19', sa: '01:11', durum: 'Web', l: [
       'Müezzinlik ve Dualar: ezber adımları (Dinle → Bakarak → Yarısı gizli → Ezberden). Her satırı 🎙️ ile okursun; sözler doğruysa satır ✓, hepsi ✓ olunca sonraki adım; son adımda ezberlenmiş sayılır. Kelimeler okurken açılmaz',
       'Âyetü\'l-Kürsî gibi uzun ayetler durak işaretlerinden parçalara bölündü; her parça ayrı kart ve ayrı okunur',
     ] },
-    { s: '1.0.42', t: '2026-11-18', durum: 'Web', l: [
+    { s: '1.0.42', t: '2026-11-19', sa: '00:38', durum: 'Web', l: [
       'Harf kartları: 28 harf 17 mahrece göre; her harfin kartında üstün/esre/ötre hâlleri, mahreci, ağız hareketi videosu, sıfatları, karıştırılan harf, Kur\'an\'dan kelimeler (🎤 Sen oku) ve ilgili dersler. Müfredat → Mahreç ve sıfat',
       'Etkileşimli mahreç şeması: numaraya dokun, o mahrecin harflerini gör',
       'Kur\'an okuma: 🎙️ Takip. Sen okudukça okuduğun yer işaretlenir, kaldığın yer kaydedilir, sayfa bitince sonraki sayfa açılır. Ayet menüsünde "Buradan takip et"',
@@ -192,13 +197,13 @@
       'Çocuk modu, Sûreler Adası: duraklarda sûre adı Türkçe (İngilizcede İngilizce); "🎙️ Bana oku": çocuk ayeti okur, uygulama dinler',
       'Ezber: "Bu ayeti tekrar oku" artık yalnız o ayeti yeniden dinliyor; diğer ayetler sıfırlanmıyor',
     ] },
-    { s: '1.0.41', t: '2026-11-18', durum: 'Web', l: [
+    { s: '1.0.41', t: '2026-11-19', sa: '00:03', durum: 'Web', l: [
       'Okuyarak pekiştir: her dersin Örnekler bölümünün sonunda; dersin örnek kelimelerini kâriden dinle, kendin oku. Yapay zekâ yüzde, harf/hareke/med/tecvid dökümü ve "Nerede puan kaybettin?" gösterir; kâri ve senin okuyuşun yan yana dinlenir. Ses telefonda değerlendirilir, gönderilmez',
     ] },
-    { s: '1.0.40', t: '2026-11-18', durum: 'Test APK', l: [
+    { s: '1.0.40', t: '2026-11-18', sa: '23:45', durum: 'Test APK', l: [
       'Google ile giriş: Android\'de "[16] Account reauth failed" hatasında eski Google giriş yöntemiyle kendiliğinden bir kez daha denenir; olmazsa iki hatanın yazısı da gösterilir',
     ] },
-    { s: '1.0.39', t: '2026-11-18', durum: 'Test APK', l: [
+    { s: '1.0.39', t: '2026-11-18', sa: '21:13', durum: 'Test APK', l: [
       'Düzeltme: çocuk modunda cezm, şedde ve med sorularında okunuş yerine "false" yazıyordu',
       'Çocuk modu yanlış cevapta: basılan seçenek kırmızı ve ✗, doğrusu yeşil; "Olmadı. Doğrusu yeşil olan, devam!"',
       'Çocuk modu İngilizcede de Türk camisindeki adlarla: üstün, esre, ötre, cezm, şedde, tenvin, med; soruda işaretin yeri de yazar (ör. "harfin üstünde küçük eğik çizgi")',
@@ -206,7 +211,7 @@
       'Zar resmi kaldırıldı ("Karışık" durağında harekeli harfler, karma testte 🔀)',
       'Yoklama ("Biliyor muyum?") yıldız kazandırır: her doğru cevap bir yıldız; aynı yoklamada yalnız daha iyi sonuç yeni yıldız getirir',
     ] },
-    { s: '1.0.38', t: '2026-11-18', durum: 'Test APK', l: [
+    { s: '1.0.38', t: '2026-11-18', sa: '19:52', durum: 'Test APK', l: [
       'Ana sayfa sadeleşti: tek ana yol "Bugünkü dersim"; sıradaki adım ve Başla düğmesi kartın içinde; Müfredat ve İlerleme ince satır',
       'Sûre ekranı: ilk ayet ilk ekranda; tekrar sayısı, renkler, kâri, okunuş, meal ve kural arama ⚙️ altında',
       'Ayarlar kısaldı: bölümler açılır-kapanır',
@@ -215,7 +220,7 @@
       'Çocuk modu (çocuk testi): durak sonunda "Sonraki durak" yıldızların hemen altında; tek yıldızda "Bitirdin, aferin!"; düğmeler en az 48 px; 4–6 yaşta harf yağmuru yerinde durur ve 1 hatayla da üç yıldız; Yıldızlarım\'da yazılar büyüdü; kısa ekranda "Hadi çizelim" hep görünür',
       'Ezber: önceki sûreye bağlama. Sûrenin ilk dersinde, önceki sûre ezberdeyse Bağla adımı onun son ayetinden başlar (ör. İhlâs 4 → Felak 1–3); araya besmele okunsa da okunmasa da takip eder',
     ] },
-    { s: '1.0.37', t: '2026-11-18', durum: 'Web', l: [
+    { s: '1.0.37', t: '2026-11-18', sa: '17:41', durum: 'Web', l: [
       'Kur\'an okuma: Kur\'an sekmesinin başında "Kaldığın yer" (sûre, ayet, sayfa, cüz) ve "Devam et"; okurken ekrandaki ayet kendiliğinden kaydedilir',
       'Günlük okuma hedefi: varsayılan 5 sayfa (1, 2, 5, 10, 20 ya da yok); "Okudum" denince ya da sayfada 30 sn kalınca sayılır; hedef dolunca tebrik',
       'Yer imleri: ayet numarasına dokun, 3 renkten birini seç; "Yer imleri" listesinden o ayete dön',

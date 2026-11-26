@@ -1773,3 +1773,12 @@ details.ko-hata > summary { min-height: 44px; display: flex; align-items: center
 .ez-ekran.tema-amber { --ko-kagit: #20243a; --ko-yazi: #f2e3c6; }
 .ez-ekran[class*="tema-"] .ez-kart { background: var(--ko-kagit); color: var(--ko-yazi); }
 .ez-ekran[class*="tema-"] .ez-kart .kelime:not([class*="tc-"]), .ez-ekran[class*="tema-"] .ez-kart .okunus, .ez-ekran[class*="tema-"] .ez-kart .ko-meal, .ez-ekran[class*="tema-"] .ez-kart .ez-meal, .ez-ekran[class*="tema-"] .ez-kart .besmele { color: var(--ko-yazi); }
+
+/* Phone fit: Tekrarla bottom bar must not clip the + button; Ezber toolbar takes less height */
+.tk-alt-satir { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; }
+@media (max-width: 420px) { .tk-yuv { width: 40px; height: 40px; } .tk-say > div { gap: 4px; } .tk-say b { min-width: 22px; } .tk-basla { min-width: 100px; } }
+.ez-tekrar-sec { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.ez-tekrar-sec .cip { min-width: 44px; padding: 0 8px; }
+.ez-arac .cip, .ez-tekrar-sec .cip, .tk-hizli .cip { min-height: 40px; font-size: .9rem; }
+
+.ez-mik.ez-ileri.caliyor { background: var(--kotu); border-color: var(--kotu); }

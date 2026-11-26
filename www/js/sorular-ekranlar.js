@@ -358,10 +358,12 @@
     app.innerHTML = `${ust(t('🆕 Yenilikler'))}<main>
       <section class="kart"><p><b>${esc(surumYazi())}</b></p><p class="soluk kucukyazi">${t('Her sürümde nelerin değiştiği. Test ederken hangi sürümde olduğunu buradan kontrol et.')}</p></section>
       ${v.LISTE.map((x, i) => `<article class="kart yenilik ${x.s === v.SURUM ? 'simdiki' : ''}">
-        <div class="satir" style="justify-content:space-between"><h2 style="margin:0">${t('Sürüm {0}', esc(x.s))}</h2><span class="soluk kucukyazi">${new Date(x.t + 'T12:00').toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
+        <div class="satir" style="justify-content:space-between"><h2 style="margin:0">${t('Sürüm {0}', esc(x.s))}</h2><button class="link kucukyazi yenilik-tarih" data-sa="${esc(x.sa || '')}" aria-label="${t('Saati göster')}">${new Date(x.t + 'T12:00').toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</button></div>
         ${x.durum ? `<span class="rozet uyari">${esc(t(x.durum))}</span>` : x.s === v.SURUM ? `<span class="rozet ok">${t('Şu anki sürüm')}</span>` : ''}
         <ul>${x.l.map(m => `<li>${esc(m)}</li>`).join('')}</ul></article>`).join('')}
-    </main>`;
+    </main>`
+    // Tapping the date shows the release time as well (and hides it again)
+    app.querySelectorAll('.yenilik-tarih').forEach(b => { const d0 = b.textContent; b.onclick = () => { b.textContent = b.textContent === d0 ? (b.dataset.sa ? `${d0} · ${b.dataset.sa}` : `${d0} · ${t('saat kayıtlı değil')}`) : d0; }; });
   };
   EKRAN.ana = function () {
     const toplam = U.length, gecilen = U.filter(u => gecti(u.id)).length;
