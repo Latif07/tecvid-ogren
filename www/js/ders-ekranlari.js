@@ -701,7 +701,7 @@
       <section class="pano-ust"><div class="halka buyuk" style="--p:${adimlar.length ? Math.round(ok / adimlar.length * 100) : 0}"><b>${ok}/${adimlar.length}</b><small>${t('adım')}</small></div>
         <div><h2>${t('Elif-Ba')}</h2><p class="soluk">${t('Harfleri ve harekeleri adım adım öğren.')}</p></div></section>
       <button class="btn genis c-btn" id="ebDevam">${ok ? t('▶ Devam et') : t('▶ Başla')}</button>
-      <div class="satir sola">${window.HARFKART ? `<button class="lejant-ac" data-git="harfKartlari">🔤 ${t('Harf kartları')}</button>` : ''}<button class="lejant-ac" data-git="testler">${t('Testler')}</button></div>
+      <div class="satir sola">${window.HARFKART ? `<button class="lejant-ac" data-git="harfKartlari">🔤 ${t('Harf kartları')}</button>` : ''}<button class="lejant-ac" data-git="ebAlistirma">✍️ ${t('Alıştırma')}</button><button class="lejant-ac" data-git="testler">${t('Testler')}</button></div>
       <div class="gunluk-adimlar">${adimlar.map((a, n) => `<button class="gunluk-adim ${bitti(a) ? 'bitti' : n === sira ? 'simdi' : ''}" data-eb="${n}"><span class="gunluk-no">${bitti(a) ? '✓' : n + 1}</span><span>${esc(a.ad)} · ${a.i + 1}<small class="soluk"> ${esc(a.ozet)}</small></span></button>`).join('')}</div>
       <button class="btn genis ikincil" id="ebAna">${t('Ana uygulamaya dön')}</button></main>`;
     const git_ = n => { const a = adimlar[n]; if (!a) return; EKRAN.ders._sayfa = EKRAN.ders._sayfa || {}; EKRAN.ders._sayfa[a.id] = a.i; git('ders', a.id); };

@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.64';
+  const SURUM = '1.0.65';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.65', t: '2026-11-26', durum: 'Web', l: [
+      'Elif-Ba alıştırmaları (sessiz): Harfi tanı, Adı bul, Eşleştir; yanlış yaptığın harfler daha sık gelir, 3 doğru ve az hatayla harf "öğrenildi" olur (yeşil harf tablosu)',
+      'Elif-Ba odak ekranında ve hızlı erişim seçeneklerinde "Alıştırma" kısayolu',
+    ] },
     { s: '1.0.64', t: '2026-11-26', durum: 'Web', l: [
       'Ana sayfa kişiselleştirme: üç başlangıç profili (Sıfırdan başlıyorum, Harfleri biliyorum, Kur\'an okuyorum; ilk açılışta durumuna göre otomatik) ana sayfayı farklı dizer',
       'Ana sayfayı düzenle (sayfanın en altında): kartları aç/kapat, ↑ ↓ ile sırala, en çok kullandığın 4 şeyi hızlı erişim şeridine koy',

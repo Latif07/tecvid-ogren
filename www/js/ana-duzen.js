@@ -13,7 +13,7 @@ const ANA_VARSAYILAN = {
 };
 const ANA_HIZLI = {
   kaldim: ['📖', 'Kaldığım yer'], tekrarla: ['🔁', 'Tekrarla'], ezber: ['🧠', 'Ezber'], notlar: ['📝', 'Notlarım'], elifba: ['🌱', 'Elif-Ba'], gunluk: ['📅', 'Bugünkü ders'],
-  kartlar: ['🗂️', 'Hap kartlar'], kuranDinle: ['🎧', 'Kur\'an dinle'], testler: ['✅', 'Testler'], muezzin: ['🕌', 'Müezzinlik'], mufredat: ['📚', 'Müfredat'], ilerleme: ['📊', 'İlerleme'], tecvid: ['🎨', 'Tecvid'],
+  kartlar: ['🗂️', 'Hap kartlar'], kuranDinle: ['🎧', 'Kur\'an dinle'], testler: ['✅', 'Testler'], muezzin: ['🕌', 'Müezzinlik'], mufredat: ['📚', 'Müfredat'], ilerleme: ['📊', 'İlerleme'], tecvid: ['🎨', 'Tecvid'], ebAlistirma: ['✍️', 'Elif-Ba alıştırma'],
 };
 function anaHizliHedef(id) {
   const k = KO(), s = k.son || {};

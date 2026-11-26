@@ -28,7 +28,7 @@ const EKRANLAR = [
   ['sayfa', '[1]'], ['sure', '[1]'], ['sure', '[2]'], ['sureTest', '[1]'], ['sureTecvid', '[1, 1]'], ['sureTecvidSec'],
   ['mesk', '[1, 1]'], ['meskSec'], ['ezber'], ['ezberCalis', '[1]'], ['ezberEkle'], ['hatim'],
   ['muezzin'], ['okumaRaporu'], ['harfKartlari'], ['harfKarti', '[window.TC.HARFLER[0][0]]'], ['hikaye', `[${U0}, 0]`],
-  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['anaDuzenle'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
+  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['anaDuzenle'], ['ebAlistirma'], ['ebAlistirma', "['tani']"], ['ebAlistirma', "['ad']"], ['ebAlistirma', "['esles']"], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
 ];
 
 (async () => {
@@ -682,6 +682,31 @@ const EKRANLAR = [
       await sayfa.evaluate(() => window.__TECVID.git('anaDuzenle')); await sayfa.waitForSelector('#anaSifirla'); await sayfa.click('#anaSifirla');
       kontrol('ana sayfayı düzenle: Varsayılana dön özelleştirmeleri siliyor', await sayfa.evaluate(() => { const A = window.__TECVID.S().ayar; return !A.anaTur && !A.anaSira && !A.anaGizli && !A.hizli; }));
       await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.hedefDk; });
+      // Elif-Ba alıştırmaları: harfi tanı (10 soru), eşleştir; doğru/yanlış kaydı
+      await sayfa.evaluate(() => { delete window.__TECVID.S().eb; window.__TECVID.git('ebAlistirma', 'tani'); });
+      await sayfa.waitForSelector('.eb-secenek');
+      for (let g = 0; g < 10; g++) {
+        await sayfa.waitForSelector('.eb-secenek:not([disabled])');
+        const dg = await sayfa.evaluate(() => { const E = window.__TECVID.eba(); return E.sorular[E.i].dogru; });
+        await sayfa.click(`.eb-secenek[data-eb="${dg}"]`);
+        await sayfa.click('#ebIleri');
+      }
+      await sayfa.waitForSelector('.eb-bitti');
+      const eb1 = await sayfa.evaluate(() => ({ metin: document.querySelector('.eb-bitti').innerText, say: Object.keys((window.__TECVID.S().eb || {}).k || {}).length, d: Object.values(window.__TECVID.S().eb.k).reduce((a, x) => a + x.d, 0) }));
+      kontrol('Elif-Ba alıştırma: harfi tanı — 10/10 doğru kaydoluyor', /10\/10/.test(eb1.metin) && eb1.d === 10, JSON.stringify(eb1));
+      await sayfa.evaluate(() => { window.__TECVID.eba().mod = null; window.__TECVID.git('ebAlistirma', 'esles'); });
+      await sayfa.waitForSelector('.eb-esles-oge');
+      for (let tur = 0; tur < 3; tur++) {
+        await sayfa.waitForSelector('[data-ebh]');
+        for (let k = 0; k < 5; k++) {
+          const cift = await sayfa.evaluate(() => { const E = window.__TECVID.eba().es, h = E.l.find(x => !E.eslesen.includes(x[0])); return h ? [h[0], h[1]] : null; });
+          await sayfa.click(`[data-ebh="${cift[0]}"]`); await sayfa.click(`[data-eba="${cift[1]}"]`);
+        }
+        await sayfa.click('#ebIleri');
+      }
+      await sayfa.waitForSelector('.eb-bitti');
+      kontrol('Elif-Ba alıştırma: eşleştir — 3 tur, 15/15 doğru', /15\/15/.test(await sayfa.evaluate(() => document.querySelector('.eb-bitti').innerText)));
+      await sayfa.evaluate(() => { window.__TECVID.eba().mod = null; delete window.__TECVID.S().eb; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
