@@ -373,7 +373,7 @@
     const ayetHTML = a => {
       const r = `${n}:${a}`; let o = 0;
       const kel = x.ayet[a - 1].split(' ').map((w, wi) => { const ic = kelimeHTML(r, w, o); o += w.length + 1; return gizle(a, wi) ? `<span class="kelime gizli" data-ac="${kelimeUrl(r, wi + 1)}">${ic}</span>` : `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${ic}</span>`; }).join(' ');
-      return `<div class="ez-ayet" id="ayet-${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no ayet-no-ses" role="button" tabindex="0" data-ses="${ayetUrl(r)}" data-yedek="${ayetUrl(r, KARILER[0].klasor)}" aria-label="${t('Ayeti dinle')}">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${Z.adim <= 1 && okunusAcik() && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${S.ayar.ezMeal ? mealSecili().map(z => [z, (mealVeri(z, n) || [])[a - 1]]).filter(z => z[1]).map(([z, m]) => `<p class="ko-meal ez-meal">${esc(m)}</p>`).join('') : ''}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
+      return `<div class="ez-ayet" id="ayet-${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no ayet-no-ses" role="button" tabindex="0" data-ez-oynat="${a}" aria-label="${t('Ayeti dinle')}">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${Z.adim <= 1 && okunusAcik() && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${S.ayar.ezMeal ? mealSecili().map(z => [z, (mealVeri(z, n) || [])[a - 1]]).filter(z => z[1]).map(([z, m]) => `<p class="ko-meal ez-meal">${esc(m)}</p>`).join('') : ''}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
     };
     const ayetler = []; for (let a = okBas; a <= okBit; a++) ayetler.push(ayetHTML(a));
     let besmele = okBas === 1 && n !== 1 && n !== 9 ? `<div class="besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : '';
@@ -425,18 +425,21 @@
     const ia = $('#ezIleriAlt'); if (ia) ia.onclick = ileri;
     app.querySelectorAll('.ez-kart .kelime.gizli').forEach(k => k.onclick = ev => { if (CANLI || !k.classList.contains('gizli')) return; ev.stopPropagation(); k.classList.remove('gizli'); k.classList.add('canli-bakildi'); Z.bakis++; });
     // Dinle: aralıktaki ayetler sırayla, her biri seçilen sayıda
-    $('#ezDinle').onclick = ev => {
-      const btn = ev.currentTarget;
-      if (Z.calma) { Z.calma.iptal = true; Z.calma = null; sesDurdur(); btn.classList.remove('caliyor'); document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan')); return; }
+    // from: first ayah to play (0 = the whole range). Listening step: every ayah is repeated `tekrar` times and playback continues with the following ayahs of the range.
+    const dinleBaslat = (from, btn) => {
+      if (Z.calma) { Z.calma.iptal = true; Z.calma = null; sesDurdur(); }
       if (CANLI) return;
-      const liste = onekAktif ? [0] : []; for (let a = okBas; a <= okBit; a++) for (let k = 0; k < (Z.adim === 0 ? tekrar : 1); k++) liste.push(a);
+      const bas_ = from || okBas, uzun = Z.adim === 0, liste = onekAktif && !from ? [0] : [];
+      for (let a = bas_; a <= (uzun ? okBit : bas_); a++) for (let k = 0; k < (uzun ? tekrar : 1); k++) liste.push(a);
       const is = { iptal: false }; Z.calma = is; btn.classList.add('caliyor'); let j = 0;
-      const bitir = () => { if (Z.calma === is) Z.calma = null; btn.classList.remove('caliyor'); document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan')); };
+      const sil = () => document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan'));
+      const bitir = () => { if (Z.calma === is) Z.calma = null; btn.classList.remove('caliyor'); sil(); };
       const sonraki = () => {
         if (is.iptal || !document.body.contains(btn)) return bitir();
-        document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan'));
+        sil();
         if (j >= liste.length) { bitir(); if (Z.adim === 0) { const d = $('#canliBar .canli-durum'); if (d) d.textContent = t('Hazır olunca sonraki adıma geç.'); } return; }
         const a = liste[j++], el = document.getElementById('ayet-' + a); if (el) { el.classList.add('calan'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        const d = $('#canliBar .canli-durum'); if (d && Z.adim === 0 && a) d.textContent = `${t('Ayet {0}', a)} · ${liste.slice(0, j).filter(x => x === a).length}/${tekrar}`;
         const au = new Audio(sesKaynak(ayetUrl(a === 0 ? `${onek.n}:${onek.a}` : `${n}:${a}`))); ses = au; au.playbackRate = S.ayar.hiz || 1;
         au.onended = () => setTimeout(sonraki, 400);
         au.onerror = () => { bitir(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
@@ -444,6 +447,13 @@
       };
       sesDurdur(); sonraki();
     };
+    $('#ezDinle').onclick = ev => {
+      const btn = ev.currentTarget;
+      if (Z.calma) { Z.calma.iptal = true; Z.calma = null; sesDurdur(); btn.classList.remove('caliyor'); document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan')); return; }
+      dinleBaslat(0, btn);
+    };
+    // Verse number: start listening from that ayah (repeats and continues in the listening step)
+    app.querySelectorAll('[data-ez-oynat]').forEach(b => b.onclick = ev => { ev.stopPropagation(); dinleBaslat(+b.dataset.ezOynat, $('#ezDinle')); });
     // Göz at: basılı tutunca gizliler görünür
     const goz = $('#ezGoz');
     if (goz) {
