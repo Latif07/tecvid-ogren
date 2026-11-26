@@ -1605,3 +1605,27 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .eb-esles-oge.ar { font-size: 1.8rem; }
 .eb-esles-oge.secili { border-color: var(--ana); background: color-mix(in srgb, var(--ana) 12%, var(--kart)); }
 .eb-esles-oge.dogru { border-color: #2e7d32; background: #dcefdc; color: #14532d; }
+
+/* Erişilebilirlik ve dokunma hedefi düzeltmeleri (26 Kasım değerlendirmesi) */
+.konu-cip, .cipler button, .gunluk-adim { min-height: 44px; }
+.konu-cipleri > div { flex-wrap: wrap; overflow-x: visible; }
+.ko-dinle { min-height: 44px; }
+.tk-yuv { width: 44px; height: 44px; }
+.tk-onay { min-height: 44px; }
+.tk-onay input { width: 24px; height: 24px; }
+#tkBas, #tkBit { min-height: 44px; }
+.btn.kucuk { min-height: 44px; }
+#tkAyarKutu > summary { min-height: 44px; display: flex; align-items: center; gap: 8px; }
+select#adet { min-height: 44px; }
+.surum-satir .link, .ana-duzenle-satir .link { min-height: 44px; }
+.terim { position: relative; }
+.terim::after { content: ''; position: absolute; inset: -9px -4px; }
+.mz-kaynaklar a, .muezzin-kaynak a { display: inline-block; padding: 10px 0; }
+/* 12 px altı yazılar */
+.hadis-kart small, .pano-kutular small, .hafta-gun small, .istatler small, .izgara-lejant small, .halka.kucuk b, .harf-tablo small, .hkt-harf small, .hkt-kelimeler .hkt-tur, .konu-cipleri small, .ana-hizli-oge small { font-size: .78rem; }
+/* Ders: harflerdeki 🔊 ikonu komşu harfin üstüne binmesin */
+.ar-ses { position: relative; padding: 0 5px; margin: 0 4px; }
+.ar-ses::before { position: absolute; top: -.35em; inset-inline-start: -.1em; vertical-align: baseline; font-size: .4em; margin: 0; }
+.ez-bos { text-align: center; }
+.ez-bos .btn { margin-top: 8px; }
+.kural-ara li a { display: inline-block; padding: 10px 0; }

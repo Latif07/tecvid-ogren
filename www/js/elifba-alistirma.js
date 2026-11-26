@@ -39,7 +39,7 @@ EKRAN.ebAlistirma = function (mod) {
         <button class="bolum" data-git="ebAlistirma|esles"><span class="ikon">🔗</span><span class="bad"><small>${t('Harfleri adlarıyla eşleştir')}</small>${t('Eşleştir')}</span><span class="rozet">›</span></button>
       </div>
       <div class="eb-harf-izgara">${ebHarfler().map(([h, ad]) => `<span class="eb-harf ${ebOgrendi(h) ? 'tamam' : ''}" title="${esc(ad)}"><b class="ar">${h}</b></span>`).join('')}</div>
-      <p class="soluk kucukyazi">${t('Yeşil harfler öğrenildi (3 doğru, hata azsa). Harf adları ders metninden alınmıştır; hoca onayı bekliyor.')}</p></main>`;
+      <p class="soluk kucukyazi">${t('Yeşil harfler öğrenildi (3 doğru, hata azsa).')}${TEST_SURUM ? ' ' + t('Harf adları ders metninden alınmıştır; hoca onayı bekliyor.') : ''}</p></main>`;
     return;
   }
   if (EBA.mod !== mod) { Object.assign(EBA, { mod, i: 0, dogru: 0, cevap: null, es: null, sorular: mod === 'esles' ? [0, 1, 2] : ebSoruYap(mod) }); if (mod === 'esles') ebEslesTur(); }

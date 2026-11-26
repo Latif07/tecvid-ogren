@@ -657,7 +657,7 @@ const EKRANLAR = [
       await sayfa.evaluate(() => { const S = window.__TECVID.S(); for (const k of ['anaTur', 'anaSira', 'anaGizli', 'hizli']) delete S.ayar[k]; S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [] }; S.okunan = {}; S.ilerleme = {}; window.__TECVID.git('ana'); });
       await sayfa.waitForSelector('.ana-hizli');
       const a1 = await sayfa.evaluate(() => ({ elifba: !!document.querySelector('.ana-elifba'), kuran: !!document.querySelector('.ana-kuran'), hizli: [...document.querySelectorAll('.ana-hizli-oge')].map(x => x.dataset.git), hadis: !!document.querySelector('.hadis-kart') }));
-      kontrol('ana sayfa: sıfırdan (otomatik) profil — Elif-Ba kartı, hızlı erişim Elif-Ba ile başlar', a1.elifba && !a1.kuran && a1.hizli.length === 4 && a1.hizli[0] === 'elifba' && a1.hadis, JSON.stringify(a1));
+      kontrol('ana sayfa: sıfırdan (otomatik) profil — Elif-Ba kartı, hızlı erişimde Elif-Ba tekrarı yok (alıştırma var)', a1.elifba && !a1.kuran && a1.hizli.length === 4 && a1.hizli[0] === 'ebAlistirma' && !a1.hizli.includes('elifba') && a1.hadis, JSON.stringify(a1));
       await sayfa.evaluate(() => { window.__TECVID.S().ayar.anaTur = 'kuran'; window.__TECVID.git('ana'); });
       await sayfa.waitForSelector('.ana-kuran');
       const a2 = await sayfa.evaluate(() => ({ elifba: !!document.querySelector('.ana-elifba'), hizli: [...document.querySelectorAll('.ana-hizli-oge')].map(x => x.dataset.git.split('|')[0]), ilk: document.querySelector('#app main').children[3] && document.querySelector('.ana-kuran') ? true : false }));
@@ -707,6 +707,20 @@ const EKRANLAR = [
       await sayfa.waitForSelector('.eb-bitti');
       kontrol('Elif-Ba alıştırma: eşleştir — 3 tur, 15/15 doğru', /15\/15/.test(await sayfa.evaluate(() => document.querySelector('.eb-bitti').innerText)));
       await sayfa.evaluate(() => { window.__TECVID.eba().mod = null; delete window.__TECVID.S().eb; });
+      // Erişilebilirlik: temel ekranlarda dokunma hedefi (≥ 40 px) ve 12 px altı yazı sayısı
+      const kk = await sayfa.evaluate(async () => {
+        const out = {};
+        for (const [ad, a] of [['ders', ['ders', 'u7']], ['tekrarla', ['tekrarla', 112, 1, 4]], ['gunluk', ['gunluk']]]) {
+          window.__TECVID.git(...a); await new Promise(r => setTimeout(r, 500));
+          const el = [...document.querySelectorAll('button, [role=button], summary, input[type=number], select')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+          out[ad] = el.filter(e => e.getBoundingClientRect().height < 40 && !e.classList.contains('terim')).length;
+        }
+        return out;
+      });
+      kontrol('erişilebilirlik: ders, Tekrarla ve günlük ders ekranlarında dokunma hedefi < 40 px öğe yok', kk.ders === 0 && kk.tekrarla === 0 && kk.gunluk === 0, JSON.stringify(kk));
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ezber; window.__TECVID.git('ezber'); });
+      await sayfa.waitForSelector('.ez-bos');
+      kontrol('ezber: boş durumda tek, yönlendirici "Süre ekle" kartı çıkıyor', await sayfa.evaluate(() => !!document.querySelector('.ez-bos [data-git="ezberEkle"]')));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

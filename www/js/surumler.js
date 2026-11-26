@@ -1,9 +1,16 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.65';
+  const SURUM = '1.0.66';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.66', t: '2026-11-26', durum: 'Web', l: [
+      'Dokunma kolaylığı: konu çipleri, süre seçici, Tekrarla düğmeleri ve onay kutuları en az 44 px; 12 px altı yazılar büyütüldü; derste harflerdeki 🔊 ikonu komşu harfin üstüne binmiyor',
+      'Ders başındaki konu çipleri artık yatay kaymak yerine alt satıra sarılıyor',
+      'Ezber listesi boşken tek, yönlendirici "İlk sûreni ekle" kartı',
+      'Ana sayfa (Sıfırdan profil): hızlı erişimde Elif-Ba tekrarı kaldırıldı, yerine Elif-Ba alıştırma geldi',
+      '"Hoca onayı bekliyor" iç notları artık yalnız test sürümünde görünüyor (hap kartlar, Elif-Ba alıştırma)',
+    ] },
     { s: '1.0.65', t: '2026-11-26', durum: 'Web', l: [
       'Elif-Ba alıştırmaları (sessiz): Harfi tanı, Adı bul, Eşleştir; yanlış yaptığın harfler daha sık gelir, 3 doğru ve az hatayla harf "öğrenildi" olur (yeşil harf tablosu)',
       'Elif-Ba odak ekranında ve hızlı erişim seçeneklerinde "Alıştırma" kısayolu',

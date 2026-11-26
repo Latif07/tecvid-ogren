@@ -679,7 +679,7 @@
       </section>
       <button class="btn genis ez-tekrarla" data-git="tekrarlaSec">🔁 ${t('Tekrarla')} <small>${t('bir sûreyi istediğin kadar tekrarla')}</small></button>
       <h2 class="baslik">${t('Ezberlerim')}</h2>
-      ${liste.length ? `<div class="ez-izgara">${liste.map(e => `<button class="ez-sure" data-ez-sure="${e.n}">${halka(e)}<b>${esc(sureNoAdi(e.n))}</b><small>${durum(e)}</small></button>`).join('')}</div>` : `<p class="soluk">${t('Henüz ezber listen boş.')}</p>`}
+      ${liste.length ? `<div class="ez-izgara">${liste.map(e => `<button class="ez-sure" data-ez-sure="${e.n}">${halka(e)}<b>${esc(sureNoAdi(e.n))}</b><small>${durum(e)}</small></button>`).join('')}</div>` : `<section class="kart ez-bos"><h3>🌱 ${t('İlk sûreni ekle')}</h3><p class="soluk">${t('Kısa sûrelerden (Nâs\'tan geriye doğru) başlamak kolaydır.')}</p><button class="btn genis" data-git="ezberEkle">➕ ${t('Süre ekle')}</button></section>`}
       <button class="btn genis ikincil ez-ekle" data-git="ezberEkle">${t('➕ Sûre ekle')}</button>
       <h2 class="baslik">${t('Diğer')}</h2>
       <div class="ez-diger kart">
