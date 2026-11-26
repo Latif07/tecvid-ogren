@@ -1629,3 +1629,21 @@ select#adet { min-height: 44px; }
 .ez-bos { text-align: center; }
 .ez-bos .btn { margin-top: 8px; }
 .kural-ara li a { display: inline-block; padding: 10px 0; }
+
+/* Ayet ara */
+.ara-sonuc { width: 100%; text-align: start; }
+.ara-metin { display: block; margin-top: 4px; line-height: 1.7; }
+.ara-metin.ar { font-size: 1.3rem; }
+
+/* Ezber raporu ve hıfz terimleri */
+.ez-rapor { font-size: .85rem; margin-inline-start: 8px; min-height: 44px; }
+.ez-terim { margin-top: 6px; }
+.ez-terim summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+
+/* Sade çizgi ikonlar (ana sayfa) */
+.ana-ik svg, .ana-ik-satir svg { width: 26px; height: 26px; }
+.ana-hizli-oge .ana-ik { color: var(--ana); display: flex; }
+.ana-ik-satir { display: inline-flex; vertical-align: middle; margin-inline-end: 8px; color: var(--ana); }
+.ana-ik-satir svg { width: 22px; height: 22px; }
+.ana-ozel h2 { display: flex; align-items: center; }
+.ana-ekran .ikon svg, .ana-satirlar .ikon svg { width: 26px; height: 26px; color: var(--ana); }

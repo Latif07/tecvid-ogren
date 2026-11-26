@@ -57,6 +57,7 @@
       <div class="ko-ust-dugme"><button class="btn" data-git="ayetKart|${bn[0]}|${bn[1]}">📖 ${t('Ayet ayet oku')}</button><button class="btn ikincil" data-git="kuranIstatistik">📊 ${t('İstatistik')}</button></div>
       <div class="ko-ust-alt">
         ${h ? `<div class="ko-hedef" title="${t('Bugünkü hedef')}"><span class="ko-halka" style="--p:${yuzde}"><b>${bu}/${h}</b></span><span><b>${bu >= h ? t('Bugünkü hedef tamam') : t('Bugün {0} sayfa kaldı', h - bu)}</b><small>${t('Günlük hedef: {0} sayfa', h)}</small></span></div>` : `<div class="ko-hedef"><span><b>${t('Bugün {0} sayfa okudun', bu)}</b><small>${t('Günlük hedef yok')}</small></span></div>`}
+        <button class="ko-imler" data-git="ayetAra">🔎 ${t('Ayet ara')}</button>
         <button class="ko-imler" data-git="notlar">🔖 ${t('Yer imleri ve notlar')}${k.imler.length + notlar().length ? ` <span class="rozet">${k.imler.length + notlar().length}</span>` : ''}</button>
       </div></section>`;
   }

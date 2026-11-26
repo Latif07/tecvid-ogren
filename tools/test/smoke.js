@@ -28,7 +28,7 @@ const EKRANLAR = [
   ['sayfa', '[1]'], ['sure', '[1]'], ['sure', '[2]'], ['sureTest', '[1]'], ['sureTecvid', '[1, 1]'], ['sureTecvidSec'],
   ['mesk', '[1, 1]'], ['meskSec'], ['ezber'], ['ezberCalis', '[1]'], ['ezberEkle'], ['hatim'],
   ['muezzin'], ['okumaRaporu'], ['harfKartlari'], ['harfKarti', '[window.TC.HARFLER[0][0]]'], ['hikaye', `[${U0}, 0]`],
-  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['anaDuzenle'], ['ebAlistirma'], ['ebAlistirma', "['tani']"], ['ebAlistirma', "['ad']"], ['ebAlistirma', "['esles']"], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
+  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['ayetAra'], ['anaDuzenle'], ['ebAlistirma'], ['ebAlistirma', "['tani']"], ['ebAlistirma', "['ad']"], ['ebAlistirma', "['esles']"], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
 ];
 
 (async () => {
@@ -721,6 +721,42 @@ const EKRANLAR = [
       await sayfa.evaluate(() => { delete window.__TECVID.S().ezber; window.__TECVID.git('ezber'); });
       await sayfa.waitForSelector('.ez-bos');
       kontrol('ezber: boş durumda tek, yönlendirici "Süre ekle" kartı çıkıyor', await sayfa.evaluate(() => !!document.querySelector('.ez-bos [data-git="ezberEkle"]')));
+      // Ayet ara: Arapça (harekesiz) ve Türkçe meal araması, sonuca dokununca sayfaya gider
+      await sayfa.evaluate(() => { window.__TECVID.git('ayetAra'); });
+      await sayfa.waitForSelector('#araGiris');
+      await sayfa.fill('#araGiris', 'الحمد لله');
+      await sayfa.waitForSelector('.ara-sonuc', { timeout: 15000 });
+      const ar1 = await sayfa.evaluate(() => ({ n: document.querySelectorAll('.ara-sonuc').length, ilk: document.querySelector('.ara-sonuc small').textContent, ar: !!document.querySelector('.ara-metin.ar') }));
+      kontrol('ayet ara: Arapça "الحمد لله" Fâtiha 1:2\'yi buluyor', ar1.n >= 1 && /1:2/.test(ar1.ilk) && ar1.ar, JSON.stringify(ar1));
+      await sayfa.fill('#araGiris', 'alemlerin rabbi');
+      await sayfa.waitForFunction(() => { const x = document.querySelector('.ara-sonuc small'); return x && /1:2/.test(x.textContent) && !document.querySelector('.ara-metin.ar'); }, null, { timeout: 15000 });
+      kontrol('ayet ara: Türkçe "alemlerin rabbi" meal içinde buluyor (harf/aksan farkı yok sayılır)', await sayfa.evaluate(() => /lem/i.test(document.querySelector('.ara-metin').textContent)));
+      await sayfa.fill('#araGiris', 'ABCXYZQQ');
+      await sayfa.waitForFunction(() => /Sonuç yok/.test(document.querySelector('#araSonuc').innerText), null, { timeout: 15000 });
+      await sayfa.fill('#araGiris', 'الحمد لله'); await sayfa.waitForSelector('.ara-sonuc');
+      await sayfa.click('.ara-sonuc');
+      await sayfa.waitForFunction(() => /Sayfa 1/.test(document.querySelector('#app').innerText));
+      kontrol('ayet ara: sonuca dokununca Kur\'an sayfasına gidiyor', true);
+      // Ezber: sabak/sabakî/münzil adları ve ezber raporu
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ezber = { 114: { a: 6, tam: true, eklendi: Date.now() - 20 * 864e5, bitti: Date.now() - 20 * 864e5, son: Date.now() - 3 * 864e5, kutu: 2, vade: Date.now() + 864e5, zayif: [2] }, 112: { a: 2, tam: false, eklendi: Date.now(), son: 0, kutu: 0, vade: 0 } }; delete window.__ezberRapor; window.__TECVID.git('ezber'); });
+      await sayfa.waitForSelector('#ezRapor');
+      const sb = await sayfa.evaluate(() => document.querySelector('.ez-gorevler').innerText + (document.querySelector('.ez-terim') ? ' [terim]' : ''));
+      kontrol('ezber: bugünkü planda Sabak (yeni) satırı ve açıklama var', /Sabak · yeni ders/.test(sb) && /\[terim\]/.test(sb), sb.slice(0, 80));
+      await sayfa.evaluate(() => { navigator.share = undefined; Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.resolve() }, configurable: true }); });
+      await sayfa.click('#ezRapor');
+      const rap = await sayfa.evaluate(() => window.__ezberRapor);
+      kontrol('ezber raporu: sûreler, ilerleme ve zayıf ayet metne yazılıyor', /Ezber raporu/.test(rap) && /ezberde/.test(rap) && /zayıf ayet: 2/.test(rap) && /2\/\d+ ayet/.test(rap), (rap || '').slice(0, 160));
+      await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; });
+      // Dil: Türkçede İngilizce sözlük yüklenmez; İngilizce seçilince yüklenir ve çeviri çalışır
+      const trYuk = await sayfa.evaluate(() => ({ dosya: !!document.querySelector('script[src*="dil-en.js"]'), t: window.t('Ayet ara'), sozluk: !!window.__EN_SOZLUK }));
+      kontrol('dil: Türkçede İngilizce sözlük (dil-en.js) yüklenmiyor', !trYuk.dosya && !trYuk.sozluk && trYuk.t === 'Ayet ara', JSON.stringify(trYuk));
+      const enSayfa = await sayfa.context().newPage();
+      await enSayfa.addInitScript(() => { try { localStorage.setItem('tecvid-ogren.dil', 'en'); } catch (e) { } });
+      await enSayfa.goto(url, { waitUntil: 'domcontentloaded' });
+      await enSayfa.waitForFunction(() => window.__TECVID, null, { timeout: 20000 });
+      const enYuk = await enSayfa.evaluate(() => ({ dosya: !!document.querySelector('script[src*="dil-en.js"]'), a: window.t('Ayet ara'), b: window.t('Notlarım'), dil: window.DIL }));
+      kontrol('dil: İngilizce seçilince dil-en.js yükleniyor ve çeviri çalışıyor', enYuk.dosya && enYuk.dil === 'en' && enYuk.a === 'Search verses' && enYuk.b === 'My notes', JSON.stringify(enYuk));
+      await enSayfa.evaluate(() => { try { localStorage.removeItem('tecvid-ogren.dil'); } catch (e) { } }); await enSayfa.close();
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

@@ -660,9 +660,9 @@
     const yeniAd = g => { const e = ezb(g.n), bas = (e ? e.a : 0) + 1, x = SURE(g.n); if (!x) return t('{0}, {1}. ayetten', esc(sureNoAdi(g.n)), bas); const [b1, b2] = ezAralik(g.n, Math.min(bas, x.ayet.length)); return `${esc(sureNoAdi(g.n))} ${b1 === b2 ? b1 : b1 + '–' + b2}. ${t('ayetler')}${g.oneri ? ' · ' + t('öneri') : ''}`; };
     const yakinlar = gorevler.filter(g => g.tur === 'yakin'), uzaklar = gorevler.filter(g => g.tur === 'uzak'), yeniG = gorevler.find(g => g.mod === 'yeni');
     const satirlar = [
-      yeniG ? [t('Yeni'), yeniAd(yeniG)] : null,
-      yakinlar.length ? [t('Yakın tekrar'), yakinlar.map(g => esc(sureNoAdi(g.n))).join(', ')] : null,
-      uzaklar.length ? [t('Uzak tekrar'), uzaklar.map(g => esc(sureNoAdi(g.n))).join(', ')] : null,
+      yeniG ? [t('Sabak · yeni ders'), yeniAd(yeniG)] : null,
+      yakinlar.length ? [t('Sabakî · yakın tekrar'), yakinlar.map(g => esc(sureNoAdi(g.n))).join(', ')] : null,
+      uzaklar.length ? [t('Münzil · uzak tekrar'), uzaklar.map(g => esc(sureNoAdi(g.n))).join(', ')] : null,
     ].filter(Boolean);
     const dk = (yeniG ? 8 : 0) + (yakinlar.length + uzaklar.length) * 3;
     const liste = Object.entries(S.ezber || {}).map(([n, e]) => Object.assign({ n: +n }, e)).sort((a, b) => (a.tam - b.tam) || (b.eklendi - a.eklendi));
@@ -673,12 +673,13 @@
       <section class="kart ez-bugun"><p class="ez-etiket">${t('Bugün')}</p>
         ${satirlar.length ? `<ol class="ez-gorevler">${satirlar.map(([ad, ne]) => `<li><b>${ad}:</b> ${ne}</li>`).join('')}</ol>
           <button class="btn genis ez-basla" id="ezBasla">${t('Başla · yaklaşık {0} dk', dk)}</button>
-          <p class="kucukyazi ez-bugun-not">${t('Sırayla gider; biri bitince sıradakine geçersin.')}</p>`
+          <p class="kucukyazi ez-bugun-not">${t('Sırayla gider; biri bitince sıradakine geçersin.')}</p>
+          <details class="kucukyazi ez-terim"><summary>${t('Sabak, sabakî, münzil ne demek?')}</summary><p>${t('Sabak: bugünkü yeni ders. Sabakî: son günlerde ezberlediklerinin tekrarı. Münzil: eski derslerin tekrarı.')}</p></details>`
         : `<p>${t('Bugün için ezber planı yok. Aşağıdan bir sûre ekle.')}</p>`}
         <p class="kucukyazi ez-hedef">${t('Günlük yeni ders:')} ${[1, 3, 5, 10, 999].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hedef="${k}">${k === 999 ? t('Hepsi') : t('{0} ayet', k)}</button>`).join(' ')}</p>
       </section>
       <button class="btn genis ez-tekrarla" data-git="tekrarlaSec">🔁 ${t('Tekrarla')} <small>${t('bir sûreyi istediğin kadar tekrarla')}</small></button>
-      <h2 class="baslik">${t('Ezberlerim')}</h2>
+      <h2 class="baslik">${t('Ezberlerim')} ${liste.length ? `<button class="link ez-rapor" id="ezRapor">📤 ${t('Ezber raporu')}</button>` : ''}</h2>
       ${liste.length ? `<div class="ez-izgara">${liste.map(e => `<button class="ez-sure" data-ez-sure="${e.n}">${halka(e)}<b>${esc(sureNoAdi(e.n))}</b><small>${durum(e)}</small></button>`).join('')}</div>` : `<section class="kart ez-bos"><h3>🌱 ${t('İlk sûreni ekle')}</h3><p class="soluk">${t('Kısa sûrelerden (Nâs\'tan geriye doğru) başlamak kolaydır.')}</p><button class="btn genis" data-git="ezberEkle">➕ ${t('Süre ekle')}</button></section>`}
       <button class="btn genis ikincil ez-ekle" data-git="ezberEkle">${t('➕ Sûre ekle')}</button>
       <h2 class="baslik">${t('Diğer')}</h2>
@@ -695,6 +696,13 @@
     app.querySelectorAll('[data-ez-sure]').forEach(b => b.onclick = () => { ezZincir = []; const e = ezb(+b.dataset.ezSure); ezAc(+b.dataset.ezSure, e && e.tam ? 'tekrar' : 'yeni'); });
     $('#yoklama').onclick = ezberYoklamaBaslat;
     app.querySelectorAll('[data-hedef]').forEach(b => b.onclick = () => { S.ayar.ezberHedef = +b.dataset.hedef; kaydet(); ciz(); });
+    // Ezber raporu: hocaya göndermek için düz metin (paylaş menüsü ya da panoya kopyala)
+    const rp = $('#ezRapor'); if (rp) rp.onclick = () => {
+      const tarih = d => d ? new Date(d).toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR') : '-', satir = e => `• ${sureNoAdi(e.n)}: ${e.tam ? t('ezberde') : t('{0}/{1} ayet', e.a || 0, ayetSayisi(e.n) || '?')}${e.son ? ' · ' + t('son çalışma {0}', tarih(e.son)) : ''}${e.tam && e.vade ? ' · ' + t('sonraki tekrar {0}', tarih(e.vade)) : ''}${e.zayif && e.zayif.length ? ' · ' + t('zayıf ayet: {0}', e.zayif.join(', ')) : ''}`;
+      const m = [`${t('Kur\'an Yolum · Ezber raporu')} · ${tarih(simdi())}`, AKTIF().ad ? AKTIF().ad : '', t('Ezber: {0} sûre ({1} tamam)', liste.length, liste.filter(e => e.tam).length), S.seri.gun ? t('Seri: {0} gün', S.seri.gun) : '', '', ...liste.map(satir)].filter((x, i) => x || i > 3).join('\n');
+      if (navigator.share) navigator.share({ title: t('Ezber raporu'), text: m }).catch(() => { }); else if (navigator.clipboard) navigator.clipboard.writeText(m).then(() => toast(t('Kopyalandı'))).catch(() => { });
+      window.__ezberRapor = m;
+    };
     // Yeni dersin ayet aralığı sûre verisiyle hesaplanır: yüklü değilse yükle ve yenile
     if (yeniG && !SURE(yeniG.n)) sureYukle(yeniG.n).then(() => { if (ekranYigini[ekranYigini.length - 1][0] === 'ezber') ciz(); }).catch(() => { });
   };

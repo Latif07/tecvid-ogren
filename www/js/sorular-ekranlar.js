@@ -213,6 +213,17 @@
     dil: IK('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'),
     bulut: IK('<path d="M20 17.5A4.5 4.5 0 0 0 17 9h-1A6 6 0 1 0 5 15.9"/><path d="M12 12v8M9 17l3 3 3-3"/>'),
     ok: IK('<path d="M9 6l6 6-6 6"/>'),
+    tekrar: IK('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>'),
+    ezber: IK('<path d="M5 3h11a3 3 0 0 1 3 3v15l-4-3-4 3-4-3-3 3V6a3 3 0 0 1 3-3"/><path d="M9 8h6"/>'),
+    not: IK('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+    filiz: IK('<path d="M12 21v-8"/><path d="M12 13c0-4 3-6 7-6 0 4-3 6-7 6z"/><path d="M12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/>'),
+    takvim: IK('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+    kart: IK('<rect x="3" y="7" width="14" height="14" rx="2"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/>'),
+    kulaklik: IK('<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/>'),
+    liste: IK('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+    grafik: IK('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+    alistirma: IK('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+    bulb: IK('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>'),
   };
   // [ekran, ikon, ad, aynı sekmeye ait diğer kök ekranlar]
   const SEKMELER_B = [['ana', IKON.bugun, 'Bugün'], ['tecvid', IKON.tecvid, 'Tecvid', ['mufredat']], ['sureler', IKON.kuran, 'Kur\'an', ['ezber', 'kuranDinle']], ['profil', IKON.ben, 'Ben']];

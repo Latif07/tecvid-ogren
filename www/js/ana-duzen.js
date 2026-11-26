@@ -12,8 +12,8 @@ const ANA_VARSAYILAN = {
   kuran: { sira: ['kuran', 'hizli', 'tekrar', 'gunluk', 'hadis', 'satirlar', 'soru', 'elifba', 'hizliAyar'], gizli: ['elifba', 'hizliAyar'], hizli: ['kaldim', 'tekrarla', 'ezber', 'notlar'] },
 };
 const ANA_HIZLI = {
-  kaldim: ['📖', 'Kaldığım yer'], tekrarla: ['🔁', 'Tekrarla'], ezber: ['🧠', 'Ezber'], notlar: ['📝', 'Notlarım'], elifba: ['🌱', 'Elif-Ba'], gunluk: ['📅', 'Bugünkü ders'],
-  kartlar: ['🗂️', 'Hap kartlar'], kuranDinle: ['🎧', 'Kur\'an dinle'], testler: ['✅', 'Testler'], muezzin: ['🕌', 'Müezzinlik'], mufredat: ['📚', 'Müfredat'], ilerleme: ['📊', 'İlerleme'], tecvid: ['🎨', 'Tecvid'], ebAlistirma: ['✍️', 'Elif-Ba alıştırma'],
+  kaldim: [IKON.kuran, 'Kaldığım yer'], tekrarla: [IKON.tekrar, 'Tekrarla'], ezber: [IKON.ezber, 'Ezber'], notlar: [IKON.not, 'Notlarım'], elifba: [IKON.filiz, 'Elif-Ba'], gunluk: [IKON.takvim, 'Bugünkü ders'],
+  kartlar: [IKON.kart, 'Hap kartlar'], kuranDinle: [IKON.kulaklik, 'Kur\'an dinle'], testler: [IKON.test, 'Testler'], muezzin: [IKON.minare, 'Müezzinlik'], mufredat: [IKON.liste, 'Müfredat'], ilerleme: [IKON.grafik, 'İlerleme'], tecvid: [IKON.tecvid, 'Tecvid'], ebAlistirma: [IKON.alistirma, 'Elif-Ba alıştırma'], ayetAra: [IKON.ara, 'Ayet ara'],
 };
 function anaHizliHedef(id) {
   const k = KO(), s = k.son || {};
@@ -42,19 +42,19 @@ function anaKartHTML(id, c) {
       <button class="btn" data-git="tekrarBasla">${t('Başla')}</button></section>` : '';
     case 'satirlar': return `<div class="bolumler ana-satirlar">
       <button class="bolum" data-git="mufredat"><span class="halka kucuk" style="--p:${Math.round(c.gecilen / c.toplam * 100)}"><b>${c.gecilen}/${c.toplam}</b></span><span class="bad"><small>${c.siradaki ? t('Sıradaki: ') + esc(c.siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</small>${t('Müfredat')}</span><span class="rozet">›</span></button>
-      <button class="bolum" data-git="notlar"><span class="ikon">📝</span><span class="bad"><small>${notlar().length + k.imler.length ? t('{0} kayıt', notlar().length + k.imler.length) : t('Yer imleri ve notlar')}</small>${t('Notlarım')}</span></button>
-      <button class="bolum" data-git="ilerleme"><span class="ikon">📊</span><span class="bad"><small>${S.seri.gun ? t('🔥 {0} günlük seri', S.seri.gun) : t('Gelişimin')}</small>${t('İlerleme')}</span><span class="rozet">›</span></button></div>`;
+      <button class="bolum" data-git="notlar"><span class="ikon">${IKON.not}</span><span class="bad"><small>${notlar().length + k.imler.length ? t('{0} kayıt', notlar().length + k.imler.length) : t('Yer imleri ve notlar')}</small>${t('Notlarım')}</span></button>
+      <button class="bolum" data-git="ilerleme"><span class="ikon">${IKON.grafik}</span><span class="bad"><small>${S.seri.gun ? t('🔥 {0} günlük seri', S.seri.gun) : t('Gelişimin')}</small>${t('İlerleme')}</span><span class="rozet">›</span></button></div>`;
     case 'soru': return gununSorusuKarti();
     case 'elifba': {
       const e1 = unitById('e1'), u0 = unitById('u0'), say = (e1 ? e1.sayfalar.length : 0) + (u0 ? u0.sayfalar.length - 1 : 0), ok = Math.min(say, (S.okunan.e1 || 0) + Math.max(0, (S.okunan.u0 || 1) - 1));
-      return `<section class="kart ana-ozel ana-elifba"><div><h2>🌱 ${t('Elif-Ba')}</h2><p class="soluk">${ok >= say && say ? t('Elif-Ba tamam. Maşallah!') : t('Harfleri ve harekeleri adım adım öğren.')}</p>
+      return `<section class="kart ana-ozel ana-elifba"><div><h2><span class="ana-ik-satir">${IKON.filiz}</span>${t('Elif-Ba')}</h2><p class="soluk">${ok >= say && say ? t('Elif-Ba tamam. Maşallah!') : t('Harfleri ve harekeleri adım adım öğren.')}</p>
         <div class="bar"><div class="iyi" style="width:${say ? Math.round(ok / say * 100) : 0}%"></div></div><small class="soluk">${ok}/${say}</small></div>
         <button class="btn" data-git="elifba">${ok ? t('▶ Devam et') : t('▶ Başla')}</button></section>`;
     }
-    case 'kuran': return `<section class="kart ana-ozel ana-kuran"><div><h2>📖 ${t('Kur\'an')}</h2><p class="soluk">${s.n ? t('Kaldığın yer: {0} {1}. ayet · Sayfa {2}', esc(sureNoAdi(s.n)), s.a, s.p || S.sonSayfa || 1) : t('Okumaya başla: Fâtiha')}</p>
+    case 'kuran': return `<section class="kart ana-ozel ana-kuran"><div><h2><span class="ana-ik-satir">${IKON.kuran}</span>${t('Kur\'an')}</h2><p class="soluk">${s.n ? t('Kaldığın yer: {0} {1}. ayet · Sayfa {2}', esc(sureNoAdi(s.n)), s.a, s.p || S.sonSayfa || 1) : t('Okumaya başla: Fâtiha')}</p>
       <small class="soluk">${t('Bugün {0}/{1} sayfa', koBugun(), k.hedef || 0)}</small></div>
       <button class="btn" data-git="${s.n ? anaHizliHedef('kaldim') : 'sayfa|1'}">${s.n ? t('▶ Kaldığım yerden oku') : t('▶ Oku')}</button></section>`;
-    case 'hizli': return `<div class="ana-hizli" role="navigation" aria-label="${t('Hızlı erişim')}">${c.hizli.map(h => `<button class="ana-hizli-oge" data-git="${esc(anaHizliHedef(h))}"><span aria-hidden="true">${ANA_HIZLI[h][0]}</span><small>${esc(t(ANA_HIZLI[h][1]))}</small></button>`).join('')}</div>`;
+    case 'hizli': return `<div class="ana-hizli" role="navigation" aria-label="${t('Hızlı erişim')}">${c.hizli.map(h => `<button class="ana-hizli-oge" data-git="${esc(anaHizliHedef(h))}"><span class="ana-ik" aria-hidden="true">${ANA_HIZLI[h][0]}</span><small>${esc(t(ANA_HIZLI[h][1]))}</small></button>`).join('')}</div>`;
     case 'hizliAyar': {
       const hd = S.ayar.hedefDk || 10, ar = S.ayar.arYazi || 1, chip = (a, v, cur, ad) => `<button class="cip ${cur === v ? 'aktif' : ''}" data-ha="${a}" data-v="${v}">${ad}</button>`;
       return `<section class="kart ana-hizli-ayar"><h2>⚙️ ${t('Hızlı ayarlar')}</h2>
