@@ -333,7 +333,7 @@ const EKRANLAR = [
       const gun = () => sayfa.evaluate(() => { const k = window.__TECVID.S().kuran || {}, g = new Date().toISOString().slice(0, 10); return { sf: ((k.gun || {})[g] || []).slice(), ay: ((k.ay || {})[g] || []).slice() }; });
       const baslik = () => sayfa.evaluate(() => document.querySelector('#app').innerText.slice(0, 160));
       await sayfa.evaluate(() => { window.__TECVID.S().kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [] }; delete window.__TECVID.S().ayar.otoKaydir; window.__TECVID.git('sayfa', 5); });
-      await sayfa.waitForSelector('#koIleri');
+      await sayfa.waitForFunction(() => /Sayfa 5/.test(document.querySelector('#app').innerText)); await sayfa.waitForSelector('#koIleri'); await sayfa.waitForTimeout(300);   // let the page finish rendering before clicking
       await sayfa.click('#koIleri'); await sayfa.waitForFunction(() => /Sayfa 6/.test(document.querySelector('#app').innerText));
       let d = await gun();
       kontrol('sayfa: › sonraki sayfaya geçer ama okundu saymaz', d.sf.length === 0 && d.ay.length === 0, JSON.stringify(d));
@@ -383,7 +383,7 @@ const EKRANLAR = [
       kontrol('tekrarla: Sondan başa + basamak (3 · 2,3 · 1,2,3, her biri 2 kez)', l === '3,3,2,3,2,3,1,2,3,1,2,3', l);
       await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.tk; delete window.__TECVID_HIZLI; });
       kontrol('sayfa gezinmesi ve hızlı Kur\'an paketi hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
-    } catch (e) { kontrol('sayfa gezinmesi / hızlı paket', false, e.message.split('\n')[0]); }
+    } catch (e) { kontrol('sayfa gezinmesi / hızlı paket', false, e.message.split('\n')[0] + ' @' + ((e.stack.match(/smoke\.js:(\d+)/) || [])[1])); }
   }
 
   // Profil yönetimi (bulut girişi taklit edilir): düzenleme yeni profil açmamalı, silme onay istemeli ve kalıcı olmalı
