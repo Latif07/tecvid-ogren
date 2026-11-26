@@ -1560,3 +1560,28 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .ko-kaydir i { position: absolute; right: 4px; width: 8px; height: 56px; border-radius: 8px; background: var(--ana); transition: width .15s; }
 .ko-kaydir.tutuluyor i { width: 14px; }
 @media print { .ko-kaydir { display: none !important; } }
+
+/* Harf sesi düğmeleri */
+.hkt-harf { position: relative; }
+.hkt-hop { position: absolute; top: 2px; right: 4px; font-style: normal; font-size: .8rem; opacity: .75; padding: 2px; }
+.hkt-buyuk-ses { display: block; margin: 0 auto; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.hkt-buyuk-ses small { font-size: .35em; margin-inline-start: .3em; vertical-align: middle; opacity: .7; }
+
+/* Ana sayfa kişiselleştirme */
+.ana-ozel { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ana-ozel h2 { margin: 0 0 4px; }
+.ana-ozel .bar { margin: 6px 0 2px; }
+.ana-hizli { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+.ana-hizli-oge { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--cizgi); border-radius: 14px; background: var(--kart); font: inherit; color: inherit; }
+.ana-hizli-oge span { font-size: 1.5rem; }
+.ana-hizli-oge small { font-size: .72rem; text-align: center; line-height: 1.15; }
+.ana-duzenle-satir { text-align: center; margin: 14px 0 4px; }
+.ana-liste { list-style: none; margin: 0; padding: 0; }
+.ana-liste li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--cizgi); }
+.ana-goster { display: flex; align-items: center; gap: 8px; flex: 1; }
+.ana-sira button { min-width: 38px; min-height: 38px; border: 1px solid var(--cizgi); border-radius: 10px; background: var(--kart); font-size: 1.1rem; color: inherit; }
+.ana-sira button[disabled] { opacity: .35; }
+.ana-hizli-ayar h2 { margin-top: 0; }
+.ana-duzenle .cipler { display: flex; flex-wrap: wrap; gap: 6px; overflow: visible; }
+.ana-duzenle .cip { flex: 0 0 auto; white-space: nowrap; }
+.ana-duzenle h3 { margin: 0 0 6px; }
