@@ -28,7 +28,7 @@ const EKRANLAR = [
   ['sayfa', '[1]'], ['sure', '[1]'], ['sure', '[2]'], ['sureTest', '[1]'], ['sureTecvid', '[1, 1]'], ['sureTecvidSec'],
   ['mesk', '[1, 1]'], ['meskSec'], ['ezber'], ['ezberCalis', '[1]'], ['ezberEkle'], ['hatim'],
   ['muezzin'], ['okumaRaporu'], ['harfKartlari'], ['harfKarti', '[window.TC.HARFLER[0][0]]'], ['hikaye', `[${U0}, 0]`],
-  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
+  ['pekistir', `[${U0}, 0]`], ['ebeveynOzet'], ['notlar'], ['anaDuzenle'], ['kartlar'], ['kart', "['med']"], ['kart', "['vakf']"], ['kartYazdir'], ['elifba'],
 ];
 
 (async () => {
@@ -653,6 +653,35 @@ const EKRANLAR = [
       await sayfa.waitForFunction(() => window.__calan.length >= 1);
       kontrol('harf sesi: mahreç şemasında harfin 🔊 düğmesi hocanın kaydını çalıyor ve harf kartına gitmiyor', await sayfa.evaluate(() => window.__calan.length === 1 && !!document.querySelector('[data-hkses]')));
       await sayfa.evaluate(() => { window.Audio = window.__AudioAsil2; });
+      // Ana sayfa kişiselleştirme: profile göre düzen, kart gizleme/sıralama, hızlı erişim, hızlı ayarlar
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); for (const k of ['anaTur', 'anaSira', 'anaGizli', 'hizli']) delete S.ayar[k]; S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [] }; S.okunan = {}; S.ilerleme = {}; window.__TECVID.git('ana'); });
+      await sayfa.waitForSelector('.ana-hizli');
+      const a1 = await sayfa.evaluate(() => ({ elifba: !!document.querySelector('.ana-elifba'), kuran: !!document.querySelector('.ana-kuran'), hizli: [...document.querySelectorAll('.ana-hizli-oge')].map(x => x.dataset.git), hadis: !!document.querySelector('.hadis-kart') }));
+      kontrol('ana sayfa: sıfırdan (otomatik) profil — Elif-Ba kartı, hızlı erişim Elif-Ba ile başlar', a1.elifba && !a1.kuran && a1.hizli.length === 4 && a1.hizli[0] === 'elifba' && a1.hadis, JSON.stringify(a1));
+      await sayfa.evaluate(() => { window.__TECVID.S().ayar.anaTur = 'kuran'; window.__TECVID.git('ana'); });
+      await sayfa.waitForSelector('.ana-kuran');
+      const a2 = await sayfa.evaluate(() => ({ elifba: !!document.querySelector('.ana-elifba'), hizli: [...document.querySelectorAll('.ana-hizli-oge')].map(x => x.dataset.git.split('|')[0]), ilk: document.querySelector('#app main').children[3] && document.querySelector('.ana-kuran') ? true : false }));
+      kontrol('ana sayfa: Kur\'an okuyorum profili — Kur\'an kartı, Elif-Ba gizli, hızlı erişim Kaldığım yer/Tekrarla/Ezber/Notlarım', !a2.elifba && JSON.stringify(a2.hizli) === '["sayfa","tekrarla","ezber","notlar"]', JSON.stringify(a2));
+      await sayfa.evaluate(() => window.__TECVID.git('anaDuzenle'));
+      await sayfa.waitForSelector('[data-ana-gor="hadis"]');
+      await sayfa.click('[data-ana-gor="hadis"]');
+      await sayfa.waitForSelector('[data-ana-yukari="satirlar"]'); await sayfa.click('[data-ana-yukari="satirlar"]');
+      const d1 = await sayfa.evaluate(() => { const A = window.__TECVID.S().ayar; return { gizli: A.anaGizli, sira: A.anaSira }; });
+      kontrol('ana sayfayı düzenle: kart gizleme ve sıra değiştirme kaydoluyor', d1.gizli.includes('hadis') && d1.sira.indexOf('satirlar') === 4 && d1.sira.indexOf('satirlar') < d1.sira.indexOf('hadis'), JSON.stringify(d1));
+      await sayfa.click('[data-ana-hizli="kartlar"]');
+      kontrol('ana sayfayı düzenle: hızlı erişim 4 doluyken beşincisi eklenmiyor', await sayfa.evaluate(() => document.querySelectorAll('[data-ana-hizli].aktif').length === 4 && !document.querySelector('[data-ana-hizli="kartlar"].aktif')));
+      await sayfa.click('[data-ana-hizli="ezber"]'); await sayfa.click('[data-ana-hizli="kartlar"]');
+      await sayfa.evaluate(() => window.__TECVID.git('ana'));
+      await sayfa.waitForSelector('.ana-hizli');
+      const a3 = await sayfa.evaluate(() => ({ hadis: !!document.querySelector('.hadis-kart'), hizli: [...document.querySelectorAll('.ana-hizli-oge')].map(x => x.dataset.git.split('|')[0]) }));
+      kontrol('ana sayfa: gizlenen hadis kartı yok, seçilen hızlı erişim (Ezber çıkıp Hap kartlar girdi) görünüyor', !a3.hadis && a3.hizli.includes('kartlar') && !a3.hizli.includes('ezber'), JSON.stringify(a3));
+      // hızlı ayarlar kartı: gizli kartı aç, günlük hedef değiştir
+      await sayfa.evaluate(() => { const A = window.__TECVID.S().ayar; A.anaGizli = A.anaGizli.filter(x => x !== 'hizliAyar'); window.__TECVID.git('ana'); });
+      await sayfa.waitForSelector('.ana-hizli-ayar [data-ha="hedef"][data-v="30"]'); await sayfa.click('.ana-hizli-ayar [data-ha="hedef"][data-v="30"]');
+      kontrol('hızlı ayarlar: ana sayfadan günlük hedef 30 dk yapılıyor', await sayfa.evaluate(() => window.__TECVID.S().ayar.hedefDk === 30));
+      await sayfa.evaluate(() => window.__TECVID.git('anaDuzenle')); await sayfa.waitForSelector('#anaSifirla'); await sayfa.click('#anaSifirla');
+      kontrol('ana sayfayı düzenle: Varsayılana dön özelleştirmeleri siliyor', await sayfa.evaluate(() => { const A = window.__TECVID.S().ayar; return !A.anaTur && !A.anaSira && !A.anaGizli && !A.hizli; }));
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.hedefDk; });
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

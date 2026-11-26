@@ -354,24 +354,15 @@
     app.innerHTML = `${ust(t('Kur\'an Yolum'), false, `<button class="hesapbtn ${k ? 'resimli' : ''}" data-git="hesap" aria-label="${t('Hesap')}">${k ? hesapResmi(k, ((AKTIF().ad || k.displayName || k.email || '?')[0] || '?').toUpperCase()) : t('Giriş')}</button>`)}
       <main>
         <p class="selam"><b>${AKTIF().ad ? t('Selâmün aleyküm, {0}', esc(AKTIF().ad)) : t('Selâmün aleyküm')}</b><small>${new Date().toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}</small></p>
-        <section class="hadis-kart"><p class="ar" dir="rtl" lang="ar">${HADIS_AR}</p><p>${hadisMetni()} <small>${hadisKaynak()}</small></p></section>
-        ${tanitimKarti()}${yukleKarti()}${hatirlatmaKarti()}${haftaOzetKarti()}${gunlukKarti()}${yarimKarti()}
+        ${tanitimKarti()}${yukleKarti()}${hatirlatmaKarti()}${haftaOzetKarti()}
         <div id="odevYer"></div>
-        ${vade && !gunlukPlan().adimlar.some(a => a.tur === 'tekrar' && !a.bitti) ? `<section class="kart tekrar vurgulu">
-          <div><h2>${t('🔁 Günlük tekrar')}</h2><p>${t('<b>{0}</b> soru tekrar zamanı geldi. Unutmamak için şimdi çöz.', vade)}</p></div>
-          <button class="btn" data-git="tekrarBasla">${t('Başla')}</button></section>` : ''}
-        <div class="bolumler ana-satirlar">
-          <button class="bolum" data-git="mufredat"><span class="halka kucuk" style="--p:${Math.round(gecilen / toplam * 100)}"><b>${gecilen}/${toplam}</b></span><span class="bad"><small>${siradaki ? t('Sıradaki: ') + esc(siradaki.ad) : t('Maşallah! Bütün müfredatı bitirdin. 🎉')}</small>${t('Müfredat')}</span><span class="rozet">›</span></button>
-          <button class="bolum" data-git="notlar"><span class="ikon">📝</span><span class="bad"><small>${notlar().length + KO().imler.length ? t('{0} kayıt', notlar().length + KO().imler.length) : t('Yer imleri ve notlar')}</small>${t('Notlarım')}</span></button>
-          <button class="bolum" data-git="ilerleme"><span class="ikon">📊</span><span class="bad"><small>${S.seri.gun ? t('🔥 {0} günlük seri', S.seri.gun) : t('Gelişimin')}</small>${t('İlerleme')}</span><span class="rozet">›</span></button>
-        </div>
-        ${gununSorusuKarti()}
+        ${anaKartlari({ gecilen, toplam, siradaki, vade })}
         ${hesapUyari ? `<section class="kart hesap-uyari" style="margin-top:14px"><div><h2>${t('☁️ İlerlemen kaybolmasın')}</h2><p>${t('Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.')}</p></div>
           <div class="satir sola"><button class="btn" data-git="hesap">${t('Giriş yap / Hesap aç')}</button><button class="btn ikincil" id="uyariKapat">${t('Sonra')}</button></div></section>` : ''}
         ${iosKurKarti()}
         <p class="surum-satir"><button class="link" data-git="yenilikler">${esc(surumYazi())} · ${t('Yenilikler')} ›</button></p>
       </main>`;
-    odevKartiDoldur(); yarimBagla(); gununSorusuBagla();
+    odevKartiDoldur(); yarimBagla(); gununSorusuBagla(); anaKartBagla();
     app.querySelectorAll('[data-gunluk-basla]').forEach(x => x.onclick = ev => { ev.stopPropagation(); gunlukAdimBaslat(+x.dataset.gunlukBasla); });
     const hk_ = $('#haftaKapat'); if (hk_) hk_.onclick = () => { S.ayar.haftaKartKapali = Date.now(); kaydet(); ciz(); };
     const tk = $('#tanitimKapat'); if (tk) tk.onclick = () => { S.ayar.tanitim = 1; kaydet(); ciz(); };
