@@ -7,13 +7,13 @@ const ANA_TURLER = [['sifirdan', '🌱', 'Sıfırdan başlıyorum'], ['harf', '�
 const ANA_KARTLAR = [['elifba', '🌱', 'Elif-Ba odak modu'], ['kuran', '📖', 'Kaldığım yer (Kur\'an)'], ['hizli', '⚡', 'Hızlı erişim'], ['hadis', '🕌', 'Günün hadisi'], ['gunluk', '📅', 'Bugünkü dersim'],
   ['tekrar', '🔁', 'Günlük tekrar'], ['satirlar', '📚', 'Müfredat, notlar, ilerleme'], ['soru', '❓', 'Günün sorusu'], ['hizliAyar', '⚙️', 'Hızlı ayarlar']];
 const ANA_VARSAYILAN = {
-  sifirdan: { sira: ['elifba', 'hizli', 'gunluk', 'hadis', 'tekrar', 'satirlar', 'soru', 'kuran', 'hizliAyar'], gizli: ['kuran', 'hizliAyar'], hizli: ['elifba', 'gunluk', 'kartlar', 'kuranDinle'] },
+  sifirdan: { sira: ['elifba', 'hizli', 'gunluk', 'hadis', 'tekrar', 'satirlar', 'soru', 'kuran', 'hizliAyar'], gizli: ['kuran', 'hizliAyar'], hizli: ['ebAlistirma', 'gunluk', 'kartlar', 'kuranDinle'] },
   harf: { sira: ['gunluk', 'hizli', 'tekrar', 'satirlar', 'soru', 'hadis', 'elifba', 'kuran', 'hizliAyar'], gizli: ['elifba', 'kuran', 'hizliAyar'], hizli: ['gunluk', 'kartlar', 'testler', 'muezzin'] },
   kuran: { sira: ['kuran', 'hizli', 'tekrar', 'gunluk', 'hadis', 'satirlar', 'soru', 'elifba', 'hizliAyar'], gizli: ['elifba', 'hizliAyar'], hizli: ['kaldim', 'tekrarla', 'ezber', 'notlar'] },
 };
 const ANA_HIZLI = {
   kaldim: ['📖', 'Kaldığım yer'], tekrarla: ['🔁', 'Tekrarla'], ezber: ['🧠', 'Ezber'], notlar: ['📝', 'Notlarım'], elifba: ['🌱', 'Elif-Ba'], gunluk: ['📅', 'Bugünkü ders'],
-  kartlar: ['🗂️', 'Hap kartlar'], kuranDinle: ['🎧', 'Kur\'an dinle'], testler: ['✅', 'Testler'], muezzin: ['🕌', 'Müezzinlik'], mufredat: ['📚', 'Müfredat'], ilerleme: ['📊', 'İlerleme'], tecvid: ['🎨', 'Tecvid'],
+  kartlar: ['🗂️', 'Hap kartlar'], kuranDinle: ['🎧', 'Kur\'an dinle'], testler: ['✅', 'Testler'], muezzin: ['🕌', 'Müezzinlik'], mufredat: ['📚', 'Müfredat'], ilerleme: ['📊', 'İlerleme'], tecvid: ['🎨', 'Tecvid'], ebAlistirma: ['✍️', 'Elif-Ba alıştırma'],
 };
 function anaHizliHedef(id) {
   const k = KO(), s = k.son || {};

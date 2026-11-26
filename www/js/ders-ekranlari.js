@@ -654,7 +654,7 @@
       <p class="soluk kucukyazi">${t('Her konunun tek bakışta özeti. Önce ders sayfalarından öğren; kartlar tekrar içindir.')}</p>
       <div class="kart-liste">${L.map(k => `<button class="tecvid-kutu kart-kutu" data-git="kart|${k.id}"><span>${k.ik}</span>${esc(t(k.ad))}</button>`).join('')}</div>
       <button class="btn genis ikincil" data-git="kartYazdir">🖨️ ${t('Hepsini yazdır / PDF')}</button>
-      <p class="soluk kucukyazi">${t('Kartların içeriği ders metinlerinden alınmıştır; hoca onayı bekliyor.')}</p></main>`;
+      ${TEST_SURUM ? `<p class="soluk kucukyazi">${t('Kartların içeriği ders metinlerinden alınmıştır; hoca onayı bekliyor.')}</p>` : ''}</main>`;
   };
   function kartSatirlari(k, kontrol) {
     const gz = (m, sinif = '') => m ? `<span class="${kontrol ? 'kk-gizli ' : ''}${sinif}" ${kontrol ? 'tabindex="0"' : ''}>${m}</span>` : '';
@@ -677,7 +677,7 @@
       <div class="satir sola kk-arac"><button class="lejant-ac ${kontrol ? 'aktif' : ''}" id="kkKontrol">👁️ ${t('Kontrol modu')}</button>${kontrol ? `<button class="lejant-ac" id="kkHepsi">${t('Hepsini göster')}</button>` : ''}<button class="lejant-ac" id="kkYazdir">🖨️ ${t('Yazdır')}</button><button class="lejant-ac" id="kkPaylas">📤 ${t('Paylaş')}</button></div>
       <article class="kart kk-kart" id="kkKart">${kartGovde(k, kontrol)}</article>
       ${k.unit && k.unit.length ? `<button class="ders-ince" data-git="ders|${k.unit[0]}"><span>${t('Konunun dersine git')}</span><b>›</b></button>` : ''}
-      <p class="soluk kucukyazi">${t('Hoca onayı bekliyor.')}</p></main>`;
+      ${TEST_SURUM ? `<p class="soluk kucukyazi">${t('Hoca onayı bekliyor.')}</p>` : ''}</main>`;
     document.getElementById('kkKontrol').onclick = () => { EKRAN.kart._kontrol = !kontrol; ciz(); };
     const h = document.getElementById('kkHepsi'); if (h) h.onclick = () => app.querySelectorAll('.kk-gizli').forEach(x => x.classList.remove('kk-gizli'));
     app.querySelectorAll('.kk-gizli').forEach(x => { const ac = () => x.classList.remove('kk-gizli'); x.onclick = ac; x.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') ac(); }; });
@@ -701,7 +701,7 @@
       <section class="pano-ust"><div class="halka buyuk" style="--p:${adimlar.length ? Math.round(ok / adimlar.length * 100) : 0}"><b>${ok}/${adimlar.length}</b><small>${t('adım')}</small></div>
         <div><h2>${t('Elif-Ba')}</h2><p class="soluk">${t('Harfleri ve harekeleri adım adım öğren.')}</p></div></section>
       <button class="btn genis c-btn" id="ebDevam">${ok ? t('▶ Devam et') : t('▶ Başla')}</button>
-      <div class="satir sola">${window.HARFKART ? `<button class="lejant-ac" data-git="harfKartlari">🔤 ${t('Harf kartları')}</button>` : ''}<button class="lejant-ac" data-git="testler">${t('Testler')}</button></div>
+      <div class="satir sola">${window.HARFKART ? `<button class="lejant-ac" data-git="harfKartlari">🔤 ${t('Harf kartları')}</button>` : ''}<button class="lejant-ac" data-git="ebAlistirma">✍️ ${t('Alıştırma')}</button><button class="lejant-ac" data-git="testler">${t('Testler')}</button></div>
       <div class="gunluk-adimlar">${adimlar.map((a, n) => `<button class="gunluk-adim ${bitti(a) ? 'bitti' : n === sira ? 'simdi' : ''}" data-eb="${n}"><span class="gunluk-no">${bitti(a) ? '✓' : n + 1}</span><span>${esc(a.ad)} · ${a.i + 1}<small class="soluk"> ${esc(a.ozet)}</small></span></button>`).join('')}</div>
       <button class="btn genis ikincil" id="ebAna">${t('Ana uygulamaya dön')}</button></main>`;
     const git_ = n => { const a = adimlar[n]; if (!a) return; EKRAN.ders._sayfa = EKRAN.ders._sayfa || {}; EKRAN.ders._sayfa[a.id] = a.i; git('ders', a.id); };
