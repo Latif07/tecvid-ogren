@@ -1,9 +1,12 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.76';
+  const SURUM = '1.0.77';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.77', t: '2026-11-26', sa: '18:50', l: [
+      'Müfredat ekranı Tecvid sayfasıyla aynı düzene geçti: kısayol kutuları (Harf kartları, Hap kartlar, Testler…), açılır bölüm grupları ve "Şu an buradasın" işareti',
+    ] },
     { s: '1.0.76', t: '2026-11-26', sa: '18:20', l: [
       'Yenilikler: sürümün tarihine dokununca yayın saati de görünür',
       'Ezber ekranı: asıl düğme artık büyük "▶ Dinle" (Sonraki küçük düğme oldu); tekrar sayısı tek satırda; üstteki araç çubuğu daha az yer kaplıyor',

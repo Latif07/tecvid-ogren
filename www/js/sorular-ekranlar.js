@@ -318,11 +318,12 @@
   }
   const hkGiris = () => window.HARFKART ? `<button class="ders-ince hkt-giris" data-git="harfKartlari"><span>🔤 ${t('Harf kartları · Mahreç şeması')}</span><b>›</b></button>` : '';
   // Tecvid sekmesi: kısayollar + bölüm grupları (açılır); Testler sekmesi buraya taşındı
-  EKRAN.tecvid = function () {
+  // Shared page for the Tecvid tab and the full curriculum (Müfredat): shortcuts + collapsible section groups. katla: fold sections for complete beginners.
+  function tecvidSayfasi(baslik, katla) {
     const gecilen = U.filter(u => gecti(u.id)).length, siradaki = U.find(u => !gecti(u.id));
     const kutu = (git_, ik, ad) => `<button class="tecvid-kutu" data-git="${git_}"><span>${ik}</span>${ad}</button>`;
-    const beginnerTecvid = anaTur() === 'sifirdan' && !gecti('e1');   // complete beginners: tajweed sections stay folded until Elif-Ba is done
-    app.innerHTML = `${ust(t('Tecvid'))}<main>
+    const beginnerTecvid = katla && anaTur() === 'sifirdan' && !gecti('e1');   // complete beginners: tajweed sections stay folded until Elif-Ba is done
+    app.innerHTML = `${ust(baslik)}<main>
       <p class="soluk tecvid-ozet">${t('{0} / {1} bölüm geçildi', gecilen, U.length)}</p>
       <button class="ders-ince eb-giris" data-git="elifba"><span>${IKON.filiz} ${t('Elif-Ba odak modu: sıfırdan, adım adım')}</span><b>›</b></button>
       <nav class="tecvid-kutular">
@@ -342,13 +343,9 @@
       if (!EKRAN.tecvid._acik) EKRAN.tecvid._acik = new Set(Array.from(app.querySelectorAll('details.bolum-grup[open]')).map(x => x.dataset.grupAd));
       const ad = d.dataset.grupAd; if (d.open) EKRAN.tecvid._acik.add(ad); else EKRAN.tecvid._acik.delete(ad);
     }));
-  };
-  EKRAN.mufredat = function () {
-    app.innerHTML = `${ust(t('Müfredat'))}<main>
-      <p class="soluk kucukyazi">${t('🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, {0} alınca bölüm açılır.', yuzdeStr(GECME))}</p>
-      ${GRUPLAR.map(([ad, idler]) => { const l = idler.map(unitById).filter(Boolean); return `<h2 class="baslik">${ad} <small class="soluk">${l.filter(u => gecti(u.id)).length}/${l.length}</small></h2>${idler.includes('m1') ? hkGiris() : ''}<div class="bolumler">${bolumListesi(l)}</div>`; }).join('')}
-    </main>`;
-  };
+  }
+  EKRAN.tecvid = () => tecvidSayfasi(t('Tecvid'), true);
+  EKRAN.mufredat = () => tecvidSayfasi(t('Müfredat'), false);
   // ------------------------------------------------------------ sürüm ve yenilikler
   const SRM = () => window.SURUMLER || { SURUM: '', YAYIN: '', LISTE: [] };
   const yerli = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
