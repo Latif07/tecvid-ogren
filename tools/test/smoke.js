@@ -838,6 +838,36 @@ const EKRANLAR = [
       await sayfa.evaluate(() => { document.querySelectorAll('#app details').forEach(d => { d.open = true; }); }); await sayfa.fill('#gbMetin', 'Deneme mesajı'); await sayfa.click('#gbGonder');
       kontrol('ayarlar: geri bildirim metni sürüm ve cihaz bilgisiyle hazırlanıyor', await sayfa.evaluate(() => /Deneme mesajı/.test(window.__feedbackText || '') && /Mozilla|Chrome/.test(window.__feedbackText)));
       await sayfa.evaluate(() => document.querySelector('#ayKontrast').click()); await sayfa.evaluate(() => document.querySelector('#ayHareket').click());
+      // Special days card, parent gate, daily limit, recording share, theme spacing
+      const sd = await sayfa.evaluate(() => [window.__TECVID.specialDayNow('2027-03-07') && window.__TECVID.specialDayNow('2027-03-07').day.name, window.__TECVID.specialDayNow('2027-03-10') && window.__TECVID.specialDayNow('2027-03-10').day.name, window.__TECVID.specialDayNow('2027-03-20'), window.__TECVID.specialDayNow('2027-01-04').daysLeft]);
+      kontrol('özel gün: Arefe 1 gün önceden, Bayram günleri içinde görünür, boş günde görünmez', sd[0] === 'Arefe' && sd[1] === 'Ramazan Bayramı' && sd[2] === null && sd[3] === 0, JSON.stringify(sd));
+      await sayfa.evaluate(() => { const r = window.__TECVID.specialDayNow(); window.__sd = r; });
+      const gate = await sayfa.evaluate(async () => {
+        const T = window.__TECVID, p = T.PR().liste.find(x => x.id === T.PR().aktif) || T.PR().liste[0], eski = p.yas; p.yas = 'cocuk'; T.PARENT_GATE.until = 0; T.PARENT_GATE.a = 0;
+        T.git('profil'); await new Promise(r => setTimeout(r, 400));
+        const kapi = !!document.querySelector('.parent-gate');
+        document.querySelector('#pgInput').value = String(T.PARENT_GATE.a * T.PARENT_GATE.b + 1); document.querySelector('#pgOk').click(); await new Promise(r => setTimeout(r, 200));
+        const yanlis = !document.querySelector('#pgHata').hidden || !!document.querySelector('.parent-gate');
+        document.querySelector('#pgInput').value = String(T.PARENT_GATE.a * T.PARENT_GATE.b); document.querySelector('#pgOk').click(); await new Promise(r => setTimeout(r, 400));
+        const acildi = !document.querySelector('.parent-gate') && !!document.querySelector('.child-limit');
+        p.yas = eski; return { kapi, yanlis, acildi };
+      });
+      kontrol('çocuk modu: Büyükler bölümü ebeveyn sorusuyla kapalı; yanlış cevap açmaz, doğru cevap açar ve süre seçimi görünür', gate.kapi && gate.yanlis && gate.acildi, JSON.stringify(gate));
+      const lim = await sayfa.evaluate(async () => {
+        const T = window.__TECVID, S = T.S(), p = T.PR().liste.find(x => x.id === T.PR().aktif) || T.PR().liste[0], eski = p.yas; p.yas = 'cocuk';
+        const day = new Date().toISOString().slice(0, 10); S.ayar.cocukLimit = 15; S.cocukSn = { [day]: 15 * 60 }; S.cocukEk = {};
+        T.childLimitCheck(); const var1 = !!document.getElementById('childLimit');
+        T.PARENT_GATE.a = 7; T.PARENT_GATE.b = 8; document.querySelector('#clInput').value = '56'; document.querySelector('#clOk').click();
+        const var2 = !!document.getElementById('childLimit');
+        S.ayar.cocukLimit = 0; T.childLimitCheck(); const var3 = !!document.getElementById('childLimit');
+        p.yas = eski; delete S.ayar.cocukLimit; S.cocukSn = {}; S.cocukEk = {}; document.querySelectorAll('#childLimit').forEach(x => x.remove());
+        return { var1, var2, var3 };
+      });
+      kontrol('çocuk modu: günlük süre dolunca kilit ekranı çıkar; ebeveyn sorusu 10 dk ekler; sınırsızda çıkmaz', lim.var1 === true && lim.var2 === false && lim.var3 === false, JSON.stringify(lim));
+      await sayfa.evaluate(async () => { const T = window.__TECVID; T.KAYIT['mz-deneme'] = URL.createObjectURL(new Blob([new Uint8Array(120)], { type: 'audio/webm' })); navigator.canShare = () => false; delete window.__sharedRecording; await T.shareRecording('mz-deneme'); });
+      kontrol('kendi okuyuşunu paylaş: kayıt dosyası hazırlanıyor (paylaşım yoksa indirme)', await sayfa.evaluate(() => !!window.__sharedRecording && window.__sharedRecording.size === 120 && /okuyusum\.webm/.test(window.__sharedRecording.name)));
+      const sp = await sayfa.evaluate(() => { window.__TECVID.git('ana'); return getComputedStyle(document.querySelector('.kart')).marginBottom; });
+      kontrol('tema: kartlar arası boşluk 16 px', sp === '16px', sp);
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

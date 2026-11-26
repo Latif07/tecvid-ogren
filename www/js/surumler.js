@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.70';
+  const SURUM = '1.0.71';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.71', t: '2026-11-26', durum: 'Web', l: [
+      'Çocuk modu: "Büyükler" bölümü ebeveyn sorusuyla (küçük bir çarpma) açılır; ebeveyn, çocuğun günlük süresini seçebilir (15 / 30 / 45 / 60 dk). Süre dolunca "Bugünlük yeterli" ekranı çıkar; ebeveyn sorusuyla 10 dk eklenebilir',
+      'Özel günler: Kandil, Ramazan, Bayram ve Aşure gibi günlerde (3 gün öncesinden) ana sayfada küçük kart. 2027 tarihleri Diyanet takvimine göre; her yıl yeni tarih eklenir',
+      'Kendi okuyuşunu kaydedince "Paylaş": ses dosyasını hocana gönderebilirsin (paylaşım yoksa indirilir)',
+      'Görünüm inceltmesi: kartlar arası boşluk, başlık boyu, satır aralığı ve Arapça kelime aralığı biraz artırıldı',
+    ] },
     { s: '1.0.70', t: '2026-11-26', durum: 'Web', l: [
       'Koyu tema okunurluğu: yeşil düğmeler, ezber çipleri, "Şimdi" rozeti ve silme düğmesi artık yeterli kontrastta; Kur\'an sayfasındaki gri ve kehribar tecvid renkleri koyulaştırıldı. Açık ve koyu temada otomatik kontrast testi eklendi',
       'İlk açılış: "Nereden başlayalım?" ekranında yazı boyutu seçilir; "Hiç bilmiyorum" doğrudan Elif-Ba ekranını açar',

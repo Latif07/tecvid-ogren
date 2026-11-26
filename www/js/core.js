@@ -374,13 +374,24 @@
     if (kayitAnahtar === anahtar) return `<div class="kayit-kutu" data-kayit-kutu="${anahtar}"><button class="sesbtn kirmizi-btn kaydediyor" data-kayit-dur="${anahtar}">${t('⏹ Kaydı durdur')}</button></div>`;
     return `<div class="kayit-kutu" data-kayit-kutu="${anahtar}">
       <button class="sesbtn ikincil" data-kayit-bas="${anahtar}">${var_ ? t('🎙️ Yeniden kaydet') : t('🎙️ Kendini kaydet')}</button>
-      ${var_ ? `<button class="sesbtn ikincil" data-ses="${var_}">${t('▶ Sesim')}</button>
+      ${var_ ? `<button class="sesbtn ikincil" data-ses="${var_}">${t('▶ Sesim')}</button><button class="sesbtn ikincil" data-kayit-paylas="${anahtar}">${t('📤 Paylaş')}</button>
       ${kariUrl ? `<button class="sesbtn" data-karsilastir="${anahtar}" data-kari-url="${kariUrl}">${t('🔁 Karşılaştır')}</button>` : ''}` : ''}
     </div>`;
   }
   function kayitKutuYenile(anahtar) {
     const k = document.querySelector(`[data-kayit-kutu="${anahtar}"]`); if (!k) return;
     k.outerHTML = kayitHTML(anahtar, KAYIT['_kari_' + anahtar] || '');
+  }
+  // Share the user's own recording (e.g. with their teacher): system share sheet with the audio file, or a download as fallback
+  async function shareRecording(key) {
+    const url = KAYIT[key]; if (!url) return;
+    try {
+      const blob = await (await fetch(url)).blob(), ext = /mp4|aac/.test(blob.type) ? 'm4a' : /ogg/.test(blob.type) ? 'ogg' : 'webm';
+      const file = new File([blob], `okuyusum.${ext}`, { type: blob.type || 'audio/webm' });
+      window.__sharedRecording = { name: file.name, size: file.size };
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: t('Okuyuşum') }).catch(() => { });
+      else { const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); toast(t('Kayıt indirildi.')); }
+    } catch (e) { toast(t('Kayıt paylaşılamadı.')); }
   }
   async function kayitBaslat(anahtar, kariUrl) {
     if (kayitci) kayitDurdur();
@@ -421,6 +432,7 @@
   document.addEventListener('click', e => {
     const bas = e.target.closest('[data-kayit-bas]'); if (bas) { e.preventDefault(); return kayitBaslat(bas.dataset.kayitBas, bas.closest('.kart').querySelector('[data-yedek]') ? bas.closest('.kart').querySelector('[data-yedek]').dataset.ses : ''); }
     const dur = e.target.closest('[data-kayit-dur]'); if (dur) { e.preventDefault(); return kayitDurdur(); }
+    const pay = e.target.closest('[data-kayit-paylas]'); if (pay) { e.preventDefault(); return shareRecording(pay.dataset.kayitPaylas); }
     const kar = e.target.closest('[data-karsilastir]'); if (kar) { e.preventDefault(); const a = kar.dataset.karsilastir; return arkaArka([kar.dataset.kariUrl, KAYIT[a]].filter(Boolean), kar); }
   });
 

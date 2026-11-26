@@ -1704,3 +1704,24 @@ select#adet { min-height: 44px; }
 .ez-bugun .cip.aktif { color: #0f5a47; }
 :root[data-tema="koyu"] .btn.tehlike { background: #b3382c; color: #fff; }
 @media (prefers-color-scheme: dark) { :root:not([data-tema="acik"]) .btn.tehlike { background: #b3382c; color: #fff; } }
+
+/* Theme refinement: more breathing room, clearer headings, slightly wider Arabic word spacing */
+body { line-height: 1.6; }
+.kart { padding: 18px; margin-bottom: 16px; }
+main h2 { font-size: 1.3rem; line-height: 1.3; margin-top: 0; }
+.ayet { word-spacing: .08em; }
+.ko-sayfa .ayet { word-spacing: .12em; }
+/* Special day card */
+.special-day-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-color: var(--altin); background: var(--altin-acik); }
+.special-day-card h2 { margin: 2px 0 4px; }
+.special-bayram { border-color: #2e8b3e; }
+/* Child guard */
+.parent-gate .parent-q { font-size: 2rem; font-weight: 700; text-align: center; margin: 12px 0; }
+.parent-gate input, .child-limit-ebeveyn input { width: 100%; box-sizing: border-box; padding: 12px; font: inherit; font-size: 1.2rem; border: 1px solid var(--cizgi); border-radius: 12px; background: var(--bg); color: inherit; margin-bottom: 10px; }
+.child-limit { margin-bottom: 16px; }
+.child-limit-overlay { position: fixed; inset: 0; z-index: 200; background: #fff7e3; color: #1f2a26; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.child-limit-kutu { text-align: center; max-width: 360px; }
+.child-limit-ikon { font-size: 4rem; }
+.child-limit-ebeveyn { margin-top: 28px; text-align: start; color: #1f2a26; }
+.child-limit-ebeveyn summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.child-limit-ebeveyn .parent-q { font-size: 1.6rem; font-weight: 700; }

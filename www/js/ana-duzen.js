@@ -71,7 +71,7 @@ function anaKartlari(c) {
   return d.sira.filter(id => !d.gizli.includes(id)).map(id => anaKartHTML(id, c)).join('') + `<p class="ana-duzenle-satir"><button class="link" data-git="anaDuzenle">⚙️ ${t('Ana sayfayı düzenle')}</button></p>`;
 }
 function anaKartBagla() {
-  homeStreakBind();
+  homeStreakBind(); homeSpecialDayBind();
   app.querySelectorAll('.ana-hizli-ayar [data-ha]').forEach(b => b.onclick = () => {
     const a = b.dataset.ha, v = +b.dataset.v;
     if (a === 'hedef') { S.ayar.hedefDk = v; gunlukPlan(true); } else if (a === 'arYazi') { S.ayar.arYazi = v; temaUygula(); } else if (a === 'renkli') S.ayar.renkli = v === 1; else if (a === 'durakIsik') S.ayar.durakIsik = v === 1;
