@@ -309,6 +309,8 @@
   const EZ_UZUN = 10;
   let EZ = null, ezZincir = [];
   const ezAdimAd = () => [t('Dinle'), t('Bakarak'), t('Yarısı'), t('Ezberden'), t('Bağla')];
+  // Beginner: fewer than 10 ayahs memorized in total
+  function ezAcemi() { return Object.values(S.ezber || {}).reduce((t_, z) => t_ + (z && z.tam ? 1000 : (z && z.a) || 0), 0) < 10; }
   function ezAralik(n, bas) {
     const x = SURE(n), top = x.ayet.length, hedef = S.ayar.ezberHedef || 3; let bit = bas;
     for (let a = bas; a <= top && a - bas < hedef; a++) { const uzun = x.ayet[a - 1].split(' ').length > EZ_UZUN; if (uzun && a > bas) break; bit = a; if (uzun) break; }
@@ -332,7 +334,8 @@
     if (mod === 'yeni' && !+bas && e.tam) mod = 'tekrar';
     if (mod === 'tekrar' && !e.tam && !e.a) mod = 'yeni';
     if (!EZ || EZ.n !== n || EZ.mod !== mod || EZ.yigin !== ekranYigini.length) {
-      const [b1, b2] = mod === 'tekrar' ? [1, e.tam ? top : e.a] : +tek && +bas ? [+bas, +bas] : ezAralik(n, +bas || Math.min(top, e.a + 1));
+      const [b1, b2] = mod === 'tekrar' ? [1, e.tam ? top : e.a] : +tek && +bas ? [+bas, +bas] : ezAralik(n, +bas || Math.min(top, Math.max(e.a + 1, e.son || 0)));
+      if (mod === 'yeni') { e.son = b1; kaydet(); }   // remember where the user was working, so reopening continues there
       EZ = { n, mod, yigin: ekranYigini.length, bas: b1, bit: b2, adim: mod === 'tekrar' ? 3 : 0, bakis: 0, ilkKelime: false, bitti: false, sonuc: null };
     }
     // Önceki sûreye bağlama: sûrenin ilk dersinde, önceki sûre (mushaf sırasıyla) tam ezberdeyse onun son ayetiyle birlikte okunur
@@ -387,7 +390,7 @@
     const tekrar = S.ayar.ezTekrar || 3, gizliAdim = Z.adim >= 2;
     app.innerHTML = `${ust(baslik)}${cubuk}<main class="ez-ekran">
       <p class="ez-yonerge">${yonerge}</p>
-      <div class="satir sola ez-arac">${Z.mod === 'yeni' ? `<button class="cip" id="ezOnceki" aria-label="${t('Önceki ayet')}" ${Z.bas <= 1 ? 'disabled' : ''}>‹</button><button class="cip" id="ezNereden" aria-label="${t('Ayet seç')}">📍 ${Z.bas === Z.bit ? Z.bas : Z.bas + '–' + Z.bit}/${top}</button><button class="cip" id="ezSonraki" aria-label="${t('Sonraki ayet')}" ${Z.bit >= top ? 'disabled' : ''}>›</button>` : ''}${OKU[`${n}:1`] ? `<button class="cip ${okunusAcik() ? 'aktif' : ''}" id="ezOkunus">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button></div>
+      <div class="satir sola ez-arac">${Z.mod === 'yeni' ? `<button class="cip" id="ezOnceki" aria-label="${t('Önceki ayet')}" ${Z.bas <= 1 ? 'disabled' : ''}>‹</button><button class="cip" id="ezNereden" aria-label="${t('Ayet seç')}">📍 ${Z.bas === Z.bit ? Z.bas : Z.bas + '–' + Z.bit}/${top}</button><button class="cip" id="ezSonraki" aria-label="${t('Sonraki ayet')}" ${Z.bit >= top ? 'disabled' : ''}>›</button>` : ''}${OKU[`${n}:1`] ? `<button class="cip ${okunusAcik() ? 'aktif' : ''}" id="ezOkunus">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button>${Z.adim === 0 ? `<button class="cip ${S.ayar.ezPay !== false ? 'aktif' : ''}" id="ezPay">🗣️ ${t('Sen de tekrar et')}</button>` : ''}</div>
       ${Z.mod === 'yeni' ? `<div class="kart ez-nereden" id="ezNerePanel" hidden><p class="kucukyazi soluk">${t('Hangi ayetten çalışmak istiyorsun? (1–{0})', top)}</p>
         <div class="satir sola"><input id="ezNereNo" type="number" min="1" max="${top}" value="${Z.bas}" inputmode="numeric" aria-label="${t('Ayet numarası')}"><button class="btn kucuk" id="ezNereGit">${t('Buradan başla')}</button></div>
         <div class="satir sola"><button class="cip" data-ez-bas="1">${t('Baştan')}</button>${e.a ? `<button class="cip" data-ez-bas="${Math.min(top, e.a + 1)}">${t('Kaldığım yer ({0}. ayet)', Math.min(top, e.a + 1))}</button>` : ''}</div></div>` : ''}
@@ -407,7 +410,8 @@
     const ileri = () => {
       sesDurdur();
       if (Z.mod === 'tekrar' || Z.adim >= adimSay - 1) return ezBitir();
-      Z.adim++; Z.sonuc = null; ciz(); window.scrollTo(0, 0);
+      Z.adim++; if (Z.adim === 2 && ezAcemi()) Z.adim = 3;   // beginners skip the half-hidden step
+      Z.sonuc = null; ciz(); window.scrollTo(0, 0);
     };
     app.querySelectorAll('[data-ez-adim]').forEach(b => b.onclick = () => { if (CANLI) return; Z.adim = +b.dataset.ezAdim; ciz(); });
     app.querySelectorAll('[data-ez-tekrar]').forEach(b => b.onclick = () => { S.ayar.ezTekrar = +b.dataset.ezTekrar; kaydet(); ciz(); });
@@ -416,6 +420,7 @@
     const nereyeGit = a => { a = Math.min(top, Math.max(1, +a || 1)); if (CANLI) return; sesDurdur(); EZ = null; ekranDegistir('ezberCalis', n, 'yeni', a); };
     const eo = $('#ezOnceki'); if (eo) eo.onclick = () => nereyeGit(Z.bas - 1);
     const es = $('#ezSonraki'); if (es) es.onclick = () => nereyeGit(Z.bit + 1);
+    const ep = $('#ezPay'); if (ep) ep.onclick = () => { S.ayar.ezPay = S.ayar.ezPay === false; kaydet(); ciz(); };
     const ok_ = $('#ezOkunus'); if (ok_) ok_.onclick = () => { if (CANLI) return; S.ayar.okunus = !okunusAcik(); kaydet(); ciz(); };
     app.querySelectorAll('.ayet-no-ses').forEach(b => b.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); } });
     const eg = $('#ezNereGit'); if (eg) eg.onclick = () => nereyeGit($('#ezNereNo').value);
@@ -440,8 +445,8 @@
         if (j >= liste.length) { bitir(); if (Z.adim === 0) { const d = $('#canliBar .canli-durum'); if (d) d.textContent = t('Hazır olunca sonraki adıma geç.'); } return; }
         const a = liste[j++], el = document.getElementById('ayet-' + a); if (el) { el.classList.add('calan'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         const d = $('#canliBar .canli-durum'); if (d && Z.adim === 0 && a) d.textContent = `${t('Ayet {0}', a)} · ${liste.slice(0, j).filter(x => x === a).length}/${tekrar}`;
-        const au = new Audio(sesKaynak(ayetUrl(a === 0 ? `${onek.n}:${onek.a}` : `${n}:${a}`))); ses = au; au.playbackRate = S.ayar.hiz || 1;
-        au.onended = () => setTimeout(sonraki, 400);
+        const au = new Audio(sesKaynak(ayetUrl(a === 0 ? `${onek.n}:${onek.a}` : `${n}:${a}`))); ses = au; au.playbackRate = S.ayar.hiz || 1; const t0 = Date.now();
+        au.onended = () => setTimeout(sonraki, uzun && S.ayar.ezPay !== false ? Math.max(800, Date.now() - t0) : 400);   // leave a pause as long as the ayah so the learner can repeat it aloud
         au.onerror = () => { bitir(); toast(t('Ses çalınamadı. İnternet bağlantını kontrol et.')); };
         au.play().catch(() => bitir());
       };

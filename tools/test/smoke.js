@@ -487,6 +487,10 @@ const EKRANLAR = [
       await sayfa.waitForFunction(() => window.__ezCal.length >= 4, null, { timeout: 8000 });
       const ezc = await sayfa.evaluate(() => { const l = window.__ezCal.slice(0, 4), b = document.querySelector('#ezDinle'); if (b.classList.contains('caliyor')) b.click(); window.Audio = window.__AudioEz; delete window.__TECVID.S().ayar.ezTekrar; return l; });
       kontrol('ezber: ayet numarasına dokununca o ayet seçilen sayıda tekrarlanıp sıradaki ayete geçiyor', ezc[0] === ezc[1] && ezc[2] !== ezc[0] && ezc[2] === ezc[3], JSON.stringify(ezc));
+      await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; window.__TECVID.git('ezberCalis', 112, 'yeni', 3); }); await sayfa.waitForSelector('#ayet-3');
+      await sayfa.evaluate(() => { window.__TECVID.git('ana'); window.__TECVID.git('ezberCalis', 112, 'yeni'); }); await sayfa.waitForSelector('.ez-kart .ez-ayet');
+      kontrol('ezber: sûre yeniden açılınca en son çalışılan ayetten (3) devam ediyor', await sayfa.evaluate(() => !!document.querySelector('#ayet-3') && !document.querySelector('#ayet-1')));
+      await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; });
       await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.ezMeal; window.__TECVID.S().ezber = {}; });
       // Takip: yumuşak eşleme (bozuk telaffuzlu kelime yine bulunur, alakasız ses bulunmaz)
       const ye = await sayfa.evaluate(() => { const Y = window.__TECVID.yakinEsle; return [Y('xxbismilaxx', 'bismila'), Y('bizmilla', 'bismila'), Y('alhamdulillah', 'bismila'), Y('ab', 'bismila')].map(r => r.ok); });
