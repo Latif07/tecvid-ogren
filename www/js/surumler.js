@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.72';
+  const SURUM = '1.0.73';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.73', t: '2026-11-26', durum: 'Web', l: [
+      'Ezber: ayet numarasına (﴿٢﴾) dokununca o ayetin tamamı okunur; üstteki ‹ › düğmeleriyle önceki/sonraki ayete tek dokunuşla geçilir',
+      'Ezber ve Tekrarla: "🔤 Okunuş" (Latin) ve "📖 Meal" tek dokunuşluk düğmeler olarak ekranın üstünde; ayarları açmaya gerek yok',
+    ] },
     { s: '1.0.72', t: '2026-11-26', durum: 'Web', l: [
       'Sen oku: Durdur\'a basınca sayfa kendiliğinden değişmez; hatalarına bakabilir, "Sonraki sayfa ›" ile devam edebilirsin',
       'Hatalarım: ayetler aç/kapa listesi (Hepsini aç/kapat); "Listeyi temizle" ve "Kapat" düğmeleri hep görünür; pencere açıkken arkadaki sayfa kaymaz',

@@ -476,6 +476,11 @@ const EKRANLAR = [
       await sayfa.click('#ezMeal');
       await sayfa.waitForSelector('.ez-meal', { timeout: 8000 });
       kontrol('ezber: Meal açılınca ayetlerin altında meal görünüyor', (await sayfa.$$('.ez-meal')).length >= 1);
+      const ho = await sayfa.evaluate(() => { const b = document.querySelector('#ayet-5 .ayet-no-ses'); return { ses: !!b && /everyayah|diyanet/.test(b.dataset.ses || ''), sonraki: !!document.querySelector('#ezSonraki') && !document.querySelector('#ezSonraki').disabled, onceki: !!document.querySelector('#ezOnceki') && !document.querySelector('#ezOnceki').disabled }; });
+      const ids = () => sayfa.evaluate(() => [...document.querySelectorAll('.ez-kart .ez-ayet')].map(e => +e.id.replace('ayet-', '')).filter(Boolean));
+      const ezIds0 = await ids(); await sayfa.click('#ezSonraki'); await sayfa.waitForFunction(m => { const l = [...document.querySelectorAll('.ez-kart .ez-ayet')].map(e => +e.id.replace('ayet-', '')); return l.length && Math.min(...l) > m; }, Math.max(...ezIds0));
+      const ezIds1 = await ids(); await sayfa.click('#ezOnceki'); await sayfa.waitForFunction(m => { const l = [...document.querySelectorAll('.ez-kart .ez-ayet')].map(e => +e.id.replace('ayet-', '')); return l.length && Math.max(...l) < m; }, Math.min(...ezIds1));
+      kontrol('ezber: ayet numarasına dokununca tüm ayet çalar; ‹ › ile ayetler arası hızlı geçiş', ho.ses && ho.sonraki && ho.onceki, JSON.stringify(ho));
       await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.ezMeal; window.__TECVID.S().ezber = {}; });
       // Takip: yumuşak eşleme (bozuk telaffuzlu kelime yine bulunur, alakasız ses bulunmaz)
       const ye = await sayfa.evaluate(() => { const Y = window.__TECVID.yakinEsle; return [Y('xxbismilaxx', 'bismila'), Y('bizmilla', 'bismila'), Y('alhamdulillah', 'bismila'), Y('ab', 'bismila')].map(r => r.ok); });
