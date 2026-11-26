@@ -152,6 +152,8 @@
         <div class="renkler">${[['yesil', '#0f5a47', t('Yeşil')], ['lacivert', '#1d3f72', t('Lacivert')], ['bordo', '#7a1f2b', t('Bordo')], ['mor', '#4b2a7a', t('Mor')], ['sepya', '#6b4423', t('Sepya')], ['kalem', 'linear-gradient(135deg,#f7f0e4 0 45%,#6e2a3a 45%)', t('Krem-bordo')]].map(([v, c, ad]) => `<button class="${(S.ayar.renk || 'yesil') === v ? 'aktif' : ''}" data-renk="${v}" style="background:${c}" title="${ad}" aria-label="${ad}">${(S.ayar.renk || 'yesil') === v ? '✓' : ''}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Yazı boyutu')}</b></p>
         <div class="satir sola">${[[0.9, 'A−'], [1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="btn ${(S.ayar.yazi || 1) === v ? '' : 'ikincil'}" data-yazi="${v}">${ad}</button>`).join('')}</div>
+        <p style="margin-top:12px"><b>${t('Görünüm kolaylığı')}</b></p>
+        <div class="satir sola"><button class="btn ${S.ayar.yuksekKontrast ? '' : 'ikincil'}" id="ayKontrast" aria-pressed="${!!S.ayar.yuksekKontrast}">${t('Yüksek kontrast')}</button><button class="btn ${S.ayar.hareketAzalt ? '' : 'ikincil'}" id="ayHareket" aria-pressed="${!!S.ayar.hareketAzalt}">${t('Hareketi azalt')}</button></div>
         <p style="margin-top:12px"><b>${t('Arapça yazı boyutu')}</b></p>
         <div class="satir sola">${[[0.85, '−'], [1, ''], [1.2, '+'], [1.4, '++']].map(([v, ek]) => `<button class="btn ${(S.ayar.arYazi || 1) === v ? '' : 'ikincil'}" data-aryazi="${v}"><span class="ar" style="font-size:1.2em;line-height:1">ع</span>${ek}</button>`).join('')}</div>
         <p style="margin-top:16px"><b>${t('Mushaf yazımı')}</b></p>
@@ -188,6 +190,8 @@
         <div class="satir sola"><button class="btn ikincil" id="geriyukle">${t('Geri yükle')}</button></div><p style="margin-top:20px"><b>${t('Sıfırla')}</b></p><p>${t('Bütün ilerleme ve geçmiş silinir.')}</p><button class="btn tehlike" id="sifirla">${t('Her şeyi sıfırla')}</button></div></details>
       <details class="ayar-dip" data-bol="k"><summary>${t('Kaynaklar')}</summary><ul class="kaynak">${KAYNAK.map(k => `<li>${esc(k)}</li>`).join('')}</ul>
         <p class="soluk">${t('Tecvid kulakla öğrenilen bir ilimdir. Bu uygulama bir hocadan ders almanın yerini tutmaz, onu destekler.')}</p></details>
+      <details class="ayar-dip geri-bildirim" data-bol="e"><summary>${t('Geri bildirim gönder')}</summary><p class="soluk">${t('Ne gördüğünü ya da ne istediğini yaz. Sürüm ve cihaz bilgisi otomatik eklenir; göndereceğin uygulamayı (mesaj, e-posta) sen seçersin.')}</p>
+        <textarea id="gbMetin" rows="4" maxlength="1500" placeholder="${t('Mesajın…')}" aria-label="${t('Geri bildirim gönder')}"></textarea><button class="btn" id="gbGonder">${t('Gönder')}</button></details>
       <details class="ayar-dip" data-bol="e"><summary>${t('Hata kaydı')}</summary><p class="soluk">${t('Uygulamada bir sorun olursa burada görünür. Kopyalayıp bize gönderebilirsin.')}</p>
         <textarea id="hataKaydi" rows="4" readonly aria-label="${t('Hata kaydı')}">${esc((() => { try { return JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]').join('\n') || t('Kayıtlı hata yok.'); } catch (e) { return ''; } })())}</textarea>
         <p class="soluk kucukyazi">${esc(navigator.userAgent)}</p></details>
@@ -196,6 +200,16 @@
     app.querySelectorAll('[data-dil]').forEach(b => b.onclick = () => { if (b.dataset.dil === DIL) return; try { localStorage.setItem('tecvid-ogren.dil', b.dataset.dil); } catch (e) { } location.reload(); });
     app.querySelectorAll('[data-tema]').forEach(b => b.onclick = () => { S.ayar.tema = b.dataset.tema; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-renk]').forEach(b => b.onclick = () => { S.ayar.renk = b.dataset.renk; temaUygula(); kaydet(); ciz(); });
+    $('#gbGonder').onclick = () => {
+      let errs = ''; try { errs = (JSON.parse(localStorage.getItem('tecvid-ogren.hatalar') || '[]') || []).slice(-5).join('\n'); } catch (e) { }
+      const body = `${$('#gbMetin').value.trim()}\n\n--\n${surumYazi()}\n${navigator.userAgent}${errs ? '\n' + errs : ''}`;
+      if (!$('#gbMetin').value.trim()) return toast(t('Önce bir mesaj yaz.'));
+      if (navigator.share) navigator.share({ title: t('Kur\'an Yolum geri bildirimi'), text: body }).catch(() => { });
+      else if (navigator.clipboard) navigator.clipboard.writeText(body).then(() => toast(t('Kopyalandı; istediğin yere yapıştırabilirsin.'))).catch(() => { });
+      window.__feedbackText = body;
+    };
+    $('#ayKontrast').onclick = () => { S.ayar.yuksekKontrast = !S.ayar.yuksekKontrast; temaUygula(); kaydet(); ciz(); };
+    $('#ayHareket').onclick = () => { S.ayar.hareketAzalt = !S.ayar.hareketAzalt; temaUygula(); kaydet(); ciz(); };
     app.querySelectorAll('[data-yazi]').forEach(b => b.onclick = () => { S.ayar.yazi = +b.dataset.yazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-aryazi]').forEach(b => b.onclick = () => { S.ayar.arYazi = +b.dataset.aryazi; temaUygula(); kaydet(); ciz(); });
     app.querySelectorAll('[data-renkli]').forEach(b => b.onclick = () => { S.ayar.renkli = b.dataset.renkli === '1'; kaydet(); ciz(); });
@@ -460,10 +474,14 @@
           <button class="yas-kart" data-sv="sifir"><span>🔠</span><b>${t('Hiç bilmiyorum')}</b><small>${t('Harflerden (Elif-Ba) başla')}</small></button>
           <button class="yas-kart" data-sv="harf"><span>✏️</span><b>${t('Harfleri tanıyorum')}</b><small>${t('Harekeler ve işaretlerle başla')}</small></button>
           <button class="yas-kart" data-sv="okur"><span>📖</span><b>${t('Kur\'an okuyabiliyorum')}</b><small>${t('Doğrudan tecvid konularına geç')}</small></button>
-        </div></main>`;
+        </div>
+        <p class="soluk kucukyazi" style="margin-top:14px">${t('Yazı boyutu')}</p>
+        <div class="satir sola" id="hgYazi">${[[1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="cip ${(S.ayar.yazi || 1) === v ? 'aktif' : ''}" data-hg-yazi="${v}">${ad}</button>`).join('')}</div></main>`;
+      app.querySelectorAll('[data-hg-yazi]').forEach(b => b.onclick = () => { S.ayar.yazi = +b.dataset.hgYazi; temaUygula(); kaydet(); app.querySelectorAll('[data-hg-yazi]').forEach(x => x.classList.toggle('aktif', x === b)); });
       const kendim = sv => { const atla = { sifir: [], harf: ['e1'], okur: ['e1', 'u0'] }[sv];
         atla.forEach(id => { if (!gecti(id)) S.ilerleme[id] = { en: 0, deneme: 0, gecti: true, atla: true }; });
-        S.ayar.seviye = sv; kaydet(); anaSayfa(); };
+        S.ayar.seviye = sv; if (sv === 'okur') S.ayar.anaTur = 'kuran'; kaydet();
+        if (sv === 'sifir') { ekranYigini = [[evKok(), []], ['elifba', []]]; ciz(); window.scrollTo(0, 0); } else anaSayfa(); };
       app.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => {
         const sv = b.dataset.sv; if (sv === 'sifir') return kendim(sv);
         app.querySelector('main').innerHTML = `<p>${t('Bildiğin konuları kısa bir testle bulalım mı? Böylece bildiğin bölümleri atlarsın.')}</p>
