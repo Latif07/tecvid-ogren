@@ -299,7 +299,12 @@
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-ses]'); if (!b) return;
-    e.preventDefault(); cal(b.dataset.ses, b, b.dataset.yedek);
+    e.preventDefault();
+    let ses = b.dataset.ses, yedek = b.dataset.yedek;
+    // Word tap: by default play the whole ayah with the selected reciter, so the voice is the same everywhere
+    const w = b.classList.contains('kelime') && S.ayar.kelimeSes !== 'kelime' ? /wbw\/(\d+)_(\d+)_\d+\.mp3/.exec(ses || '') : null;
+    if (w) { ses = ayetUrl(`${+w[1]}:${+w[2]}`); yedek = ayetUrl(`${+w[1]}:${+w[2]}`, KARILER[0].klasor); }
+    cal(ses, b, yedek);
   });
 
   // ------------------------------------------------------------ internetsiz ses (telefona indirme)

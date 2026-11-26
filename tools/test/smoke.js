@@ -490,6 +490,18 @@ const EKRANLAR = [
       await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; window.__TECVID.git('ezberCalis', 112, 'yeni', 3); }); await sayfa.waitForSelector('#ayet-3');
       await sayfa.evaluate(() => { window.__TECVID.git('ana'); window.__TECVID.git('ezberCalis', 112, 'yeni'); }); await sayfa.waitForSelector('.ez-kart .ez-ayet');
       kontrol('ezber: sûre yeniden açılınca en son çalışılan ayetten (3) devam ediyor', await sayfa.evaluate(() => !!document.querySelector('#ayet-3') && !document.querySelector('#ayet-1')));
+      const kz = await sayfa.evaluate(async () => {
+        const T = window.__TECVID, S = T.S(), src = []; const A0 = window.Audio; window.Audio = function (u) { this.src = u; this.play = () => { src.push(u); return Promise.resolve(); }; this.pause = () => { }; };
+        const w = () => document.querySelector('.ez-kart .kelime[data-ses]');
+        delete S.ayar.kelimeSes; w().click(); await new Promise(r => setTimeout(r, 150)); const a = src.slice(); src.length = 0;
+        S.ayar.kelimeSes = 'kelime'; document.querySelectorAll('.ez-kart .kelime[data-ses]')[1].click(); await new Promise(r => setTimeout(r, 150)); const b = src.slice(); delete S.ayar.kelimeSes; window.Audio = A0;
+        return { ayet: a.some(u => /everyayah|diyanet/.test(u)) && !a.some(u => /wbw/.test(u)), kelime: b.some(u => /wbw/.test(u)) };
+      });
+      kontrol('kelimeye dokununca seçili kârinin ayeti çalıyor; ayarla yalnız kelime sesine dönülebiliyor', kz.ayet && kz.kelime, JSON.stringify(kz));
+      await sayfa.click('#ezAa'); await sayfa.click('[data-aa-tema="gece"]');
+      const aa = await sayfa.evaluate(() => { const m = document.querySelector('main.ez-ekran'); const r = { tema: m.classList.contains('tema-gece'), bg: getComputedStyle(document.querySelector('.ez-kart')).backgroundColor }; return r; });
+      kontrol('ezber: Aa ile sayfa rengi değişiyor (yazı büyüklüğü ve renk seçilebiliyor)', aa.tema && aa.bg === 'rgb(18, 18, 18)' && !!(await sayfa.$('[data-aa-ar="1.2"]')), JSON.stringify(aa));
+      await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.ezTema; document.querySelectorAll('.ko-menu').forEach(x => x.remove()); });
       await sayfa.evaluate(() => { window.__TECVID.S().ezber = {}; });
       await sayfa.evaluate(() => { delete window.__TECVID.S().ayar.ezMeal; window.__TECVID.S().ezber = {}; });
       // Takip: yumuşak eşleme (bozuk telaffuzlu kelime yine bulunur, alakasız ses bulunmaz)

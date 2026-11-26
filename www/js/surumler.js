@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.74';
+  const SURUM = '1.0.75';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.75', t: '2026-11-26', durum: 'Web', l: [
+      'Kelimeye dokununca artık seçtiğin kârinin sesiyle o ayet okunur; ses her yerde aynı. İstersen Ayarlar > Ses bölümünden "Yalnız o kelimeyi çal"a geçebilirsin',
+      'Ezber ve Tekrarla ekranlarında "Aa" düğmesi: Arapça yazı boyutu ve sayfa rengi (açık, sepya, karanlık, galaksi…) buradan seçilir',
+    ] },
     { s: '1.0.74', t: '2026-11-26', durum: 'Web', l: [
       'Ezber (dinleme adımı): ayet numarasına dokununca o ayet seçtiğin sayıda (örn. 5 kez) tekrarlanır, sonra sıradaki ayete geçip aynı şekilde devam eder; hangi ayetin kaçıncı tekrarda olduğu altta görünür',
       'Ezber dinlemesinde "🗣️ Sen de tekrar et": her ayetten sonra ayet süresi kadar sessizlik olur, sen de yüksek sesle tekrar edersin (kapatılabilir)',
