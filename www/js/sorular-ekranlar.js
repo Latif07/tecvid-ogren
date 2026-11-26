@@ -223,6 +223,12 @@
     liste: IK('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
     grafik: IK('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
     alistirma: IK('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+    yerimi: IK('<path d="M6 3h12v18l-6-4-6 4z"/>'),
+    arti: IK('<path d="M12 5v14M5 12h14"/>'),
+    paylas: IK('<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>'),
+    yazdir: IK('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'),
+    goz: IK('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'),
+    onay: IK('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/>'),
     bulb: IK('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>'),
   };
   // [ekran, ikon, ad, aynı sekmeye ait diğer kök ekranlar]
@@ -317,11 +323,11 @@
     const kutu = (git_, ik, ad) => `<button class="tecvid-kutu" data-git="${git_}"><span>${ik}</span>${ad}</button>`;
     app.innerHTML = `${ust(t('Tecvid'))}<main>
       <p class="soluk tecvid-ozet">${t('{0} / {1} bölüm geçildi', gecilen, U.length)}</p>
-      <button class="ders-ince eb-giris" data-git="elifba"><span>🌱 ${t('Elif-Ba odak modu: sıfırdan, adım adım')}</span><b>›</b></button>
-      ${window.KARTLAR ? `<button class="ders-ince eb-giris" data-git="kartlar"><span>🗂️ ${t('Hap bilgi kartları · durak kartı, kontrol modu')}</span><b>›</b></button>` : ''}
+      <button class="ders-ince eb-giris" data-git="elifba"><span>${IKON.filiz} ${t('Elif-Ba odak modu: sıfırdan, adım adım')}</span><b>›</b></button>
+      ${window.KARTLAR ? `<button class="ders-ince eb-giris" data-git="kartlar"><span>${IKON.kart} ${t('Hap bilgi kartları · durak kartı, kontrol modu')}</span><b>›</b></button>` : ''}
       <nav class="tecvid-kutular">
         ${window.HARFKART ? kutu('harfKartlari', '<b class="ar">ب</b>', t('Harf kartları')) : ''}
-        ${window.KARTLAR ? kutu('kartlar', '🗂️', t('Hap kartlar')) : ''}
+        ${window.KARTLAR ? kutu('kartlar', IKON.kart, t('Hap kartlar')) : ''}
         ${kutu('testler', IKON.test, t('Testler'))}
         ${kutu('sureTecvidSec', IKON.pusula, t('Sûre sûre tecvid'))}
         ${kutu('kuralAra', IKON.ara, t('Kural ara'))}
@@ -454,12 +460,12 @@
       const hk = i > 0 && i === u.sayfalar.length - 1 && (u.sorular || []).length ? hizliKontrolSoru(u, i) : null;
       const hkSay = hikayeKartlar(u).length;
       const hikayeGir = `<button class="ders-ince hikaye-gir" data-git="hikaye|${id}|0"><span>${u.ikon} ${t('Kısa anlatım')} · ${t('{0} kart, ~{1} dk', hkSay, Math.max(1, Math.round(hkSay / 3)))}</span><b>›</b></button>`;
-      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>${tekBakista(u)}` : '') + `<article class="kart sayfa defter"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${durakIsik(s.h)}</article><div class="satir sola"><button class="lejant-ac" id="dersNot">📝 ${t('Not')}${notBul('ders', id + ':' + i) ? ' •' : ''}</button></div>${id === 'u19' ? durakLejant() : ''}${mahrecHTML(id, i)}${['e1', 'm1', 'm2', 'm3'].includes(id) ? hkGiris() : ''}
+      icerik = (i === 0 ? `<p class="besmele" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</p>${tekBakista(u)}` : '') + `<article class="kart sayfa defter"><div class="sayac">${i + 1} / ${u.sayfalar.length}</div><h2>${esc(s.t)}</h2>${durakIsik(s.h)}</article><div class="satir sola"><button class="lejant-ac" id="dersNot">${IKON.not} ${t('Not')}${notBul('ders', id + ':' + i) ? ' •' : ''}</button></div>${id === 'u19' ? durakLejant() : ''}${mahrecHTML(id, i)}${['e1', 'm1', 'm2', 'm3'].includes(id) ? hkGiris() : ''}
         ${hk ? `<section class="kart hizli-kontrol"><p class="hk-baslik">${t('🎯 Kendini dene')} <small class="soluk">· ${t('Dersi bitirmeden')}</small></p><p><b>${hk.soru}</b></p><div class="secenekler">${hk.secenek.map((x, j) => `<button class="secenek" data-hk="${j}">${metin(x)}</button>`).join('')}</div><div id="hkSonuc"></div></section>` : ''}
         <div class="satir">
           <button class="btn ikincil" data-sayfa="${i - 1}" ${i === 0 ? 'disabled' : ''}>${t('‹ Önceki')}</button>
           ${i < u.sayfalar.length - 1 ? `<button class="btn" data-sayfa="${i + 1}">${t('Sonraki ›')}</button>` : `<button class="btn" data-sekme="${u.ornek && u.ornek.length ? 'ornek' : 'alistirma'}">${u.ornek && u.ornek.length ? t('Örneklere geç ›') : t('Alıştırmaya geç ›')}</button>`}
-        </div>${i === 0 ? `<div class="ders-inceler">${hikayeGir}${kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>🗂️ ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}${secim}</div>` : ''}${i === u.sayfalar.length - 1 && kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>🗂️ ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}`;
+        </div>${i === 0 ? `<div class="ders-inceler">${hikayeGir}${kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>${IKON.kart} ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}${secim}</div>` : ''}${i === u.sayfalar.length - 1 && kartUnit(id) ? `<button class="ders-ince" data-git="kart|${kartUnit(id).id}"><span>${IKON.kart} ${t('Bu konunun kartı')}</span><b>›</b></button>` : ''}`;
     } else if (sekme === 'ornek') {
       icerik = `<div class="satir sola"><button class="lejant-ac" id="lejantAc">🎨 ${S.ayar.renkli ? t('Renklerin anlamı') : t('Renkli tecvid kapalı')}</button><button class="lejant-ac" data-git="kariSec">🎙️ ${esc(kari().ad)}</button></div>
         <div id="lejant" hidden class="kart kucuk">${lejantHTML()}</div>` +

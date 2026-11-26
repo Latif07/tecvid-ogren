@@ -433,7 +433,7 @@ const EKRANLAR = [
       await sayfa.evaluate(() => window.__TECVID.git('kartlar'));
       await sayfa.waitForSelector('.kart-kutu');
       const say = await sayfa.evaluate(() => document.querySelectorAll('.kart-kutu').length);
-      kontrol('kartlar: 6 kart listeleniyor', say === 6, String(say));
+      kontrol('kartlar: 9 kart listeleniyor', say === 9, String(say));
       await sayfa.evaluate(() => { window.__TECVID.git('kart', 'nun'); });
       await sayfa.waitForSelector('#kkKart');
       const nun = await sayfa.evaluate(() => document.querySelector('#kkKart').innerText);
@@ -503,7 +503,7 @@ const EKRANLAR = [
       await sayfa.emulateMedia({ media: 'print' });
       const yz = await sayfa.evaluate(() => { const W = document.documentElement.clientWidth; const k = [...document.querySelectorAll('.kk-kart')]; return { n: k.length, tasan: k.filter(x => x.getBoundingClientRect().right > W + 1 || x.scrollWidth > x.clientWidth + 1).length, grid: getComputedStyle(document.querySelector('.kk-izgara')).display, ust: getComputedStyle(document.querySelector('.ust')).display }; });
       await sayfa.emulateMedia({ media: 'screen' });
-      kontrol('kartlar: yazdırma görünümü sayfaya sığıyor (taşma yok, tek sütun, üst çubuk gizli)', yz.n === 6 && yz.tasan === 0 && yz.grid === 'block' && yz.ust === 'none', JSON.stringify(yz));
+      kontrol('kartlar: yazdırma görünümü sayfaya sığıyor (taşma yok, tek sütun, üst çubuk gizli)', yz.n === 9 && yz.tasan === 0 && yz.grid === 'block' && yz.ust === 'none', JSON.stringify(yz));
       // Elif-Ba: harfe dokununca harfin adı söylenir (Kur'an kelimesi değil)
       await sayfa.evaluate(() => { window.__tts.length = 0; window.__TECVID.S().okunan = window.__TECVID.S().okunan || {}; window.__TECVID.S().okunan.e1 = 7; (window.__TECVID.git)('ders', 'e1'); const D = window.__TECVID; });
       await sayfa.evaluate(() => { const E = window.__TECVID; });
@@ -757,6 +757,10 @@ const EKRANLAR = [
       const enYuk = await enSayfa.evaluate(() => ({ dosya: !!document.querySelector('script[src*="dil-en.js"]'), a: window.t('Ayet ara'), b: window.t('Notlarım'), dil: window.DIL }));
       kontrol('dil: İngilizce seçilince dil-en.js yükleniyor ve çeviri çalışıyor', enYuk.dosya && enYuk.dil === 'en' && enYuk.a === 'Search verses' && enYuk.b === 'My notes', JSON.stringify(enYuk));
       await enSayfa.evaluate(() => { try { localStorage.removeItem('tecvid-ogren.dil'); } catch (e) { } }); await enSayfa.close();
+      // Yeni hap kartlar: harekeler (7 satır), mahreçler (17 satır, harf kartı verisinden), karıştırılan harfler
+      const ks = {};
+      for (const id of ['harekeler', 'mahrec', 'karisan']) { await sayfa.evaluate(i => window.__TECVID.git('kart', i), id); await sayfa.waitForSelector('#kkKart tbody tr, #kkKart .kk-satir'); ks[id] = await sayfa.evaluate(() => document.querySelectorAll('#kkKart tbody tr, #kkKart .kk-satir').length); }
+      kontrol('yeni hap kartlar: harekeler 7, mahreçler 17, karıştırılan harfler 8 satır', ks.harekeler === 7 && ks.mahrec === 17 && ks.karisan === 8, JSON.stringify(ks));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

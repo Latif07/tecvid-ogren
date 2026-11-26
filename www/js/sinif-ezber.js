@@ -195,7 +195,7 @@
           <p class="soluk kucukyazi">${t('Rapor tarihi: {0} · {1} öğrenci', tarihStr(Date.now()), l.length)}${o.birim ? ' · ' + t('Ödev: {0}', esc(odevAd(o.birim))) : ''}${okS ? ' · ' + t('Okuma ödevi: her gün {0} sayfa', okS) : ''}</p>
           <div class="rapor-kap"><table class="rapor-tablo"><thead><tr><th>${t('Öğrenci')}</th>${buyukVar ? `<th>${t('Bölüm')}</th><th>${t('Ort.')}</th><th>${t('Ezber')}</th>` : ''}${cocukVar ? `<th>★</th><th>${t('Durak')}</th>` : ''}<th>🔥</th>${okS ? `<th>${t('Bugün')}</th><th>${t('7 gün')}</th>` : ''}${o.birim ? `<th>${t('Ödev')}</th>` : ''}<th>${t('Son')}</th></tr></thead>
           <tbody>${satirlar.map(x => `<tr><td>${esc(x.ad)}</td>${buyukVar ? `<td>${x.cocuk ? '—' : x.bolum}</td><td>${x.cocuk || x.ort == null ? '—' : yuzdeStr(x.ort)}</td><td>${x.cocuk ? '—' : x.ez}</td>` : ''}${cocukVar ? `<td>${x.cocuk ? x.yildiz : '—'}</td><td>${x.cocuk ? x.durak : '—'}</td>` : ''}<td>${x.seri}</td>${okS ? `<td>${x.kb}/${okS}${x.kb >= okS ? ' ✓' : ''}</td><td>${x.kh}</td>` : ''}${o.birim ? `<td>${x.odev ? '✓' : '·'}</td>` : ''}<td class="kucukyazi">${esc(x.son)}</td></tr>`).join('')}</tbody></table></div></article>
-        <div class="satir sola rapor-dugmeler"><button class="btn" id="raporYazdir">🖨️ ${t('Yazdır / PDF')}</button><button class="btn ikincil" id="raporPaylas">📤 ${t('Metin olarak paylaş')}</button></div>
+        <div class="satir sola rapor-dugmeler"><button class="btn" id="raporYazdir">${IKON.yazdir} ${t('Yazdır / PDF')}</button><button class="btn ikincil" id="raporPaylas">${IKON.paylas} ${t('Metin olarak paylaş')}</button></div>
         <p class="soluk kucukyazi">${t('Telefonda yazdırma çalışmazsa “Metin olarak paylaş” ile WhatsApp ya da e-postayla gönderebilirsin.')}</p>`;
       $('#raporYazdir').onclick = () => { try { window.print(); } catch (e) { toast(t('Bu cihazda yazdırma desteklenmiyor.')); } };
       $('#raporPaylas').onclick = async () => {
@@ -247,7 +247,7 @@
           <p class="soluk">${t('Öğrencilerin her gün kaç sayfa okusun? Öğrencinin günlük okuma hedefi bundan az olamaz; okuduğu sayfalar bu ekranda ve raporda görünür.')}</p>
           <div class="cipler" id="okSec">${[0, 1, 2, 5, 10, 20].map(v => `<button class="${(okS || 0) === v ? 'aktif' : ''}" data-oks="${v}">${v ? t('{0} sayfa', v) : t('Yok')}</button>`).join('')}</div>
           <button class="btn genis" id="okKaydet">${t('Okuma ödevini kaydet')}</button></article>
-        <div class="satir sola"><button class="btn ikincil" data-git="sinifRapor|${esc(kod)}">🖨️ ${t('Sınıf raporu')}</button></div>
+        <div class="satir sola"><button class="btn ikincil" data-git="sinifRapor|${esc(kod)}">${IKON.yazdir} ${t('Sınıf raporu')}</button></div>
         <h2 class="baslik">${t('🏆 Sınıf sıralaması')}</h2><article class="kart" id="sirala"></article>
         <h2 class="baslik">${t('🎧 Ezber dinletmeleri')}</h2><div id="dinletmeler"><p class="soluk">${t('Yükleniyor…')}</p></div>
         <h2 class="baslik">${t('Öğrenciler ({0})', ogrenciler.length)}</h2>
@@ -268,7 +268,7 @@
           <p class="soluk kucukyazi">${esc(sureNoAdi(d.n))} · ${tarihStr(d.tarih)}${d.sure ? ' · ' + sureStr(d.sure) : ''}</p>
           <audio controls preload="none" src="data:${esc(d.mime || 'audio/webm')};base64,${d.ses}" style="width:100%"></audio>
           <div class="form"><input data-not="${d.id}" maxlength="300" placeholder="${t('Not (isteğe bağlı)')}" value="${esc(d.not || '')}"></div>
-          <div class="satir sola"><button class="btn" data-puan="iyi" data-id="${d.id}">👍 ${t('Güzel')}</button><button class="btn ikincil" data-puan="tekrar" data-id="${d.id}">🔁 ${t('Tekrar çalış')}</button><button class="btn ikincil tehlike-yazi" data-dsil="${d.id}">${t('Sil')}</button></div></article>`).join('');
+          <div class="satir sola"><button class="btn" data-puan="iyi" data-id="${d.id}">👍 ${t('Güzel')}</button><button class="btn ikincil" data-puan="tekrar" data-id="${d.id}">${IKON.tekrar} ${t('Tekrar çalış')}</button><button class="btn ikincil tehlike-yazi" data-dsil="${d.id}">${t('Sil')}</button></div></article>`).join('');
         y.querySelectorAll('[data-puan]').forEach(b => b.onclick = async () => { try { await B().dinletmeDegerlendir(kod, b.dataset.id, b.dataset.puan, y.querySelector(`[data-not="${b.dataset.id}"]`).value); toast(t('Değerlendirme kaydedildi ✓')); ciz(); } catch (x) { toast(x.message); } });
         y.querySelectorAll('[data-dsil]').forEach(b => b.onclick = async () => { if (!confirm(t('Bu kayıt silinsin mi?'))) return; try { await B().dinletmeSil(kod, b.dataset.dsil); ciz(); } catch (x) { toast(x.message); } });
       }).catch(x => { const y = $('#dinletmeler'); if (y) y.innerHTML = `<p class="hata">${esc(x.message)}</p>`; });
@@ -678,9 +678,9 @@
         : `<p>${t('Bugün için ezber planı yok. Aşağıdan bir sûre ekle.')}</p>`}
         <p class="kucukyazi ez-hedef">${t('Günlük yeni ders:')} ${[1, 3, 5, 10, 999].map(k => `<button class="cip ${hedef === k ? 'aktif' : ''}" data-hedef="${k}">${k === 999 ? t('Hepsi') : t('{0} ayet', k)}</button>`).join(' ')}</p>
       </section>
-      <button class="btn genis ez-tekrarla" data-git="tekrarlaSec">🔁 ${t('Tekrarla')} <small>${t('bir sûreyi istediğin kadar tekrarla')}</small></button>
-      <h2 class="baslik">${t('Ezberlerim')} ${liste.length ? `<button class="link ez-rapor" id="ezRapor">📤 ${t('Ezber raporu')}</button>` : ''}</h2>
-      ${liste.length ? `<div class="ez-izgara">${liste.map(e => `<button class="ez-sure" data-ez-sure="${e.n}">${halka(e)}<b>${esc(sureNoAdi(e.n))}</b><small>${durum(e)}</small></button>`).join('')}</div>` : `<section class="kart ez-bos"><h3>🌱 ${t('İlk sûreni ekle')}</h3><p class="soluk">${t('Kısa sûrelerden (Nâs\'tan geriye doğru) başlamak kolaydır.')}</p><button class="btn genis" data-git="ezberEkle">➕ ${t('Süre ekle')}</button></section>`}
+      <button class="btn genis ez-tekrarla" data-git="tekrarlaSec">${IKON.tekrar} ${t('Tekrarla')} <small>${t('bir sûreyi istediğin kadar tekrarla')}</small></button>
+      <h2 class="baslik">${t('Ezberlerim')} ${liste.length ? `<button class="link ez-rapor" id="ezRapor">${IKON.paylas} ${t('Ezber raporu')}</button>` : ''}</h2>
+      ${liste.length ? `<div class="ez-izgara">${liste.map(e => `<button class="ez-sure" data-ez-sure="${e.n}">${halka(e)}<b>${esc(sureNoAdi(e.n))}</b><small>${durum(e)}</small></button>`).join('')}</div>` : `<section class="kart ez-bos"><h3>${IKON.filiz} ${t('İlk sûreni ekle')}</h3><p class="soluk">${t('Kısa sûrelerden (Nâs\'tan geriye doğru) başlamak kolaydır.')}</p><button class="btn genis" data-git="ezberEkle">➕ ${t('Süre ekle')}</button></section>`}
       <button class="btn genis ikincil ez-ekle" data-git="ezberEkle">${t('➕ Sûre ekle')}</button>
       <h2 class="baslik">${t('Diğer')}</h2>
       <div class="ez-diger kart">
@@ -773,7 +773,7 @@
         <div class="tk-satir"><span>${t('Gizleyerek oku')}</span>${[['hepsi', t('Tamamı')], ['yari', t('Yarısı')]].map(([v, ad]) => `<button class="cip ${o0.gizle === v ? 'aktif' : ''}" data-tk-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="kucukyazi soluk tk-not" id="tkNot">${t('Basamak yöntemi: önce 1. ayet, sonra 1–2, sonra 1–2–3… her basamak tekrar sayısı kadar. Gizle ve oku: kelimeler gizlenir, okudukça açılır.')}</p>
       </details>
-      <div class="tk-hizli"><button class="btn kucuk" id="tkGizleOku">👁️ ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
+      <div class="tk-hizli"><button class="btn kucuk" id="tkGizleOku">${IKON.goz} ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
       <section class="kart ez-kart tk-kart ${o0.latin ? '' : 'tk-latin-kapali'} ${o0.meal ? '' : 'tk-meal-kapali'}" id="tkKart" style="--ar-olcek:${o0.boy}">${besmele}${Array.from({ length: top }, (_, i) => ayetHTML(i + 1)).join('')}</section>
       <div class="canli-bar" id="canliBar" hidden>${canliBarHTML()}</div>
     </main>
