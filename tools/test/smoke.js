@@ -761,6 +761,28 @@ const EKRANLAR = [
       const ks = {};
       for (const id of ['harekeler', 'mahrec', 'karisan']) { await sayfa.evaluate(i => window.__TECVID.git('kart', i), id); await sayfa.waitForSelector('#kkKart tbody tr, #kkKart .kk-satir'); ks[id] = await sayfa.evaluate(() => document.querySelectorAll('#kkKart tbody tr, #kkKart .kk-satir').length); }
       kontrol('yeni hap kartlar: harekeler 7, mahreçler 17, karıştırılan harfler 8 satır', ks.harekeler === 7 && ks.mahrec === 17 && ks.karisan === 8, JSON.stringify(ks));
+      // Hap kartlar: harfe dokununca okunur (harf adı), Kur'an kelimesi/ifadesi gerçek kâri sesiyle çalar, gizliyken ses çalmaz
+      await sayfa.evaluate(async () => { try { await HarfSes.sil('h:ب'); } catch (e) { } });
+      await sayfa.evaluate(() => { window.__tts.length = 0; window.__sesCalan = []; window.__AudioAsil3 = window.Audio; EKRAN.kart._kontrol = false; window.Audio = function (src) { this.src = src; this.play = () => { window.__sesCalan.push(src); return Promise.resolve(); }; this.pause = () => { }; this.onended = null; }; window.__TECVID.git('kart', 'nun'); });
+      await sayfa.waitForSelector('#kkKart .kk-ses');
+      const nSes = await sayfa.evaluate(() => document.querySelectorAll('#kkKart .kk-ses').length);
+      kontrol('hap kart: nûn kartında harfler ve örnek kelimeler dokunulur (≥ 30 öğe)', nSes >= 30, String(nSes));
+      await sayfa.evaluate(() => { [...document.querySelectorAll('#kkKart .kk-ses')].find(x => x.textContent.trim() === 'ب').click(); });
+      await sayfa.waitForFunction(() => window.__tts.length >= 1);
+      kontrol('hap kart: harfe (ب) dokununca harf adı okunuyor', await sayfa.evaluate(() => /\|Be/.test(window.__tts[0])), await sayfa.evaluate(() => window.__tts[0]));
+      await sayfa.evaluate(() => { const e = [...document.querySelectorAll('#kkKart .kk-ses')].find(x => x.textContent.trim().length > 5 && !/\s/.test(x.textContent.trim()) === false); (e || [...document.querySelectorAll('#kkKart .kk-ornek .kk-ses')][0]).click(); });
+      await sayfa.waitForFunction(() => window.__sesCalan.length >= 1 || window.__tts.length >= 2, null, { timeout: 5000 }).catch(() => { });
+      kontrol('hap kart: örnek kelime/ifadeye dokununca Kur\'an sesi çalıyor (ya da sesi yoksa uyarı)', await sayfa.evaluate(() => window.__sesCalan.length >= 1 || !!document.querySelector('.toast')), await sayfa.evaluate(() => JSON.stringify(window.__sesCalan)));
+      await sayfa.evaluate(() => { window.Audio = window.__AudioAsil3; });
+      // Regression: reading-mode thumbnail CSS must not draw stripes on the page container; single-verse "read" gives a check mark, not a toast
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [] }; window.__TECVID.git('sayfa', 28); });
+      await sayfa.waitForSelector('[data-ko-ayet="2:185"]');
+      const bg = await sayfa.evaluate(() => getComputedStyle(document.querySelector('#okuEkran')).backgroundImage);
+      kontrol('Kur\'an sayfası: arkada çizgili arka plan yok (okuma modu önizleme CSS\'i sayfaya sızmıyor)', bg === 'none', bg.slice(0, 60));
+      await sayfa.evaluate(() => { document.querySelectorAll('.toast').forEach(x => x.remove()); });
+      await sayfa.click('[data-ko-ayet="2:185"]'); await sayfa.click('[data-km="okudum"]');
+      const okRes = await sayfa.evaluate(() => ({ toast: !!document.querySelector('.toast'), isaret: document.querySelector('[data-ko-ayet="2:185"]').classList.contains('ko-read') }));
+      kontrol('tek ayet okundu: alt toast yok, ayet numarasında ✓ işareti var', !okRes.toast && okRes.isaret, JSON.stringify(okRes));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

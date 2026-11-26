@@ -1,9 +1,14 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.68';
+  const SURUM = '1.0.69';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.69', t: '2026-11-26', durum: 'Web', l: [
+      'Hap kartlar: kartlardaki her harfe, heceye ve kelimeye dokununca okunur (harf: hoca kaydı varsa o, yoksa harfin adı; kelime: Kur\'an\'dan gerçek kâri sesi)',
+      'Düzeltme: Kur\'an sayfasının arkasındaki çizgili arka plan kalktı (okuma modu önizlemesinin stili sayfaya sızıyordu); sayfa yazıları daha okunur',
+      'Tek ayeti "okudum" deyince altta çıkan bildirim yerine ayet numarasında küçük ✓ işareti',
+    ] },
     { s: '1.0.68', t: '2026-11-26', durum: 'Web', l: [
       'Üç yeni hap kart: Harekeler ve işaretler, Mahreçler (17 mahreç ve harfleri), Karıştırılan harfler; kontrol modu, yazdır ve paylaş hepsinde; ilgili derslerin sayfasında "Bu konunun kartı"',
       'Çizgi ikonlar: günlük ders kartı, Tecvid kısayolları, Kur\'an sekmesi, ezber, kartlar, notlar ve paylaş/yazdır düğmelerinde emoji yerine sade ikon',
