@@ -246,7 +246,7 @@
       const km_ = (gor === 'kelime' || gor === 'kelimemeal') && KELIME_MEAL_KAYNAK.length ? (kmVeri(n) || [])[a - 1] || [] : null;
       const h__ = l.map((w, wi) => { let h_ = `<span class="kelime${durakRenk ? ' dg-' + (dg % 2) : ''}" data-ses="${kelimeUrl(r, wi + 1)}">${durakIsik(kelimeHTML(r, w, o))}</span>`; if (km_) h_ = `<span class="kelime-k">${h_}<small class="kelime-an">${esc(km_[wi] || '')}</small></span>`; o += w.length + 1; if (durakRenk && /[\u06D6-\u06DB]/.test(w) && wi < l.length - 1) dg++; return h_; }).join(' ');
       if (durakRenk) dg++; return h__; };
-    const noDugme = (n, a) => { const im = koImBul(n, a); return `<button class="ayet-no ko-no ${im ? 'ko-im-' + im.renk : ''} ${notBul('ayet', n + ':' + a) ? 'ko-not' : ''}" data-ko-ayet="${n}:${a}" aria-label="${t('{0} {1}. ayet', esc(sureNoAdi(n)), a)}">﴿${a.toLocaleString('ar-EG')}﴾</button>`; };
+    const noDugme = (n, a) => { const im = koImBul(n, a); return `<button class="ayet-no ko-no ${im ? 'ko-im-' + im.renk : ''} ${notBul('ayet', n + ':' + a) ? 'ko-not' : ''} ${(KO().ay[bugun()] || []).includes(n + ':' + a) ? 'ko-read' : ''}" data-ko-ayet="${n}:${a}" aria-label="${t('{0} {1}. ayet', esc(sureNoAdi(n)), a)}">﴿${a.toLocaleString('ar-EG')}﴾</button>`; };
     const sureBasi = n => `<div class="sure-baslik" id="sb-${n}"><span class="ar">${esc(SURE(n).ar)}</span> · ${esc(sureAdi(SURE(n)))}</div>${n !== 1 && n !== 9 ? `<div class="ayet besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : ''}`;
     let govde = '';
     if (gor === 'resim' && MUSHAF_RESIM.v) {
@@ -479,7 +479,7 @@
         kapat(); koAyetOkundu(n, a); koSonKaydet(n, a, p);
         const gunAy = KO().ay[bugun()] || [];
         if (sayfaAyetleri(p).every(([nn, aa]) => gunAy.includes(`${nn}:${aa}`))) koSayfaOkundu(p, true);
-        koAyetHedefKontrol(); seriGuncelle(); kaydet(); toast(t('Ayet okundu ✓'));
+        koAyetHedefKontrol(); seriGuncelle(); kaydet(); b.classList.add('ko-read');
       };
       m.querySelector('[data-km="ayet"]').onclick = () => { kapat(); ayetEkrani(n, a, { ayetler: ay, takip: (n_, a_) => { if (koSure) $('#koDinle').click(); takip(n_, a_); } }); };
       m.querySelector('[data-km="dinle"]').onclick = () => cal(ayetUrl(`${n}:${a}`), null, ayetUrl(`${n}:${a}`, KARILER[0].klasor));

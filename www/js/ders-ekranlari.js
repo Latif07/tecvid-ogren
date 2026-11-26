@@ -683,14 +683,43 @@
     return `<h2>${k.ik} ${esc(t(k.ad))}</h2>${ust_}<table class="kk-tablo"><tbody>${kartSatirlari(k, kontrol)}</tbody></table>`;
   }
   const kartMetin = k => k.isik ? `${k.ad}\n` + k.medine.map(s => `${s.isaret} ${s.ad}: ${s.ac}`).join('\n') : `${k.ad}\n` + kartSatirListesi(k).map(s => { const r = R[s.k] || {}; return `• ${s.ad || r.ad || s.k}${s.harf ? ' [' + s.harf + ']' : ''}: ${s.kisa || r.ozet || ''}${s.ornek ? ' (' + s.ornek + ')' : ''}`; }).join('\n');
+  // Kartlardaki bütün Arapça harf, hece ve kelimeler dokununca okunur:
+  //  harf → hocanın kaydı (varsa), yoksa harfin adı (yapay ses, yedek) · harf+hareke → hocanın hece kaydı (varsa)
+  //  kelime / ifade → Kur'an'dan gerçek kâri sesi (ders metinleriyle aynı eşleme) · sesi olmayana dokununca bilgi verilir
+  function kartSesBagla(kok) {
+    const isk = w => w.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '');
+    const hece = w => { const m = /^(\p{L})([\u064E\u0650\u064F])$/u.exec(w); return m ? [m[1], { '\u064E': 0, '\u0650': 1, '\u064F': 2 }[m[2]]] : null; };
+    const dugumler = []; kok.querySelectorAll('.ar').forEach(el => { const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); while (w.nextNode()) if (/[\u0600-\u06FF]/.test(w.currentNode.nodeValue)) dugumler.push(w.currentNode); });
+    dugumler.forEach(n => {
+      const metin = n.nodeValue.trim(); if (!metin || n.parentNode.closest('.kk-ses')) return;
+      const parcalar = (isk(metin) !== metin && arSesler(metin, 'kart') ? [metin] : metin.split(/\s+/)).filter(Boolean), f = document.createDocumentFragment();
+      parcalar.forEach((w, i) => { if (i) f.append(' '); const sp = document.createElement('span'); sp.className = 'kk-ses'; sp.setAttribute('role', 'button'); sp.tabIndex = 0; sp.title = t('Dinle'); sp.textContent = w; f.append(sp); });
+      n.replaceWith(f);
+    });
+    kok.querySelectorAll('.kk-ses').forEach(sp => {
+      const w = sp.textContent.trim();
+      const cal_ = async ev => {
+        if (sp.closest('.kk-gizli')) return;   // kontrol modunda gizliyken yalnız açılır
+        ev.stopPropagation();
+        const h = hece(w);
+        if (isk(w) === w && w.length <= 2) { const k = await harfSesCal(w, sp, true); if (!k) toast(t('Bu harfin sesi henüz yok.')); return; }
+        if (h && window.HarfSes && HarfSes.var('hr:' + h[0] + ':' + h[1])) { HarfSes.cal('hr:' + h[0] + ':' + h[1], sp); return; }
+        const l = arSesler(w, 'kart'); if (l) { arkaArka(l, sp); return; }
+        toast(h ? t('Bu hecenin hoca sesi henüz yok.') : t('Bu kelimenin sesi henüz yok.'));
+      };
+      sp.onclick = cal_; sp.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cal_(e); } };
+    });
+  }
   EKRAN.kart = function (id) {
     const k = kartBul(id); if (!k) return EKRAN.kartlar();
     const kontrol = !!EKRAN.kart._kontrol;
     app.innerHTML = `${ust(esc(t(k.ad)))}<main>
       <div class="satir sola kk-arac"><button class="lejant-ac ${kontrol ? 'aktif' : ''}" id="kkKontrol">${IKON.goz} ${t('Kontrol modu')}</button>${kontrol ? `<button class="lejant-ac" id="kkHepsi">${t('Hepsini göster')}</button>` : ''}<button class="lejant-ac" id="kkYazdir">${IKON.yazdir} ${t('Yazdır')}</button><button class="lejant-ac" id="kkPaylas">${IKON.paylas} ${t('Paylaş')}</button></div>
+      <p class="soluk kucukyazi kk-ipucu">${IKON.ses} ${t('Harfe, heceye ya da kelimeye dokun: sesini dinle.')}</p>
       <article class="kart kk-kart" id="kkKart">${kartGovde(k, kontrol)}</article>
       ${k.unit && k.unit.length ? `<button class="ders-ince" data-git="ders|${k.unit[0]}"><span>${t('Konunun dersine git')}</span><b>›</b></button>` : ''}
       ${TEST_SURUM ? `<p class="soluk kucukyazi">${t('Hoca onayı bekliyor.')}</p>` : ''}</main>`;
+    kartSesBagla(document.getElementById('kkKart'));
     document.getElementById('kkKontrol').onclick = () => { EKRAN.kart._kontrol = !kontrol; ciz(); };
     const h = document.getElementById('kkHepsi'); if (h) h.onclick = () => app.querySelectorAll('.kk-gizli').forEach(x => x.classList.remove('kk-gizli'));
     app.querySelectorAll('.kk-gizli').forEach(x => { const ac = () => x.classList.remove('kk-gizli'); x.onclick = ac; x.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') ac(); }; });

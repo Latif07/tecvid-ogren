@@ -1514,10 +1514,10 @@ body:has(.pk-alt) .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
 .gor-kart { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border: 2px solid var(--cizgi); border-radius: 12px; background: var(--kart); font: inherit; color: inherit; }
 .gor-kart.aktif { border-color: var(--ana); background: color-mix(in srgb, var(--ana) 10%, var(--kart)); }
 .gor-ikon { display: block; width: 100%; height: 44px; border-radius: 6px; background-color: #fff; border: 1px solid var(--cizgi); }
-.gor-mushaf { background-image: repeating-linear-gradient(transparent 0 6px, #9a9a9a 6px 8px); border: 3px double #8a7a4a; }
-.gor-modern { background-image: repeating-linear-gradient(transparent 0 7px, #9a9a9a 7px 9px); }
-.gor-meal { background-image: repeating-linear-gradient(transparent 0 7px, #9a9a9a 7px 9px, transparent 9px 14px, #c98a99 14px 16px); background-size: 100% 28px; background-repeat: repeat-y; }
-.gor-sadecemeal { background-image: repeating-linear-gradient(transparent 0 7px, #c98a99 7px 9px); }
+.gor-ikon.gor-mushaf { background-image: repeating-linear-gradient(transparent 0 6px, #9a9a9a 6px 8px); border: 3px double #8a7a4a; }
+.gor-ikon.gor-modern { background-image: repeating-linear-gradient(transparent 0 7px, #9a9a9a 7px 9px); }
+.gor-ikon.gor-meal { background-image: repeating-linear-gradient(transparent 0 7px, #9a9a9a 7px 9px, transparent 9px 14px, #c98a99 14px 16px); background-size: 100% 28px; background-repeat: repeat-y; }
+.gor-ikon.gor-sadecemeal { background-image: repeating-linear-gradient(transparent 0 7px, #c98a99 7px 9px); }
 
 /* Mini oynatıcı (Kur'an sayfası) */
 .ko-mini { position: fixed; left: 8px; right: 8px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 12; background: #20223a; color: #f3f1ea; border-radius: 16px; padding: 8px 10px 6px; box-shadow: 0 6px 22px rgba(0,0,0,.35); display: grid; gap: 4px; }
@@ -1664,3 +1664,12 @@ select#adet { min-height: 44px; }
 .kk-sat-ust .kk-harf { font-size: 1.4rem; direction: rtl; }
 .kk-satir .kk-kisa { margin: 2px 0 0; font-size: .85rem; color: var(--soluk, #666); }
 @media print { .kk-satir { break-inside: avoid; } }
+
+/* Kartlarda dokununca okunan harf/kelime */
+.kk-ses { cursor: pointer; border-bottom: 1.5px dotted var(--ana); border-radius: 3px; padding: 0 2px; }
+.kk-ses.caliyor, .kk-ses:active { background: var(--iyi-bg); }
+.kk-ipucu { margin: 4px 2px 8px; }
+@media print { .kk-ses { border-bottom: 0; } .kk-ipucu { display: none; } }
+
+/* Verse read today: small check mark next to the verse number (replaces the bottom toast) */
+.ko-no.ko-read::before { content: '✓'; font-size: .6em; color: var(--ana); margin-inline-end: 2px; font-weight: 700; }
