@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.73';
+  const SURUM = '1.0.74';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.74', t: '2026-11-26', durum: 'Web', l: [
+      'Ezber (dinleme adımı): ayet numarasına dokununca o ayet seçtiğin sayıda (örn. 5 kez) tekrarlanır, sonra sıradaki ayete geçip aynı şekilde devam eder; hangi ayetin kaçıncı tekrarda olduğu altta görünür',
+      'Ezber dinlemesinde "🗣️ Sen de tekrar et": her ayetten sonra ayet süresi kadar sessizlik olur, sen de yüksek sesle tekrar edersin (kapatılabilir)',
+      'Sûreyi yeniden açınca en son çalıştığın ayetten devam eder',
+      'Yeni başlayanlar için ezber adımları kısaldı: "yarı gizli" adımı atlanır (ilk 10 ayetten sonra tüm adımlar gelir)',
+    ] },
     { s: '1.0.73', t: '2026-11-26', durum: 'Web', l: [
       'Ezber: ayet numarasına (﴿٢﴾) dokununca o ayetin tamamı okunur; üstteki ‹ › düğmeleriyle önceki/sonraki ayete tek dokunuşla geçilir',
       'Ezber ve Tekrarla: "🔤 Okunuş" (Latin) ve "📖 Meal" tek dokunuşluk düğmeler olarak ekranın üstünde; ayarları açmaya gerek yok',
