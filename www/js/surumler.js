@@ -1,9 +1,15 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.71';
+  const SURUM = '1.0.72';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.72', t: '2026-11-26', durum: 'Web', l: [
+      'Sen oku: Durdur\'a basınca sayfa kendiliğinden değişmez; hatalarına bakabilir, "Sonraki sayfa ›" ile devam edebilirsin',
+      'Hatalarım: ayetler aç/kapa listesi (Hepsini aç/kapat); "Listeyi temizle" ve "Kapat" düğmeleri hep görünür; pencere açıkken arkadaki sayfa kaymaz',
+      'Aa görünüm menüsü sadeleşti: okuma modu ve sayfa rengi küçük, aynı boyda seçenekler; az kullanılanlar "Daha fazla ayar" altında',
+      'Seçtiğin kâri artık Kur\'an ile ilgili her yerde (meşk, çocuk sûreleri dahil) okur',
+    ] },
     { s: '1.0.71', t: '2026-11-26', durum: 'Web', l: [
       'Çocuk modu: "Büyükler" bölümü ebeveyn sorusuyla (küçük bir çarpma) açılır; ebeveyn, çocuğun günlük süresini seçebilir (15 / 30 / 45 / 60 dk). Süre dolunca "Bugünlük yeterli" ekranı çıkar; ebeveyn sorusuyla 10 dk eklenebilir',
       'Özel günler: Kandil, Ramazan, Bayram ve Aşure gibi günlerde (3 gün öncesinden) ana sayfada küçük kart. 2027 tarihleri Diyanet takvimine göre; her yıl yeni tarih eklenir',

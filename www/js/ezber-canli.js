@@ -265,8 +265,8 @@
     const [rn, ra] = a === 0 && CANLI && CANLI.onek ? [CANLI.onek.n, CANLI.onek.a] : [CANLI ? CANLI.n : 0, a];
     const kutu = document.getElementById('rapor-' + a); if (kutu) { kutu.innerHTML = raporHTML(rn, ra, s); kutu.hidden = !(s.kelimeler.some(w => w.notes.length)); }
   }
-  async function canliDurdur(sessiz) {
-    const C_ = CANLI; if (!C_ || C_.bitti) return; C_.bitti = true; C_.durduruldu = !!sessiz; clearInterval(C_.zaman); clearInterval(C_.zaman2);
+  async function canliDurdur(sessiz, elle) {   // elle: the user pressed Stop (no automatic page change afterwards)
+    const C_ = CANLI; if (!C_ || C_.bitti) return; C_.bitti = true; C_.durduruldu = !!sessiz; C_.elleDurdu = !!elle; clearInterval(C_.zaman); clearInterval(C_.zaman2);
     // Durdur'a basılır basılmaz: mikrofon kapanır, düğme "değerlendiriliyor" olur ve bir kare çizilir; ağır model işi ondan sonra başlar
     try { C_.isl.disconnect(); C_.kaynak.disconnect(); } catch (e) { }
     C_.akis.getTracks().forEach(x => x.stop());
@@ -301,7 +301,7 @@
     bar.querySelector('#canliKapat').onclick = () => { canliBarSifirla(); bar.hidden = true; };
   }
   function canliBarHTML(ok) { return `${ok ? '<div class="canli-ilerleme" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i><b>▶</b></div>' : ''}<div class="canli-ic${ok ? ' ko-ic' : ''}">${ok ? `<button class="btn ikincil ko-ok" id="koOkGeri" aria-label="${t('Önceki ayet')}">‹</button>` : ''}<span class="canli-nokta"></span><span class="canli-durum"></span><button class="btn kirmizi-btn" id="canliDur">${t('⏹ Durdur')}</button>${ok ? `<button class="btn ikincil ko-ok" id="koOkIleri" aria-label="${t('Sonraki ayet')}">›</button>` : ''}</div>${ok ? `<div class="canli-eylem" hidden><button class="btn kucuk" id="koGec">${t('Bu kelimeyi geç ›')}</button><button class="btn kucuk ikincil" id="koTaniHizli" aria-label="${t('Tanı kaydını kopyala')}">🛠</button></div>` : ''}`; }
-  function canliBarSifirla(ok) { const bar = document.getElementById('canliBar'); if (!bar) return; bar.innerHTML = canliBarHTML(!!ok); bar.querySelector('#canliDur').onclick = () => canliDurdur(); if (ok) { bar.querySelector('#koOkGeri').onclick = ok.geri; bar.querySelector('#koOkIleri').onclick = ok.ileri; bar.querySelector('#koGec').onclick = canliKelimeGec; bar.querySelector('#koTaniHizli').onclick = () => { if (CANLI) taniKopyala(CANLI); }; } document.querySelectorAll('[id^="rapor-"]').forEach(k => { k.hidden = true; k.innerHTML = ''; }); }
+  function canliBarSifirla(ok) { const bar = document.getElementById('canliBar'); if (!bar) return; bar.innerHTML = canliBarHTML(!!ok); bar.querySelector('#canliDur').onclick = () => canliDurdur(false, true); if (ok) { bar.querySelector('#koOkGeri').onclick = ok.geri; bar.querySelector('#koOkIleri').onclick = ok.ileri; bar.querySelector('#koGec').onclick = canliKelimeGec; bar.querySelector('#koTaniHizli').onclick = () => { if (CANLI) taniKopyala(CANLI); }; } document.querySelectorAll('[id^="rapor-"]').forEach(k => { k.hidden = true; k.innerHTML = ''; }); }
   // ------------------------------------------------------------ Ezber çalış: tek ekran, adım adım (karar: claude/toplanti-2026-11-16-ezber-ux.md)
   // Adımlar: 0 Dinle · 1 Bakarak oku · 2 Yarısı gizli · 3 Ezberden · 4 Bağla (önceki ayetlerle birlikte; sûrenin ilk dersinde yok).
   // Kısa ayetler günlük ders kadar birlikte çalışılır; uzun ayet (EZ_UZUN kelimeden çok) tek başına.
