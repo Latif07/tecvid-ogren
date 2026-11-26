@@ -634,7 +634,7 @@
   }
   function gunlukKarti() {
     const g = gunlukPlan(), b = g.adimlar.filter(a => a.bitti).length, n = g.adimlar.length, tamam = n && b === n, si = g.adimlar.findIndex(a => !a.bitti);
-    return `<section class="gunluk-kart ${tamam ? 'tamam' : ''}" data-git="gunluk" role="button"><div class="gunluk-ust"><span class="gunluk-ikon">${tamam ? '✅' : '📅'}</span>
+    return `<section class="gunluk-kart ${tamam ? 'tamam' : ''}" data-git="gunluk" role="button"><div class="gunluk-ust"><span class="gunluk-ikon">${tamam ? IKON.onay : IKON.takvim}</span>
       <div><b>${t('Bugünkü dersim')}</b><small>${tamam ? t('Bugünkü dersin tamam. Bârekallah!') : t('≈{0} dk · {1}/{2} adım', g.dk, b, n)}</small></div><span class="gunluk-ok">›</span></div>
       <div class="pano-cubuk"><div style="width:${n ? Math.round(b / n * 100) : 0}%"></div></div>
       ${!tamam && si >= 0 ? `<div class="gunluk-siradaki"><span>${gunlukAdimAd(g.adimlar[si])}</span><button class="btn gunluk-basla" data-gunluk-basla="${si}">${b ? t('Devam et') : t('Başla')}</button></div>` : ''}</section>`;
@@ -653,7 +653,7 @@
     app.innerHTML = `${ust(t('Hap bilgi kartları'))}<main>
       <p class="soluk kucukyazi">${t('Her konunun tek bakışta özeti. Önce ders sayfalarından öğren; kartlar tekrar içindir.')}</p>
       <div class="kart-liste">${L.map(k => `<button class="tecvid-kutu kart-kutu" data-git="kart|${k.id}"><span>${k.ik}</span>${esc(t(k.ad))}</button>`).join('')}</div>
-      <button class="btn genis ikincil" data-git="kartYazdir">🖨️ ${t('Hepsini yazdır / PDF')}</button>
+      <button class="btn genis ikincil" data-git="kartYazdir">${IKON.yazdir} ${t('Hepsini yazdır / PDF')}</button>
       ${TEST_SURUM ? `<p class="soluk kucukyazi">${t('Kartların içeriği ders metinlerinden alınmıştır; hoca onayı bekliyor.')}</p>` : ''}</main>`;
   };
   function kartSatirlari(k, kontrol) {
@@ -674,7 +674,7 @@
     const k = kartBul(id); if (!k) return EKRAN.kartlar();
     const kontrol = !!EKRAN.kart._kontrol;
     app.innerHTML = `${ust(esc(t(k.ad)))}<main>
-      <div class="satir sola kk-arac"><button class="lejant-ac ${kontrol ? 'aktif' : ''}" id="kkKontrol">👁️ ${t('Kontrol modu')}</button>${kontrol ? `<button class="lejant-ac" id="kkHepsi">${t('Hepsini göster')}</button>` : ''}<button class="lejant-ac" id="kkYazdir">🖨️ ${t('Yazdır')}</button><button class="lejant-ac" id="kkPaylas">📤 ${t('Paylaş')}</button></div>
+      <div class="satir sola kk-arac"><button class="lejant-ac ${kontrol ? 'aktif' : ''}" id="kkKontrol">${IKON.goz} ${t('Kontrol modu')}</button>${kontrol ? `<button class="lejant-ac" id="kkHepsi">${t('Hepsini göster')}</button>` : ''}<button class="lejant-ac" id="kkYazdir">${IKON.yazdir} ${t('Yazdır')}</button><button class="lejant-ac" id="kkPaylas">${IKON.paylas} ${t('Paylaş')}</button></div>
       <article class="kart kk-kart" id="kkKart">${kartGovde(k, kontrol)}</article>
       ${k.unit && k.unit.length ? `<button class="ders-ince" data-git="ders|${k.unit[0]}"><span>${t('Konunun dersine git')}</span><b>›</b></button>` : ''}
       ${TEST_SURUM ? `<p class="soluk kucukyazi">${t('Hoca onayı bekliyor.')}</p>` : ''}</main>`;
@@ -687,7 +687,7 @@
   EKRAN.kartYazdir = function () {
     const L = window.KARTLAR || [];
     app.innerHTML = `${ust(t('Kartlar · Yazdır'))}<main class="kk-yazdir">
-      <div class="satir sola kk-arac"><button class="btn" id="kkYaz">🖨️ ${t('Yazdır / PDF olarak kaydet')}</button></div>
+      <div class="satir sola kk-arac"><button class="btn" id="kkYaz">${IKON.yazdir} ${t('Yazdır / PDF olarak kaydet')}</button></div>
       <div class="kk-izgara">${L.map(k => `<article class="kart kk-kart">${kartGovde(k, false)}</article>`).join('')}</div></main>`;
     document.getElementById('kkYaz').onclick = () => window.print();
   };
@@ -719,7 +719,7 @@
       <div class="cipler">${[10, 20, 30].map(d => `<button class="${g.dk === d ? 'aktif' : ''}" data-hedef="${d}">${t('{0} dk', d)}</button>`).join('')}</div>
       <div class="gunluk-adimlar">${g.adimlar.map((a, i) => `<button class="gunluk-adim ${a.bitti ? 'bitti' : i === siradaki ? 'simdi' : ''}" data-adim="${i}" ${a.bitti ? 'disabled' : ''}>
         <span class="gunluk-no">${a.bitti ? '✓' : i + 1}</span><span>${gunlukAdimAd(a)}</span></button>`).join('')}</div>
-      ${tamam ? mujdeHTML(new Date().getDate(), t('Bugünkü dersini tamamladın. Bârekallah!')) + (window.KARTLAR ? `<button class="ders-ince" data-git="kartlar"><span>🗂️ ${t('Kartlara bak')}</span><b>›</b></button>` : '') : `<button class="btn genis c-btn" data-adim="${siradaki}">${b ? t('▶ Devam et') : t('▶ Başla')}</button>`}
+      ${tamam ? mujdeHTML(new Date().getDate(), t('Bugünkü dersini tamamladın. Bârekallah!')) + (window.KARTLAR ? `<button class="ders-ince" data-git="kartlar"><span>${IKON.kart} ${t('Kartlara bak')}</span><b>›</b></button>` : '') : `<button class="btn genis c-btn" data-adim="${siradaki}">${b ? t('▶ Devam et') : t('▶ Başla')}</button>`}
       ${!n ? `<p class="soluk">${t('Bugün için plan yok. Testler bölümünden istediğin testi çözebilirsin.')}</p>` : ''}
     </main>`;
     app.querySelectorAll('[data-adim]').forEach(x => x.onclick = () => gunlukAdimBaslat(+x.dataset.adim));

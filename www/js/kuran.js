@@ -57,8 +57,8 @@
       <div class="ko-ust-dugme"><button class="btn" data-git="ayetKart|${bn[0]}|${bn[1]}">📖 ${t('Ayet ayet oku')}</button><button class="btn ikincil" data-git="kuranIstatistik">📊 ${t('İstatistik')}</button></div>
       <div class="ko-ust-alt">
         ${h ? `<div class="ko-hedef" title="${t('Bugünkü hedef')}"><span class="ko-halka" style="--p:${yuzde}"><b>${bu}/${h}</b></span><span><b>${bu >= h ? t('Bugünkü hedef tamam') : t('Bugün {0} sayfa kaldı', h - bu)}</b><small>${t('Günlük hedef: {0} sayfa', h)}</small></span></div>` : `<div class="ko-hedef"><span><b>${t('Bugün {0} sayfa okudun', bu)}</b><small>${t('Günlük hedef yok')}</small></span></div>`}
-        <button class="ko-imler" data-git="ayetAra">🔎 ${t('Ayet ara')}</button>
-        <button class="ko-imler" data-git="notlar">🔖 ${t('Yer imleri ve notlar')}${k.imler.length + notlar().length ? ` <span class="rozet">${k.imler.length + notlar().length}</span>` : ''}</button>
+        <button class="ko-imler" data-git="ayetAra">${IKON.ara} ${t('Ayet ara')}</button>
+        <button class="ko-imler" data-git="notlar">${IKON.yerimi} ${t('Yer imleri ve notlar')}${k.imler.length + notlar().length ? ` <span class="rozet">${k.imler.length + notlar().length}</span>` : ''}</button>
       </div></section>`;
   }
 
@@ -108,7 +108,7 @@
       <p class="kucukyazi soluk ortala">${t('Sayfa {0}', p)} · ${t('Cüz {0}', cuzBul(n, a))}${okundu ? ` · ✓ ${t('bugün okundu')}` : ''}</p>
       <section class="kart ak-kart">${besmele}<div class="ayet ak-ar" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>
         ${OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${meal.map(([z, m]) => `<p class="ko-meal">${esc(m)}${meal.length > 1 ? ` <small class="soluk">· ${esc(z.ad)}</small>` : ''}</p>`).join('')}</section>
-      <div class="ak-dugme"><button class="btn ikincil" id="akOku">▶ ${t('Oku')}</button><button class="btn ikincil ${S.ayar.akTekrar ? 'aktif' : ''}" id="akTekrar" aria-pressed="${!!S.ayar.akTekrar}">🔁 ${t('Tekrar')}</button><button class="btn ikincil" id="akSayfa">📄 ${t('Sayfada göster')}</button></div></main>
+      <div class="ak-dugme"><button class="btn ikincil" id="akOku">▶ ${t('Oku')}</button><button class="btn ikincil ${S.ayar.akTekrar ? 'aktif' : ''}" id="akTekrar" aria-pressed="${!!S.ayar.akTekrar}">${IKON.tekrar} ${t('Tekrar')}</button><button class="btn ikincil" id="akSayfa">📄 ${t('Sayfada göster')}</button></div></main>
       <div class="ak-alt"><button class="btn ikincil" id="akGeri" aria-label="${t('Önceki ayet')}">‹</button><button class="btn ak-okudum" id="akOkudum">✓ ${t('Okudum')} ›</button><button class="btn ikincil" id="akIleri" aria-label="${t('Sonraki ayet')}">›</button></div>`;
     const gid = (nn, aa) => { sesDurdur(); ekranYigini[ekranYigini.length - 1] = ['ayetKart', [nn, aa]]; ciz(); window.scrollTo(0, 0); };
     const sonraki = () => { if (a < top) return gid(n, a + 1); if (n < 114) return gid(n + 1, 1); toast(t('Hatmi bitirdin. Allah kabul etsin! 🤲')); };
@@ -150,7 +150,7 @@
     const var_ = notBul(k, y), n = var_ ? var_ : { id: 'n' + simdi().toString(36) + Math.random().toString(36).slice(2, 6), k, y, m: '', ses: 0, t: simdi(), g: simdi(), yeni: true };
     let kayit = null, yeniSes = null, sesDeg = false, sesSil = false, zamanlayici = null;
     const d = document.createElement('div'); d.className = 'not-pencere'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', t('Not'));
-    d.innerHTML = `<div class="not-kutu kart"><div class="not-baslik"><b>📝 ${esc(notYerAd(n))}</b><button class="link" id="notKapat" aria-label="${t('Kapat')}">✕</button></div>
+    d.innerHTML = `<div class="not-kutu kart"><div class="not-baslik"><b>${IKON.not} ${esc(notYerAd(n))}</b><button class="link" id="notKapat" aria-label="${t('Kapat')}">✕</button></div>
       <textarea id="notMetin" rows="5" maxlength="2000" placeholder="${t('Notunu yaz…')}">${esc(n.m)}</textarea>
       <div class="satir sola not-ses"><button class="btn ikincil kucuk" id="notKayit">🎙️ ${t('Ses kaydet')}</button><button class="btn ikincil kucuk" id="notCal" hidden>▶ ${t('Dinle')}</button><button class="link" id="notSesSil" hidden>${t('Sesi sil')}</button><span class="soluk kucukyazi" id="notSure"></span></div>
       <p class="soluk kucukyazi">${t('Ses en çok {0} sn; yalnız bu cihazda saklanır.', NOT_SES_SN)}</p>
@@ -205,8 +205,8 @@
       <div class="cipler">${cip('hepsi', t('Hepsi'))}${cip('notlar', t('Notlar'))}${cip('imler', t('Yer imleri'))}${cip('ders', t('Ders notları'))}</div>
       <input id="notAra" type="search" class="not-ara" placeholder="${t('Notlarda ara…')}" value="${esc(EKRAN.notlar._ara || '')}">
       ${ogeler.length ? `<div class="bolumler">${ogeler.map(o => o.tur === 'im'
-        ? `<div class="ko-im ko-im-${o.x.renk}"><button class="ko-im-git" data-not-im="${o.x.n}:${o.x.a}"><span class="ko-im-nokta" aria-hidden="true"></span><span class="bad"><small>🔖 ${t('Yer imi')} · ${tarihStr(o.x.t).slice(0, 10)}</small>${esc(o.ad)}</span></button></div>`
-        : `<div class="not-oge"><button class="not-git" data-not-git="${o.x.id}"><span class="bad"><small>📝 ${o.kur ? t('Kur\'an') : t('Ders')} · ${tarihStr(o.x.g || o.x.t).slice(0, 10)}${o.x.ses ? ' · 🎙️ ' + o.x.ses + ' ' + t('sn') : ''}</small><b>${esc(o.ad)}</b>${o.x.m ? `<span class="not-metin">${esc(o.x.m.length > 140 ? o.x.m.slice(0, 140) + '…' : o.x.m)}</span>` : ''}</span></button>
+        ? `<div class="ko-im ko-im-${o.x.renk}"><button class="ko-im-git" data-not-im="${o.x.n}:${o.x.a}"><span class="ko-im-nokta" aria-hidden="true"></span><span class="bad"><small>${IKON.yerimi} ${t('Yer imi')} · ${tarihStr(o.x.t).slice(0, 10)}</small>${esc(o.ad)}</span></button></div>`
+        : `<div class="not-oge"><button class="not-git" data-not-git="${o.x.id}"><span class="bad"><small>${IKON.not} ${o.kur ? t('Kur\'an') : t('Ders')} · ${tarihStr(o.x.g || o.x.t).slice(0, 10)}${o.x.ses ? ' · 🎙️ ' + o.x.ses + ' ' + t('sn') : ''}</small><b>${esc(o.ad)}</b>${o.x.m ? `<span class="not-metin">${esc(o.x.m.length > 140 ? o.x.m.slice(0, 140) + '…' : o.x.m)}</span>` : ''}</span></button>
           <div class="satir sola"><button class="link" data-not-duzenle="${o.x.id}">${t('Düzenle')}</button>${o.x.ses ? `<button class="link" data-not-cal="${o.x.id}">▶ ${t('Dinle')}</button>` : ''}</div></div>`).join('')}</div>`
         : `<p class="soluk">${t('Henüz not ya da yer imi yok. Okurken ayet numarasına dokunup 📝 Not\'u seç; derslerde sayfanın üstündeki 📝 Not düğmesini kullan.')}</p>`}</main>`;
     app.querySelectorAll('[data-not-suz]').forEach(b => b.onclick = () => { EKRAN.notlar._suz = b.dataset.notSuz; ciz(); });
@@ -467,7 +467,7 @@
       const [n, a] = b.dataset.koAyet.split(':').map(Number), im = koImBul(n, a);
       const m = document.createElement('div'); m.className = 'ko-menu kart'; m.setAttribute('role', 'dialog');
       m.innerHTML = `<p class="ko-menu-baslik">${esc(sureNoAdi(n))} ${a}</p>
-        <div class="ko-menu-dugmeler"><button data-km="okudum">✓ ${t('Bu ayeti okudum')}</button><button data-km="ayet">📄 ${t('Ayet ekranı')}</button><button data-km="dinle">▶ ${t('Dinle')}</button><button data-km="meal">📖 ${t('Meal')}</button><button data-km="tecvid">🎨 ${t('Tecvidini çalış')}</button><button data-km="not">📝 ${t('Not')}</button><button data-km="takip">🎙️ ${t('Buradan sen oku')}</button></div>
+        <div class="ko-menu-dugmeler"><button data-km="okudum">✓ ${t('Bu ayeti okudum')}</button><button data-km="ayet">📄 ${t('Ayet ekranı')}</button><button data-km="dinle">▶ ${t('Dinle')}</button><button data-km="meal">📖 ${t('Meal')}</button><button data-km="tecvid">🎨 ${t('Tecvidini çalış')}</button><button data-km="not">${IKON.not} ${t('Not')}</button><button data-km="takip">🎙️ ${t('Buradan sen oku')}</button></div>
         <p class="kucukyazi soluk" style="margin:8px 0 4px">${t('Yer imi')}</p>
         <div class="ko-menu-renk">${KO_RENK.map(rk => `<button class="ko-renk ko-im-${rk} ${im && im.renk === rk ? 'aktif' : ''}" data-km-renk="${rk}" aria-label="${t('Yer imi')} ${rk}"></button>`).join('')}${im ? `<button data-km="imsil">${t('Kaldır')}</button>` : ''}</div>
         <div class="ko-menu-meal" hidden></div>`;
@@ -518,7 +518,7 @@
         <div data-grup="ayhedef">${sec(t('Günlük ayet hedefi'), k.ayetHedef, [[5, '5'], [10, '10'], [20, '20'], [50, '50'], [100, '100'], [0, t('Yok')]])}</div>
         <div data-grup="hedef">${sec(t('Günlük hedef'), k.hedef, [[1, '1'], [2, '2'], [5, '5'], [10, '10'], [20, '20'], [0, t('Yok')]])}</div>
         <p class="kucukyazi soluk ko-menu-et">${t('Sayfaya git')}</p><div class="satir sola"><input id="koSayfaGit" type="number" min="1" max="604" value="${p}" inputmode="numeric" aria-label="${t('Sayfaya git')}"><button class="btn ikincil" id="koSayfaTamam">${t('Git')}</button></div>
-        <div class="satir sola" style="margin-top:10px"><button class="btn ikincil" id="koTekrarSayfa">🔁 ${t('Bu sayfayı tekrarla')}</button><button class="btn ikincil" id="koTekrarSure">🔁 ${t('Bu sûreyi tekrarla')}</button></div>
+        <div class="satir sola" style="margin-top:10px"><button class="btn ikincil" id="koTekrarSayfa">${IKON.tekrar} ${t('Bu sayfayı tekrarla')}</button><button class="btn ikincil" id="koTekrarSure">${IKON.tekrar} ${t('Bu sûreyi tekrarla')}</button></div>
         <div class="satir sola" style="margin-top:10px"><button class="btn ikincil" data-git="sure|${n0}">${t('Bu sûrede tecvid çalış')}</button><button class="btn ikincil" data-git="hatim">${t('Hatim takvimi')}</button></div>`;
       document.body.appendChild(m);
       const kapat = () => { m.remove(); document.removeEventListener('click', disari, true); };
@@ -575,7 +575,7 @@
           ${ezberModu ? `<button class="sesbtn ikincil" data-dtg="${i + 1}">${t('🔁 Dinle, tekrar et, gizle')}</button>${ezberli ? `<span class="rozet ok">✓ ${t('ezberde')}</span>` : `<button class="sesbtn" data-ezberledim="${i + 1}">${t('✓ Ezberledim')}</button>`}` : ''}
           <button class="sesbtn ikincil" data-oku="${i + 1}">🎤 ${t('Oku, kontrol et')}</button>
           ${S.ayar.mesk ? `<button class="sesbtn ikincil" data-git="mesk|${n}|${i + 1}">🎓 ${t('Meşk')}</button>` : ''}
-          ${bz ? `<button class="lejant-ac" data-benzer="${i + 1}">🔁 ${t('{0} benzer ayet', bz.length)}</button>` : ''}</div>
+          ${bz ? `<button class="lejant-ac" data-benzer="${i + 1}">${IKON.tekrar} ${t('{0} benzer ayet', bz.length)}</button>` : ''}</div>
         <div class="rapor-kutu" id="rapor-${i + 1}" hidden></div>
         <div class="benzer-kutu" id="benzer-${i + 1}" hidden></div>
         ${ezberModu ? '' : kayitHTML('sure' + r, ayetUrl(r))}<span hidden data-yedek="${ayetUrl(r, KARILER[0].klasor)}" data-ses="${ayetUrl(r)}"></span>
@@ -590,7 +590,7 @@
         <p class="kucukyazi" style="margin:8px 0 4px"><b>${t('Gizle:')}</b></p>
         <div class="filtre">${[[0, t('Hiçbiri')], [1, t('Yarısı')], [2, t('İlk kelime kalsın')], [3, t('Hepsi')]].map(([v, ad]) => `<button class="${seviye === v ? 'aktif' : ''}" data-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="soluk kucukyazi">${t('Gizli kelimeye dokununca görünür ve okunur. Önce dinle, sonra tekrar et, sonra gizleyip ezberden oku.')}</p>
-        ${seviye ? `<button class="lejant-ac" id="hepsiniAc">👁️ ${t('Gizlileri göster')}</button>` : ''}
+        ${seviye ? `<button class="lejant-ac" id="hepsiniAc">${IKON.goz} ${t('Gizlileri göster')}</button>` : ''}
         <div class="canli-kutu"><button class="btn genis" id="canliBasla">🎙️ ${t('Ezberden oku: okudukça açılsın')}</button>
           <p class="soluk kucukyazi">${t('Bütün kelimeler gizlenir; sen okudukça açılır. Okurken uyarı yok; bir ayet bitmeden değerlendirilmez.')}</p>
           <p class="kucukyazi" style="margin:4px 0"><b>${t('Hatalar:')}</b> ${[['ayet', t('Her ayet bitince')], ['son', t('En sonda')]].map(([v, ad]) => `<button class="cip ${(S.ayar.canliSonuc || 'ayet') === v ? 'aktif' : ''}" data-canli-sonuc="${v}">${ad}</button>`).join(' ')}</p></div>
@@ -693,7 +693,7 @@
     const k = kari();
     return `<section class="kart kari-secili"><p class="soluk kucukyazi" style="margin:0">${t('Seçili kâri')}</p>
         <div class="kari-secili-ic"><div><b>${esc(k.ad)}</b><small class="soluk">${esc(k.tur)}${k.makam ? ' · ' + esc(k.makam) : ''}</small></div><button class="sesbtn" data-ses="${ayetUrl('1:2', k.klasor)}">▶ ${t('Örnek')}</button></div></section>
-      ${cocukMu() ? '' : `<div class="sekmeler kari-sekme" role="tablist"><button class="${sekme === 'liste' ? 'aktif' : ''}" data-kari-sekme="liste" role="tab" aria-selected="${sekme === 'liste'}">${t('Listeden seç')}</button><button class="${sekme === 'bul' ? 'aktif' : ''}" data-kari-sekme="bul" role="tab" aria-selected="${sekme === 'bul'}">🔎 ${t('Sesime göre bul')}</button></div>`}`;
+      ${cocukMu() ? '' : `<div class="sekmeler kari-sekme" role="tablist"><button class="${sekme === 'liste' ? 'aktif' : ''}" data-kari-sekme="liste" role="tab" aria-selected="${sekme === 'liste'}">${t('Listeden seç')}</button><button class="${sekme === 'bul' ? 'aktif' : ''}" data-kari-sekme="bul" role="tab" aria-selected="${sekme === 'bul'}">${IKON.ara} ${t('Sesime göre bul')}</button></div>`}`;
   };
   const kariSekmeBagla = () => { kuranSekmeBagla(); app.querySelectorAll('[data-kari-sekme]').forEach(b => b.onclick = () => { ekranYigini[ekranYigini.length - 1] = [KARI_SEKMEDE ? 'kuranDinle' : 'kariSec', [b.dataset.kariSekme]]; ciz(); }); };
   let KARI_SEKMEDE = false;   // Kur'an › Dinle sekmesi olarak mı açıldı

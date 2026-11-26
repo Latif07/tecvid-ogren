@@ -1647,3 +1647,9 @@ select#adet { min-height: 44px; }
 .ana-ik-satir svg { width: 22px; height: 22px; }
 .ana-ozel h2 { display: flex; align-items: center; }
 .ana-ekran .ikon svg, .ana-satirlar .ikon svg { width: 26px; height: 26px; color: var(--ana); }
+
+/* Satır içi çizgi ikonlar (emoji yerine) */
+.ders-ince svg.ik, .ko-imler svg.ik, .btn svg.ik, .lejant-ac svg.ik, .ez-tekrarla svg.ik, .ez-rapor svg.ik, .not-baslik svg.ik, .cevap-sende svg.ik { width: 20px; height: 20px; vertical-align: -4px; margin-inline-end: 6px; }
+.gunluk-ikon svg.ik { width: 28px; height: 28px; }
+.gunluk-kart.tamam .gunluk-ikon { color: #fff; }
+.not-git small svg.ik, .ko-menu-dugmeler svg.ik { width: 14px; height: 14px; vertical-align: -2px; margin-inline-end: 4px; }

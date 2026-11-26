@@ -31,7 +31,7 @@ EKRAN.ebAlistirma = function (mod) {
   if (!mod) {
     EBA.mod = null;
     app.innerHTML = `${ust(t('Elif-Ba alıştırmaları'))}<main>
-      <section class="kart eb-ozet"><h2>🌱 ${t('Harfleri pekiştir')}</h2><p class="soluk">${t('Sessiz alıştırmalar. Yanlış yaptığın harfler daha sık gelir.')}</p>
+      <section class="kart eb-ozet"><h2>${IKON.filiz} ${t('Harfleri pekiştir')}</h2><p class="soluk">${t('Sessiz alıştırmalar. Yanlış yaptığın harfler daha sık gelir.')}</p>
         <div class="bar"><div class="iyi" style="width:${Math.round(ogren / toplam * 100)}%"></div></div><small class="soluk">${t('{0}/{1} harf öğrenildi', ogren, toplam)}</small></section>
       <div class="bolumler">
         <button class="bolum" data-git="ebAlistirma|tani"><span class="ikon ar">ب</span><span class="bad"><small>${t('Harfi gör, adını seç')}</small>${t('Harfi tanı')}</span><span class="rozet">›</span></button>
