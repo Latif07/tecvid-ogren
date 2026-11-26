@@ -1673,3 +1673,5 @@ select#adet { min-height: 44px; }
 
 /* Verse read today: small check mark next to the verse number (replaces the bottom toast) */
 .ko-no.ko-read::before { content: '✓'; font-size: .6em; color: var(--ana); margin-inline-end: 2px; font-weight: 700; }
+/* Reading page: bottom hint lines were too faint and small */
+.oku-ekran > .soluk.kucukyazi.ortala { font-size: .85rem; color: var(--metin); opacity: .8; padding: 6px 4px 0; }
