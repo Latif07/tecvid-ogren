@@ -373,7 +373,7 @@
     const ayetHTML = a => {
       const r = `${n}:${a}`; let o = 0;
       const kel = x.ayet[a - 1].split(' ').map((w, wi) => { const ic = kelimeHTML(r, w, o); o += w.length + 1; return gizle(a, wi) ? `<span class="kelime gizli" data-ac="${kelimeUrl(r, wi + 1)}">${ic}</span>` : `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${ic}</span>`; }).join(' ');
-      return `<div class="ez-ayet" id="ayet-${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${Z.adim === 0 && okunusAcik() && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${S.ayar.ezMeal ? mealSecili().map(z => [z, (mealVeri(z, n) || [])[a - 1]]).filter(z => z[1]).map(([z, m]) => `<p class="ko-meal ez-meal">${esc(m)}</p>`).join('') : ''}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
+      return `<div class="ez-ayet" id="ayet-${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no ayet-no-ses" role="button" tabindex="0" data-ses="${ayetUrl(r)}" data-yedek="${ayetUrl(r, KARILER[0].klasor)}" aria-label="${t('Ayeti dinle')}">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${Z.adim <= 1 && okunusAcik() && OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${S.ayar.ezMeal ? mealSecili().map(z => [z, (mealVeri(z, n) || [])[a - 1]]).filter(z => z[1]).map(([z, m]) => `<p class="ko-meal ez-meal">${esc(m)}</p>`).join('') : ''}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
     };
     const ayetler = []; for (let a = okBas; a <= okBit; a++) ayetler.push(ayetHTML(a));
     let besmele = okBas === 1 && n !== 1 && n !== 9 ? `<div class="besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : '';
@@ -387,7 +387,7 @@
     const tekrar = S.ayar.ezTekrar || 3, gizliAdim = Z.adim >= 2;
     app.innerHTML = `${ust(baslik)}${cubuk}<main class="ez-ekran">
       <p class="ez-yonerge">${yonerge}</p>
-      <div class="satir sola ez-arac"><button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button>${Z.mod === 'yeni' ? `<button class="cip" id="ezNereden">📍 ${t('Ayet seç')}</button>` : ''}</div>
+      <div class="satir sola ez-arac">${Z.mod === 'yeni' ? `<button class="cip" id="ezOnceki" aria-label="${t('Önceki ayet')}" ${Z.bas <= 1 ? 'disabled' : ''}>‹</button><button class="cip" id="ezNereden" aria-label="${t('Ayet seç')}">📍 ${Z.bas === Z.bit ? Z.bas : Z.bas + '–' + Z.bit}/${top}</button><button class="cip" id="ezSonraki" aria-label="${t('Sonraki ayet')}" ${Z.bit >= top ? 'disabled' : ''}>›</button>` : ''}${OKU[`${n}:1`] ? `<button class="cip ${okunusAcik() ? 'aktif' : ''}" id="ezOkunus">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button></div>
       ${Z.mod === 'yeni' ? `<div class="kart ez-nereden" id="ezNerePanel" hidden><p class="kucukyazi soluk">${t('Hangi ayetten çalışmak istiyorsun? (1–{0})', top)}</p>
         <div class="satir sola"><input id="ezNereNo" type="number" min="1" max="${top}" value="${Z.bas}" inputmode="numeric" aria-label="${t('Ayet numarası')}"><button class="btn kucuk" id="ezNereGit">${t('Buradan başla')}</button></div>
         <div class="satir sola"><button class="cip" data-ez-bas="1">${t('Baştan')}</button>${e.a ? `<button class="cip" data-ez-bas="${Math.min(top, e.a + 1)}">${t('Kaldığım yer ({0}. ayet)', Math.min(top, e.a + 1))}</button>` : ''}</div></div>` : ''}
@@ -414,6 +414,10 @@
     $('#ezMeal').onclick = () => { if (CANLI) return; S.ayar.ezMeal = !S.ayar.ezMeal; kaydet(); ciz(); };
     const en = $('#ezNereden'); if (en) en.onclick = () => { const pn = $('#ezNerePanel'); pn.hidden = !pn.hidden; };
     const nereyeGit = a => { a = Math.min(top, Math.max(1, +a || 1)); if (CANLI) return; sesDurdur(); EZ = null; ekranDegistir('ezberCalis', n, 'yeni', a); };
+    const eo = $('#ezOnceki'); if (eo) eo.onclick = () => nereyeGit(Z.bas - 1);
+    const es = $('#ezSonraki'); if (es) es.onclick = () => nereyeGit(Z.bit + 1);
+    const ok_ = $('#ezOkunus'); if (ok_) ok_.onclick = () => { if (CANLI) return; S.ayar.okunus = !okunusAcik(); kaydet(); ciz(); };
+    app.querySelectorAll('.ayet-no-ses').forEach(b => b.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); } });
     const eg = $('#ezNereGit'); if (eg) eg.onclick = () => nereyeGit($('#ezNereNo').value);
     app.querySelectorAll('[data-ez-bas]').forEach(b => b.onclick = () => nereyeGit(b.dataset.ezBas));
     const il = $('#ezIlk'); if (il) il.onclick = () => { Z.ilkKelime = !Z.ilkKelime; ciz(); };

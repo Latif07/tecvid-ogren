@@ -755,7 +755,7 @@
       const r = `${n}:${a}`; let ofs = 0;
       const kel = x.ayet[a - 1].split(' ').map((w, wi) => { const ic = durakIsik(kelimeHTML(r, w, ofs)); ofs += w.length + 1; return `<span class="kelime" data-ses="${kelimeUrl(r, wi + 1)}">${ic}</span>`; }).join(' ');
       const meal = mealSecili().map(k => [k, (mealVeri(k, n) || [])[a - 1]]).filter(z => z[1]);
-      return `<div class="ez-ayet tk-ayet ${a < bas || a > bit ? 'tk-disari' : ''}" id="ayet-${a}" data-a="${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${meal.map(([k, m]) => `<p class="ko-meal">${esc(m)}${meal.length > 1 ? ` <small class="soluk">· ${esc(k.ad)}</small>` : ''}</p>`).join('')}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
+      return `<div class="ez-ayet tk-ayet ${a < bas || a > bit ? 'tk-disari' : ''}" id="ayet-${a}" data-a="${a}"><div class="ayet" dir="rtl" lang="ar">${kel} <span class="ayet-no ayet-no-ses" role="button" tabindex="0" data-ses="${ayetUrl(r)}" data-yedek="${ayetUrl(r, KARILER[0].klasor)}" aria-label="${t('Ayeti dinle')}">﴿${a.toLocaleString('ar-EG')}﴾</span></div>${OKU[r] ? `<p class="okunus">${esc(OKU[r])}</p>` : ''}${meal.map(([k, m]) => `<p class="ko-meal">${esc(m)}${meal.length > 1 ? ` <small class="soluk">· ${esc(k.ad)}</small>` : ''}</p>`).join('')}<div class="rapor-kutu" id="rapor-${a}" hidden></div></div>`;
     };
     const besmele = n !== 1 && n !== 9 ? `<div class="besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : '';
     const sayac = (id, deger) => `<b id="${id}">${deger}</b>`;
@@ -773,7 +773,7 @@
         <div class="tk-satir"><span>${t('Gizleyerek oku')}</span>${[['hepsi', t('Tamamı')], ['yari', t('Yarısı')]].map(([v, ad]) => `<button class="cip ${o0.gizle === v ? 'aktif' : ''}" data-tk-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="kucukyazi soluk tk-not" id="tkNot">${t('Basamak yöntemi: önce 1. ayet, sonra 1–2, sonra 1–2–3… her basamak tekrar sayısı kadar. Gizle ve oku: kelimeler gizlenir, okudukça açılır.')}</p>
       </details>
-      <div class="tk-hizli"><button class="btn kucuk" id="tkGizleOku">${IKON.goz} ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
+      <div class="tk-hizli">${okunusVar ? `<button class="cip ${o0.latin ? 'aktif' : ''}" id="tkLatinCip">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${o0.meal ? 'aktif' : ''}" id="tkMealCip">📖 ${t('Meal')}</button><button class="btn kucuk" id="tkGizleOku">${IKON.goz} ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
       <section class="kart ez-kart tk-kart ${o0.latin ? '' : 'tk-latin-kapali'} ${o0.meal ? '' : 'tk-meal-kapali'}" id="tkKart" style="--ar-olcek:${o0.boy}">${besmele}${Array.from({ length: top }, (_, i) => ayetHTML(i + 1)).join('')}</section>
       <div class="canli-bar" id="canliBar" hidden>${canliBarHTML()}</div>
     </main>
@@ -791,6 +791,9 @@
     const onayBagla = (id, f) => { const el = $('#' + id); if (el) el.onchange = () => f(el.checked); };
     onayBagla('tkLatin', v => { tkYaz('latin', v); kart.classList.toggle('tk-latin-kapali', !v); });
     onayBagla('tkMeal', v => { tkYaz('meal', v); if (v && !mealSecili().every(k => mealVeri(k, n))) ciz(); else kart.classList.toggle('tk-meal-kapali', !v); });
+    const cipBagla = (cip, kutu) => { const c = $('#' + cip), k = $('#' + kutu); if (c && k) { c.onclick = () => { k.checked = !k.checked; k.dispatchEvent(new Event('change')); c.classList.toggle('aktif', k.checked); }; } };
+    cipBagla('tkLatinCip', 'tkLatin'); cipBagla('tkMealCip', 'tkMeal');
+    app.querySelectorAll('.ayet-no-ses').forEach(b => b.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); } });
     onayBagla('tkSes', v => tkYaz('ses', v)); onayBagla('tkBasamak', v => tkYaz('basamak', v)); onayBagla('tkGeri', v => tkYaz('yon', v ? 'geri' : 'ileri')); onayBagla('tkOto', v => tkYaz('oto', v)); onayBagla('tkKaydir', v => tkYaz('kaydir', v));
     onayBagla('tkEzber', v => { if (v) ezberIsaretle(n, top); else { const z = ezb(n); if (z) { z.tam = false; z.a = Math.min(z.a || 0, top - 1); kaydet(); } } });
     app.querySelectorAll('[data-tk-hiz]').forEach(b => b.onclick = () => { const h = +b.dataset.tkHiz; tkYaz('hiz', h); if (ses && TK.calma) ses.playbackRate = h; app.querySelectorAll('[data-tk-hiz]').forEach(z => z.classList.toggle('aktif', z === b)); });
