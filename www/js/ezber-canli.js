@@ -413,7 +413,7 @@
       ${Z.mod === 'yeni' ? `<div class="kart ez-nereden" id="ezNerePanel" hidden><p class="kucukyazi soluk">${t('Hangi ayetten çalışmak istiyorsun? (1–{0})', top)}</p>
         <div class="satir sola"><input id="ezNereNo" type="number" min="1" max="${top}" value="${Z.bas}" inputmode="numeric" aria-label="${t('Ayet numarası')}"><button class="btn kucuk" id="ezNereGit">${t('Buradan başla')}</button></div>
         <div class="satir sola"><button class="cip" data-ez-bas="1">${t('Baştan')}</button>${e.a ? `<button class="cip" data-ez-bas="${Math.min(top, e.a + 1)}">${t('Kaldığım yer ({0}. ayet)', Math.min(top, e.a + 1))}</button>` : ''}</div></div>` : ''}
-      ${Z.adim === 0 ? `<p class="kucukyazi soluk">${t('Her ayet kaç kez okunsun?')} ${[1, 3, 5, 10, 20].map(k => `<button class="cip ${tekrar === k ? 'aktif' : ''}" data-ez-tekrar="${k}">${k}×</button>`).join(' ')}</p>` : ''}
+      ${Z.adim === 0 ? `<p class="kucukyazi soluk ez-tekrar-sec" title="${t('Her ayet kaç kez okunsun?')}"><span>${t('Tekrar')}:</span>${[1, 3, 5, 10, 20].map(k => `<button class="cip ${tekrar === k ? 'aktif' : ''}" data-ez-tekrar="${k}" aria-label="${t('Her ayet kaç kez okunsun?')} ${k}">${k}×</button>`).join('')}</p>` : ''}
       ${Z.adim === 3 && Z.mod === 'yeni' ? `<p class="kucukyazi"><button class="cip ${Z.ilkKelime ? 'aktif' : ''}" id="ezIlk">${t('İlk kelime görünsün')}</button></p>` : ''}
       <section class="kart ez-kart" id="ezKart">${besmele}${ayetler.join('')}</section>
       <div id="ezSonuc"></div>
@@ -421,8 +421,8 @@
     </main>
     <div class="ez-alt" id="canliBar"><p class="canli-durum">${Z.adim === 0 ? t('Dinledikten sonra sonraki adıma geç.') : t('Mikrofona dokun ve oku.')}</p>
       <div class="ez-alt-dugmeler">
-        <button class="ez-yan" id="ezDinle"><span aria-hidden="true">▶</span>${t('Dinle')}</button>
-        ${Z.adim === 0 ? `<button class="ez-mik ez-ileri" id="ezIleriAlt">${t('Sonraki adım ›')}</button>` : `<div class="ez-mik-kap"><button class="ez-mik" id="canliDur" aria-label="${t('Oku')}">🎙️</button><span class="ez-mik-yazi" id="ezMikYazi">${t('Oku')}</span></div>`}
+        ${Z.adim === 0 ? `<button class="ez-yan" id="ezIleriAlt"><span aria-hidden="true">›</span>${t('Sonraki')}</button>` : `<button class="ez-yan" id="ezDinle"><span aria-hidden="true">▶</span>${t('Dinle')}</button>`}
+        ${Z.adim === 0 ? `<button class="ez-mik ez-ileri" id="ezDinle">▶ ${t('Dinle')}</button>` : `<div class="ez-mik-kap"><button class="ez-mik" id="canliDur" aria-label="${t('Oku')}">🎙️</button><span class="ez-mik-yazi" id="ezMikYazi">${t('Oku')}</span></div>`}
         ${gizliAdim ? `<button class="ez-yan" id="ezGoz"><span aria-hidden="true">👁</span>${t('Göz at')}</button>` : '<span class="ez-yan bos"></span>'}
       </div></div>`;
     // ---- olaylar
@@ -457,8 +457,10 @@
       const bas_ = from || okBas, uzun = Z.adim === 0, liste = onekAktif && !from ? [0] : [];
       for (let a = bas_; a <= (uzun ? okBit : bas_); a++) for (let k = 0; k < (uzun ? tekrar : 1); k++) liste.push(a);
       const is = { iptal: false }; Z.calma = is; btn.classList.add('caliyor'); let j = 0;
+      const etiket = b_ => { if (Z.adim === 0 && b_.classList.contains('ez-mik')) b_.textContent = b_.classList.contains('caliyor') ? '⏹ ' + t('Durdur') : '▶ ' + t('Dinle'); };
+      etiket(btn);
       const sil = () => document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan'));
-      const bitir = () => { if (Z.calma === is) Z.calma = null; btn.classList.remove('caliyor'); sil(); };
+      const bitir = () => { if (Z.calma === is) Z.calma = null; btn.classList.remove('caliyor'); etiket(btn); sil(); };
       const sonraki = () => {
         if (is.iptal || !document.body.contains(btn)) return bitir();
         sil();
@@ -474,7 +476,7 @@
     };
     $('#ezDinle').onclick = ev => {
       const btn = ev.currentTarget;
-      if (Z.calma) { Z.calma.iptal = true; Z.calma = null; sesDurdur(); btn.classList.remove('caliyor'); document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan')); return; }
+      if (Z.calma) { Z.calma.iptal = true; Z.calma = null; sesDurdur(); btn.classList.remove('caliyor'); if (Z.adim === 0 && btn.classList.contains('ez-mik')) btn.textContent = '▶ ' + t('Dinle'); document.querySelectorAll('.ez-ayet.calan').forEach(y => y.classList.remove('calan')); return; }
       dinleBaslat(0, btn);
     };
     // Verse number: start listening from that ayah (repeats and continues in the listening step)

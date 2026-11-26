@@ -897,6 +897,9 @@ const EKRANLAR = [
       kontrol('kendi okuyuşunu paylaş: kayıt dosyası hazırlanıyor (paylaşım yoksa indirme)', await sayfa.evaluate(() => !!window.__sharedRecording && window.__sharedRecording.size === 120 && /okuyusum\.webm/.test(window.__sharedRecording.name)));
       const sp = await sayfa.evaluate(() => { window.__TECVID.git('ana'); return getComputedStyle(document.querySelector('.kart')).marginBottom; });
       kontrol('tema: kartlar arası boşluk 16 px', sp === '16px', sp);
+      await sayfa.evaluate(() => window.__TECVID.git('yenilikler')); await sayfa.waitForSelector('.yenilik-tarih');
+      const sz = await sayfa.evaluate(() => { const b = document.querySelector('.yenilik-tarih'), once = b.textContent; b.click(); const sonra = b.textContent; b.click(); return { once, sonra, geri: b.textContent === once }; });
+      kontrol('sürüm notları: tarihe dokununca saat de görünüyor, tekrar dokununca gizleniyor', /\d{2}:\d{2}$/.test(sz.sonra) && sz.geri, JSON.stringify(sz));
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');
