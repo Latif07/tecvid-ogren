@@ -97,6 +97,8 @@ const EKRANLAR = [
       await sayfa.click('#koHatalar');
       const panel = await sayfa.evaluate(() => (document.querySelector('.ko-hatalar') || {}).innerText || '');
       kontrol('takip: Hatalarımı göster paneli açılıyor', /Hatalarım/.test(panel) && /1\. ayet/.test(panel) && /Hareke hatası/.test(panel), panel.slice(0, 80));
+      const hp = await sayfa.evaluate(() => ({ lock: document.body.classList.contains('modal-acik'), det: !!document.querySelector('.ko-hatalar details.ko-hata'), alt: (() => { const r = document.querySelector('.ko-hatalar-alt').getBoundingClientRect(); return r.bottom <= innerHeight + 1 && r.height > 0; })() }));
+      kontrol('Hatalarım: ayetler aç/kapa, alt düğmeler görünür, arka sayfa kilitli', hp.lock && hp.det && hp.alt, JSON.stringify(hp));
       await sayfa.click('.ko-hatalar [data-c="temizle"]');
       kontrol('takip: liste temizlenince panel kapanıyor, hata kalmıyor', !(await sayfa.$('.ko-hatalar')) && (await sayfa.evaluate(() => window.__TECVID.TAKIP_HATA.size)) === 0);
       kontrol('takip: sayfa hatasız çizildi', hatalar.length === once, hatalar.slice(once).join(' | '));
@@ -288,7 +290,7 @@ const EKRANLAR = [
       kontrol('istatistik: Hafta ve Son 60 gün sekmeleri çalışıyor', true);
       // Aa menüsünden ayet hedefi
       await sayfa.evaluate(() => window.__TECVID.git('sayfa', 1)); await sayfa.waitForSelector('#koAyar'); await sayfa.click('#koAyar');
-      await sayfa.click('[data-grup="ayhedef"] [data-ka="20"]');
+      await sayfa.evaluate(() => { document.querySelector('.ko-daha').open = true; }); await sayfa.click('[data-grup="ayhedef"] [data-ka="20"]');
       kontrol('ayet hedefi: Aa menüsünden 20 seçilebiliyor', (await S_()).hedef === 20);
       kontrol('ayet hedefi, okuma kartı ve istatistik hatasız', hatalar.length === once, hatalar.slice(once).join(' | '));
     } catch (e) { kontrol('okuma kartı / istatistik', false, e.message.split('\n')[0]); }

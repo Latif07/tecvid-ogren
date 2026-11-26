@@ -69,10 +69,10 @@
       <div class="satir sola"><button class="btn" data-git="ebeveynOzet">${t('Özete bak')}</button><button class="btn ikincil" id="haftaKapat">${t('Sonra')}</button></div></section>`;
   }
 
-  // Çocuk sûreleri: Husarî (öğretim) sesleri telefona indirilir (yalnız Android uygulamasında)
+  // Çocuk sûreleri: seçili kârinin sesleri telefona indirilir (yalnız Android uygulamasında)
   function sureSesDurum(n) {
     if (!FS()) return null;
-    const l = indirListesi('Husary_Muallim_128kbps', n).concat(n !== 1 ? [ayetUrl('1:1', 'Husary_Muallim_128kbps')] : []);
+    const l = indirListesi(kari().klasor, n).concat(n !== 1 ? [ayetUrl('1:1')] : []);
     return { var: indirilenSay(l), toplam: l.length, indir: () => indirBaslat(l, '').then(() => { yerelKaydet(); if (ekranYigini[ekranYigini.length - 1][0] === 'cocukDurak') ciz(); }) };
   }
   // Çocuk profili harf yolculuğunu bitirince: ebeveyn onayıyla tecvid derslerine geçiş

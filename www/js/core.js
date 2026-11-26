@@ -393,6 +393,8 @@
       else { const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); toast(t('Kayıt indirildi.')); }
     } catch (e) { toast(t('Kayıt paylaşılamadı.')); }
   }
+  // Lock the page behind any open modal so it does not scroll underneath
+  new MutationObserver(() => document.body.classList.toggle('modal-acik', !!document.querySelector('.modal-arka, .not-pencere'))).observe(document.body, { childList: true });
   async function kayitBaslat(anahtar, kariUrl) {
     if (kayitci) kayitDurdur();
     if (!navigator.mediaDevices || !window.MediaRecorder) return toast(t('Bu cihazda ses kaydı desteklenmiyor.'));

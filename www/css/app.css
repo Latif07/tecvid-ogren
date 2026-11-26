@@ -1725,3 +1725,33 @@ main h2 { font-size: 1.3rem; line-height: 1.3; margin-top: 0; }
 .child-limit-ebeveyn { margin-top: 28px; text-align: start; color: #1f2a26; }
 .child-limit-ebeveyn summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
 .child-limit-ebeveyn .parent-q { font-size: 1.6rem; font-weight: 700; }
+
+/* Errors panel: collapsible items, header and footer always visible, no scroll behind it */
+body.modal-acik { overflow: hidden; }
+.ko-hatalar { display: flex; flex-direction: column; width: min(440px, 100%); max-height: min(86vh, 680px); padding: 0; overflow: hidden; }
+.ko-hatalar-ust { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 6px; }
+.ko-hatalar-ust h2 { margin: 0; }
+.ko-hatalar-govde { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px; }
+.ko-hatalar-alt { display: flex; gap: 8px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--cizgi); background: var(--kart); }
+.ko-hatalar-alt .btn { flex: 1; margin: 0; }
+details.ko-hata { border-bottom: 1px solid var(--cizgi); padding: 4px 0 10px; }
+details.ko-hata > summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+/* Compact Aa menu: one chip style, round colour swatches, secondary options folded */
+.ko-ayar { padding: 12px 14px; }
+.ko-ayar .ko-menu-et { margin: 8px 0 4px; }
+.ko-ayar .ko-secim { gap: 6px; }
+.ko-ayar .ko-secim button { min-height: 36px; padding: 0 12px; font-size: .92rem; border-radius: 18px; }
+.tema-renkler { display: flex; gap: 8px; flex-wrap: wrap; }
+.tema-nokta { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--cizgi); background: var(--ko-kagit, #fff); color: var(--ko-yazi, #222); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; padding: 0; }
+.tema-nokta.aktif { border-color: var(--ana, #0f5a47); box-shadow: 0 0 0 2px var(--ana, #0f5a47); }
+.tema-nokta.tema-acik { --ko-kagit: #ffffff; --ko-yazi: #1d1d1d; }
+.tema-nokta.tema-yumusak { --ko-kagit: #eceeea; --ko-yazi: #2b2b2b; }
+.tema-nokta.tema-sepya { --ko-kagit: #f4ead2; --ko-yazi: #3b2f1c; }
+.tema-nokta.tema-gece { --ko-kagit: #121212; --ko-yazi: #e6e1d6; }
+.tema-nokta.tema-galaksi { --ko-kagit: #1e2236; --ko-yazi: #e4e6f5; }
+.tema-nokta.tema-gunbatimi { --ko-kagit: #14171f; --ko-yazi: #f0dcd2; }
+.tema-nokta.tema-amber { --ko-kagit: #20243a; --ko-yazi: #f2e3c6; }
+.ko-daha { margin-top: 6px; }
+.ko-daha > summary { min-height: 40px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.ko-ayar .btn { min-height: 40px; padding: 0 12px; font-size: .92rem; }
