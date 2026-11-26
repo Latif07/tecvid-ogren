@@ -760,7 +760,7 @@
     const besmele = n !== 1 && n !== 9 ? `<div class="besmele" dir="rtl" lang="ar">${esc(trBesmele() || window.BESMELE || '')}</div>` : '';
     const sayac = (id, deger) => `<b id="${id}">${deger}</b>`;
     const onay = (id, ad, acik) => `<label class="tk-onay"><input type="checkbox" id="${id}" ${acik ? 'checked' : ''}><span>${ad}</span></label>`;
-    app.innerHTML = `${ust(esc(sureNoAdi(n)))}<main class="ez-ekran tk-ekran">
+    app.innerHTML = `${ust(esc(sureNoAdi(n)))}<main class="ez-ekran tk-ekran ${readingThemeClass()}">
       <details class="kart tk-ust" id="tkAyarKutu"><summary><b>⚙️ ${t('Ayarlar')}</b> <span class="soluk kucukyazi">${bas}–${bit}. ${t('ayet')}</span></summary>
         <div class="tk-satir tk-aralik"><span>${t('Ayetler')}</span><input id="tkBas" type="number" inputmode="numeric" min="1" max="${top}" value="${bas}" aria-label="${t('İlk ayet')}"><span>–</span><input id="tkBit" type="number" inputmode="numeric" min="1" max="${top}" value="${bit}" aria-label="${t('Son ayet')}"><span class="soluk">/ ${top}</span><button class="cip ${bas === 1 && bit === top ? 'aktif' : ''}" id="tkHepsi">${t('Hepsi')}</button></div>
         <div class="tk-secenek">
@@ -773,7 +773,7 @@
         <div class="tk-satir"><span>${t('Gizleyerek oku')}</span>${[['hepsi', t('Tamamı')], ['yari', t('Yarısı')]].map(([v, ad]) => `<button class="cip ${o0.gizle === v ? 'aktif' : ''}" data-tk-gizle="${v}">${ad}</button>`).join('')}</div>
         <p class="kucukyazi soluk tk-not" id="tkNot">${t('Basamak yöntemi: önce 1. ayet, sonra 1–2, sonra 1–2–3… her basamak tekrar sayısı kadar. Gizle ve oku: kelimeler gizlenir, okudukça açılır.')}</p>
       </details>
-      <div class="tk-hizli">${okunusVar ? `<button class="cip ${o0.latin ? 'aktif' : ''}" id="tkLatinCip">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${o0.meal ? 'aktif' : ''}" id="tkMealCip">📖 ${t('Meal')}</button><button class="btn kucuk" id="tkGizleOku">${IKON.goz} ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
+      <div class="tk-hizli">${okunusVar ? `<button class="cip ${o0.latin ? 'aktif' : ''}" id="tkLatinCip">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${o0.meal ? 'aktif' : ''}" id="tkMealCip">📖 ${t('Meal')}</button><button class="cip" id="tkAa" data-aa-format aria-label="${t('Yazı ve renk')}">Aa</button><button class="btn kucuk" id="tkGizleOku">${IKON.goz} ${t('Gizle ve oku')}</button><button class="btn kucuk ikincil" id="tkGoster">👁 ${t('Göster')}</button></div>
       <section class="kart ez-kart tk-kart ${o0.latin ? '' : 'tk-latin-kapali'} ${o0.meal ? '' : 'tk-meal-kapali'}" id="tkKart" style="--ar-olcek:${o0.boy}">${besmele}${Array.from({ length: top }, (_, i) => ayetHTML(i + 1)).join('')}</section>
       <div class="canli-bar" id="canliBar" hidden>${canliBarHTML()}</div>
     </main>
@@ -792,6 +792,7 @@
     onayBagla('tkLatin', v => { tkYaz('latin', v); kart.classList.toggle('tk-latin-kapali', !v); });
     onayBagla('tkMeal', v => { tkYaz('meal', v); if (v && !mealSecili().every(k => mealVeri(k, n))) ciz(); else kart.classList.toggle('tk-meal-kapali', !v); });
     const cipBagla = (cip, kutu) => { const c = $('#' + cip), k = $('#' + kutu); if (c && k) { c.onclick = () => { k.checked = !k.checked; k.dispatchEvent(new Event('change')); c.classList.toggle('aktif', k.checked); }; } };
+    $('#tkAa').onclick = () => readingFormatPanel(app.querySelector('main.ez-ekran'));
     cipBagla('tkLatinCip', 'tkLatin'); cipBagla('tkMealCip', 'tkMeal');
     app.querySelectorAll('.ayet-no-ses').forEach(b => b.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); } });
     onayBagla('tkSes', v => tkYaz('ses', v)); onayBagla('tkBasamak', v => tkYaz('basamak', v)); onayBagla('tkGeri', v => tkYaz('yon', v ? 'geri' : 'ileri')); onayBagla('tkOto', v => tkYaz('oto', v)); onayBagla('tkKaydir', v => tkYaz('kaydir', v));

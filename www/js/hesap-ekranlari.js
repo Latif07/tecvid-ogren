@@ -168,7 +168,9 @@
       <details class="kart ayar-bolum" data-bol="s"><summary><span class="ayar-ik">${IKON.ses}</span><span class="ayar-bas"><b>${t('Ses, kâri ve meşk')}</b><small>${esc(kari().ad)} · ${S.ayar.hiz || 1}×</small></span></summary>
         <div class="ayar-govde"><p>${esc(kari().ad)} · <span class="soluk">${esc(kari().tur)}</span></p>
         <div class="satir sola"><button class="btn" data-git="kariSec">${t('Kâri seç')}</button>${FS() ? `<button class="btn ikincil" data-git="indir">${t('📥 İnternetsiz ses')}</button>` : ''}</div><p style="margin-top:16px"><b>${t('Ses hızı')}</b></p>
-        <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div><p style="margin-top:16px"><b>${t('Meşk modu')}</b></p>
+        <div class="satir sola">${[0.75, 1, 1.25].map(h => `<button class="btn ${S.ayar.hiz === h ? '' : 'ikincil'}" data-hiz="${h}">${h}×</button>`).join('')}</div>
+        <p style="margin-top:16px"><b>${t('Kelimeye dokununca')}</b></p>
+        <div class="satir sola"><button class="btn ${S.ayar.kelimeSes === 'kelime' ? 'ikincil' : ''}" data-kelimeses="ayet">${t('Ayeti kârinin sesiyle çal')}</button><button class="btn ${S.ayar.kelimeSes === 'kelime' ? '' : 'ikincil'}" data-kelimeses="kelime">${t('Yalnız o kelimeyi çal')}</button></div><p style="margin-top:16px"><b>${t('Meşk modu')}</b></p>
         <p class="soluk">${t('Geleneksel meşk usulü: kâri ayeti parça parça okur, sen tekrar edersin, okuyuşun incelenir. Açınca Kur\'an sekmesindeki ayetlerde ve Profil\'de görünür.')}</p>
         <div class="satir sola"><button class="btn ${S.ayar.mesk ? '' : 'ikincil'}" data-mesk="1">${t('Açık')}</button><button class="btn ${S.ayar.mesk ? 'ikincil' : ''}" data-mesk="0">${t('Kapalı')}</button></div>
         ${S.ayar.mesk ? `<p style="margin-top:12px"><b>${t('Her parça kaç kez doğru okunsun?')}</b></p><div class="satir sola">${[1, 3, 5].map(v => `<button class="btn ${(S.ayar.meskTekrar || 3) === v ? '' : 'ikincil'}" data-mtekrar="${v}">${v}</button>`).join('')}</div>` : ''}</div></details>
@@ -229,6 +231,7 @@
     app.querySelectorAll('[data-gsgiz]').forEach(b => b.onclick = () => { S.ayar.gsGizle = b.dataset.gsgiz === '1'; kaydet(); ciz(); });
     if ($('#pinDegistir')) $('#pinDegistir').onclick = async () => { if (window.ebeveynPin && await window.ebeveynPin.degistir()) { toast(t('PIN kaydedildi ✓')); ciz(); } };
     app.querySelectorAll('[data-sesli]').forEach(b => b.onclick = () => { S.ayar.sesliYonerge = b.dataset.sesli === '1'; kaydet(); if (S.ayar.sesliYonerge && window.Sesli) { window.Sesli.acik = true; window.Sesli.soyle(t('Sesli yönerge açık.')); } ciz(); });
+    app.querySelectorAll('[data-kelimeses]').forEach(b => b.onclick = () => { S.ayar.kelimeSes = b.dataset.kelimeses; kaydet(); ciz(); });
     app.querySelectorAll('[data-hiz]').forEach(b => b.onclick = () => { S.ayar.hiz = +b.dataset.hiz; kaydet(); ciz(); });
     $('#kopyala').onclick = async () => { try { await navigator.clipboard.writeText(yedek); toast(t('Kopyalandı')); } catch (e) { const x = $('#yedek'); x.select(); document.execCommand('copy'); toast(t('Kopyalandı')); } };
     $('#geriyukle').onclick = () => {

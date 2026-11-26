@@ -1762,3 +1762,14 @@ details.ko-hata > summary { min-height: 44px; display: flex; align-items: center
 .ez-arac { flex-wrap: wrap; gap: 6px; }
 .ez-arac .cip[disabled] { opacity: .4; }
 .tk-hizli { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* Ezber / Tekrarla reading colour (optional, ezTema) */
+.ez-ekran.tema-acik { --ko-kagit: #ffffff; --ko-yazi: #1d1d1d; }
+.ez-ekran.tema-yumusak { --ko-kagit: #eceeea; --ko-yazi: #2b2b2b; }
+.ez-ekran.tema-sepya { --ko-kagit: #f4ead2; --ko-yazi: #3b2f1c; }
+.ez-ekran.tema-gece { --ko-kagit: #121212; --ko-yazi: #e6e1d6; }
+.ez-ekran.tema-galaksi { --ko-kagit: #1e2236; --ko-yazi: #e4e6f5; }
+.ez-ekran.tema-gunbatimi { --ko-kagit: #14171f; --ko-yazi: #f0dcd2; }
+.ez-ekran.tema-amber { --ko-kagit: #20243a; --ko-yazi: #f2e3c6; }
+.ez-ekran[class*="tema-"] .ez-kart { background: var(--ko-kagit); color: var(--ko-yazi); }
+.ez-ekran[class*="tema-"] .ez-kart .kelime:not([class*="tc-"]), .ez-ekran[class*="tema-"] .ez-kart .okunus, .ez-ekran[class*="tema-"] .ez-kart .ko-meal, .ez-ekran[class*="tema-"] .ez-kart .ez-meal, .ez-ekran[class*="tema-"] .ez-kart .besmele { color: var(--ko-yazi); }

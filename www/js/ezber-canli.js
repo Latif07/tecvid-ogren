@@ -309,6 +309,25 @@
   const EZ_UZUN = 10;
   let EZ = null, ezZincir = [];
   const ezAdimAd = () => [t('Dinle'), t('Bakarak'), t('Yarısı'), t('Ezberden'), t('Bağla')];
+  // Reading format (Arabic size + page colour) for the Ezber and Tekrarla screens. ezTema '' = follow the app theme.
+  const readingThemeClass = () => S.ayar.ezTema ? 'tema-' + S.ayar.ezTema : '';
+  function readingFormatPanel(screenEl) {
+    document.querySelectorAll('.ko-menu').forEach(x => x.remove());
+    const m = document.createElement('div'); m.className = 'ko-menu ko-ayar kart'; m.setAttribute('role', 'dialog'); document.body.appendChild(m);
+    const kapat = () => { m.remove(); document.removeEventListener('click', disari, true); };
+    const disari = e => { if (!m.contains(e.target) && !e.target.closest('[data-aa-format]')) kapat(); };
+    const ciz_ = () => {
+      const ar = S.ayar.arYazi || 1, tema = S.ayar.ezTema || '';
+      m.innerHTML = `<p class="ko-menu-baslik">${t('Yazı ve renk')}</p>
+        <p class="kucukyazi soluk ko-menu-et">${t('Arapça yazı')}</p><div class="ko-secim">${[[0.85, 'ع−'], [1, 'ع'], [1.2, 'ع+'], [1.4, 'ع++']].map(([v, ad]) => `<button class="${ar === v ? 'aktif' : ''}" data-aa-ar="${v}">${ad}</button>`).join('')}</div>
+        <p class="kucukyazi soluk ko-menu-et">${t('Sayfa rengi')}</p><div class="tema-renkler"><button class="tema-nokta ${tema === '' ? 'aktif' : ''}" data-aa-tema="" title="${t('Otomatik')}" aria-label="${t('Otomatik')}"><span aria-hidden="true">⚙</span></button>${KO_TEMALAR.map(([v, ad]) => `<button class="tema-nokta tema-${v} ${tema === v ? 'aktif' : ''}" data-aa-tema="${v}" title="${t(ad)}" aria-label="${t(ad)}"><span aria-hidden="true">Aa</span></button>`).join('')}</div>
+        <div class="satir" style="margin-top:12px"><button class="btn" id="aaKapat">${t('Kapat')}</button></div>`;
+      m.querySelectorAll('[data-aa-ar]').forEach(b => b.onclick = () => { S.ayar.arYazi = +b.dataset.aaAr; temaUygula(); kaydet(); ciz_(); });
+      m.querySelectorAll('[data-aa-tema]').forEach(b => b.onclick = () => { S.ayar.ezTema = b.dataset.aaTema; kaydet(); if (screenEl) { screenEl.className = screenEl.className.replace(/\btema-\S+/g, '').trim(); if (S.ayar.ezTema) screenEl.classList.add('tema-' + S.ayar.ezTema); } ciz_(); });
+      m.querySelector('#aaKapat').onclick = kapat;
+    };
+    ciz_(); setTimeout(() => document.addEventListener('click', disari, true), 0);
+  }
   // Beginner: fewer than 10 ayahs memorized in total
   function ezAcemi() { return Object.values(S.ezber || {}).reduce((t_, z) => t_ + (z && z.tam ? 1000 : (z && z.a) || 0), 0) < 10; }
   function ezAralik(n, bas) {
@@ -388,9 +407,9 @@
         <p class="ez-bag-et"><span class="ez-bag-rozet yeni">${t('Yeni')}</span>${esc(sureNoAdi(n))} ${Z.bit === 1 ? 1 : '1–' + Z.bit}</p>${besmele}`;
     }
     const tekrar = S.ayar.ezTekrar || 3, gizliAdim = Z.adim >= 2;
-    app.innerHTML = `${ust(baslik)}${cubuk}<main class="ez-ekran">
+    app.innerHTML = `${ust(baslik)}${cubuk}<main class="ez-ekran ${readingThemeClass()}">
       <p class="ez-yonerge">${yonerge}</p>
-      <div class="satir sola ez-arac">${Z.mod === 'yeni' ? `<button class="cip" id="ezOnceki" aria-label="${t('Önceki ayet')}" ${Z.bas <= 1 ? 'disabled' : ''}>‹</button><button class="cip" id="ezNereden" aria-label="${t('Ayet seç')}">📍 ${Z.bas === Z.bit ? Z.bas : Z.bas + '–' + Z.bit}/${top}</button><button class="cip" id="ezSonraki" aria-label="${t('Sonraki ayet')}" ${Z.bit >= top ? 'disabled' : ''}>›</button>` : ''}${OKU[`${n}:1`] ? `<button class="cip ${okunusAcik() ? 'aktif' : ''}" id="ezOkunus">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button>${Z.adim === 0 ? `<button class="cip ${S.ayar.ezPay !== false ? 'aktif' : ''}" id="ezPay">🗣️ ${t('Sen de tekrar et')}</button>` : ''}</div>
+      <div class="satir sola ez-arac">${Z.mod === 'yeni' ? `<button class="cip" id="ezOnceki" aria-label="${t('Önceki ayet')}" ${Z.bas <= 1 ? 'disabled' : ''}>‹</button><button class="cip" id="ezNereden" aria-label="${t('Ayet seç')}">📍 ${Z.bas === Z.bit ? Z.bas : Z.bas + '–' + Z.bit}/${top}</button><button class="cip" id="ezSonraki" aria-label="${t('Sonraki ayet')}" ${Z.bit >= top ? 'disabled' : ''}>›</button>` : ''}${OKU[`${n}:1`] ? `<button class="cip ${okunusAcik() ? 'aktif' : ''}" id="ezOkunus">🔤 ${t('Okunuş')}</button>` : ''}<button class="cip ${S.ayar.ezMeal ? 'aktif' : ''}" id="ezMeal">📖 ${t('Meal')}</button><button class="cip" id="ezAa" data-aa-format aria-label="${t('Yazı ve renk')}">Aa</button>${Z.adim === 0 ? `<button class="cip ${S.ayar.ezPay !== false ? 'aktif' : ''}" id="ezPay">🗣️ ${t('Sen de tekrar et')}</button>` : ''}</div>
       ${Z.mod === 'yeni' ? `<div class="kart ez-nereden" id="ezNerePanel" hidden><p class="kucukyazi soluk">${t('Hangi ayetten çalışmak istiyorsun? (1–{0})', top)}</p>
         <div class="satir sola"><input id="ezNereNo" type="number" min="1" max="${top}" value="${Z.bas}" inputmode="numeric" aria-label="${t('Ayet numarası')}"><button class="btn kucuk" id="ezNereGit">${t('Buradan başla')}</button></div>
         <div class="satir sola"><button class="cip" data-ez-bas="1">${t('Baştan')}</button>${e.a ? `<button class="cip" data-ez-bas="${Math.min(top, e.a + 1)}">${t('Kaldığım yer ({0}. ayet)', Math.min(top, e.a + 1))}</button>` : ''}</div></div>` : ''}
@@ -420,6 +439,7 @@
     const nereyeGit = a => { a = Math.min(top, Math.max(1, +a || 1)); if (CANLI) return; sesDurdur(); EZ = null; ekranDegistir('ezberCalis', n, 'yeni', a); };
     const eo = $('#ezOnceki'); if (eo) eo.onclick = () => nereyeGit(Z.bas - 1);
     const es = $('#ezSonraki'); if (es) es.onclick = () => nereyeGit(Z.bit + 1);
+    $('#ezAa').onclick = () => readingFormatPanel(app.querySelector('main.ez-ekran'));
     const ep = $('#ezPay'); if (ep) ep.onclick = () => { S.ayar.ezPay = S.ayar.ezPay === false; kaydet(); ciz(); };
     const ok_ = $('#ezOkunus'); if (ok_) ok_.onclick = () => { if (CANLI) return; S.ayar.okunus = !okunusAcik(); kaydet(); ciz(); };
     app.querySelectorAll('.ayet-no-ses').forEach(b => b.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); } });
