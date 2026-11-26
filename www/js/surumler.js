@@ -1,9 +1,16 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.69';
+  const SURUM = '1.0.70';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.70', t: '2026-11-26', durum: 'Web', l: [
+      'Koyu tema okunurluğu: yeşil düğmeler, ezber çipleri, "Şimdi" rozeti ve silme düğmesi artık yeterli kontrastta; Kur\'an sayfasındaki gri ve kehribar tecvid renkleri koyulaştırıldı. Açık ve koyu temada otomatik kontrast testi eklendi',
+      'İlk açılış: "Nereden başlayalım?" ekranında yazı boyutu seçilir; "Hiç bilmiyorum" doğrudan Elif-Ba ekranını açar',
+      'Tecvid sekmesi sadeleşti: yeni başlayanda tecvid bölümleri "Tüm tecvid bölümleri" altında katlı (görünür düğme 39 → 7); Hap kartlar girişi tekrarsız',
+      'Ana sayfada saate göre selam (Hayırlı sabahlar / günler / akşamlar / geceler) ve 3, 7, 14, 30… gün serilerinde nazik kutlama kartı',
+      'Ayarlar: Yüksek kontrast, Hareketi azalt ve Geri bildirim gönder (sürüm ve cihaz bilgisiyle; göndereceğin uygulamayı sen seçersin)',
+    ] },
     { s: '1.0.69', t: '2026-11-26', durum: 'Web', l: [
       'Hap kartlar: kartlardaki her harfe, heceye ve kelimeye dokununca okunur (harf: hoca kaydı varsa o, yoksa harfin adı; kelime: Kur\'an\'dan gerçek kâri sesi)',
       'Düzeltme: Kur\'an sayfasının arkasındaki çizgili arka plan kalktı (okuma modu önizlemesinin stili sayfaya sızıyordu); sayfa yazıları daha okunur',

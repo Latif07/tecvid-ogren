@@ -457,7 +457,7 @@ const EKRANLAR = [
       // Tecvid sekmesi: "İleri konular" paneli derse girip geri dönünce açık kalır; Elif-Ba ve kart girişleri her zaman görünür
       await sayfa.evaluate(() => { window.__TECVID.git('tecvid'); });
       await sayfa.waitForSelector('details.bolum-grup');
-      kontrol('Tecvid sekmesi: Elif-Ba ve Hap kartlar girişleri görünüyor', (await sayfa.$$('.eb-giris')).length === 2);
+      kontrol('Tecvid sekmesi: Elif-Ba girişi ve Hap kartlar kısayolu görünüyor (tekrarsız)', (await sayfa.$$('.eb-giris')).length === 1 && !!(await sayfa.$('.tecvid-kutu[data-git="kartlar"]')));
       await sayfa.evaluate(() => { document.querySelector('details.bolum-grup[data-grup-ad="İleri konular"]').open = true; });
       await sayfa.waitForTimeout(100);
       await sayfa.click('details.bolum-grup[data-grup-ad="İleri konular"] .bolum');
@@ -783,6 +783,61 @@ const EKRANLAR = [
       await sayfa.click('[data-ko-ayet="2:185"]'); await sayfa.click('[data-km="okudum"]');
       const okRes = await sayfa.evaluate(() => ({ toast: !!document.querySelector('.toast'), isaret: document.querySelector('[data-ko-ayet="2:185"]').classList.contains('ko-read') }));
       kontrol('tek ayet okundu: alt toast yok, ayet numarasında ✓ işareti var', !okRes.toast && okRes.isaret, JSON.stringify(okRes));
+      // Contrast (WCAG AA) on key screens in light and dark; gradient backgrounds are skipped (cannot be measured reliably)
+      for (const scheme of ['light', 'dark']) {
+        const cp = await sayfa.context().newPage(); await cp.emulateMedia({ colorScheme: scheme });
+        await cp.goto(url, { waitUntil: 'domcontentloaded' }); await cp.waitForFunction(() => window.__TECVID, null, { timeout: 20000 });
+        const rep = {};
+        for (const [name, args] of [['ana', ['ana']], ['tecvid', ['tecvid']], ['ders', ['ders', 'u7']], ['kuran', ['sayfa', 28]], ['ezber', ['ezber']], ['ayarlar', ['ayarlar']], ['kartlar', ['kartlar']]]) {
+          rep[name] = await cp.evaluate(async ([a]) => {
+            window.__TECVID.S().ayar.tanitim = 1; window.__TECVID.git(...a); await new Promise(r => setTimeout(r, 500));
+            const parse = c => { const m = c.match(/[\d.]+/g).map(Number); return { rgb: m.slice(0, 3), a: m.length > 3 ? m[3] : 1 }; };
+            const bgOf = e => { let x = e; while (x) { const cs = getComputedStyle(x); if (cs.backgroundImage !== 'none') return null; const c = parse(cs.backgroundColor); if (c.a > 0.9) return c.rgb; x = x.parentElement; } return [255, 255, 255]; };
+            const lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+            const bad = [];
+            for (const e of document.querySelectorAll('#app *')) {
+              if (e.children.length || e.textContent.trim().length < 2 || !e.getBoundingClientRect().width || getComputedStyle(e).visibility === 'hidden') continue;
+              const cs = getComputedStyle(e), fg = parse(cs.color), bg = bgOf(e); if (!bg || fg.a < 1) continue;
+              const l1 = lum(fg.rgb), l2 = lum(bg), ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05), px = parseFloat(cs.fontSize), large = px >= 24 || (px >= 18.66 && parseInt(cs.fontWeight) >= 700);
+              if (ratio < (large ? 3 : 4.5)) bad.push((e.className || e.tagName).toString().split(' ')[0] + ' ' + ratio.toFixed(2));
+            }
+            return bad.slice(0, 4);
+          }, [args]);
+        }
+        const failing = Object.entries(rep).filter(([, v]) => v.length);
+        kontrol(`kontrast (${scheme}): ana, tecvid, ders, Kur'an, ezber, ayarlar, kartlar ekranlarında AA altı metin yok`, !failing.length, JSON.stringify(failing));
+        await cp.close();
+      }
+      // First run (adult path): picking "I know nothing" opens Elif-Ba, font-size chips exist; Tecvid tab stays short for beginners
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ilerleme = {}; S.okunan = {}; for (const k of ['anaTur', 'anaSira', 'anaGizli', 'hizli', 'seviye']) delete S.ayar[k]; S.kuran = { hedef: 5, ayetHedef: 10, gorunum: 'mushaf', tema: 'acik', gun: {}, ay: {}, imler: [] }; window.__TECVID.git('hosgeldin', 'seviye'); });
+      await sayfa.waitForSelector('[data-sv="sifir"]');
+      kontrol('ilk açılış: Nereden başlayalım ekranında yazı boyutu seçenekleri var', (await sayfa.$$('[data-hg-yazi]')).length === 3);
+      await sayfa.click('[data-sv="sifir"]');
+      await sayfa.waitForSelector('#ebDevam');
+      kontrol('ilk açılış: "Hiç bilmiyorum" doğrudan Elif-Ba odak ekranını açıyor', true);
+      await sayfa.evaluate(() => window.__TECVID.git('tecvid')); await sayfa.waitForSelector('.tecvid-hepsi');
+      const vis = await sayfa.evaluate(() => [...document.querySelectorAll('#app button, #app a')].filter(e => e.checkVisibility && e.checkVisibility({ contentVisibilityAuto: true }) && e.getBoundingClientRect().width > 0).length);
+      kontrol('Tecvid sekmesi (yeni başlayan): görünür düğme sayısı ≤ 12 (bölümler katlı)', vis <= 12, String(vis));
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ilerleme.e1 = { en: 90, deneme: 1, gecti: true }; window.__TECVID.git('tecvid'); });
+      await sayfa.waitForSelector('.tecvid-kutular');
+      kontrol('Tecvid sekmesi: Elif-Ba geçilince bölümler açık listelenir', !(await sayfa.$('.tecvid-hepsi')));
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.ilerleme = {}; for (const k of ['anaTur']) delete S.ayar[k]; });
+      // Greeting by time of day and streak card
+      await sayfa.evaluate(() => { const S = window.__TECVID.S(); S.seri = { gun: 7, son: S.seri && S.seri.son }; delete S.ayar.seriKutlama; window.__TECVID.git('ana'); });
+      await sayfa.waitForSelector('.selam small');
+      const sel = await sayfa.evaluate(() => ({ g: document.querySelector('.selam small').textContent, k: !!document.querySelector('#seriKart') }));
+      kontrol('ana sayfa: saate göre selam ve 7 günlük seri kartı', /Hayırlı (sabahlar|günler|akşamlar|geceler)/.test(sel.g) && sel.k, JSON.stringify(sel));
+      await sayfa.click('#seriKapat');
+      kontrol('ana sayfa: seri kartı kapatılınca bir daha çıkmıyor', await sayfa.evaluate(() => !document.querySelector('#seriKart') && window.__TECVID.S().ayar.seriKutlama === 7));
+      await sayfa.evaluate(() => { window.__TECVID.S().seri = { gun: 0 }; delete window.__TECVID.S().ayar.seriKutlama; });
+      // Settings: high contrast, reduced motion, feedback text
+      await sayfa.evaluate(() => window.__TECVID.git('ayarlar')); await sayfa.waitForSelector('#ayKontrast', { state: 'attached' }); await sayfa.evaluate(() => document.querySelectorAll('#app details').forEach(d => { d.open = true; })); await sayfa.waitForSelector('#ayKontrast');
+      await sayfa.evaluate(() => document.querySelector('#ayKontrast').click()); await sayfa.evaluate(() => document.querySelector('#ayHareket').click());
+      kontrol('ayarlar: yüksek kontrast ve hareketi azalt uygulanıyor', await sayfa.evaluate(() => document.documentElement.dataset.kontrast === 'yuksek' && document.documentElement.dataset.hareket === 'azalt'));
+      await sayfa.evaluate(() => { navigator.share = undefined; Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.resolve() }, configurable: true }); delete window.__feedbackText; });
+      await sayfa.evaluate(() => { document.querySelectorAll('#app details').forEach(d => { d.open = true; }); }); await sayfa.fill('#gbMetin', 'Deneme mesajı'); await sayfa.click('#gbGonder');
+      kontrol('ayarlar: geri bildirim metni sürüm ve cihaz bilgisiyle hazırlanıyor', await sayfa.evaluate(() => /Deneme mesajı/.test(window.__feedbackText || '') && /Mozilla|Chrome/.test(window.__feedbackText)));
+      await sayfa.evaluate(() => document.querySelector('#ayKontrast').click()); await sayfa.evaluate(() => document.querySelector('#ayHareket').click());
       // Elif-Ba
       await sayfa.evaluate(() => { window.__TECVID.git('elifba'); });
       await sayfa.waitForSelector('#ebDevam');

@@ -321,10 +321,10 @@
   EKRAN.tecvid = function () {
     const gecilen = U.filter(u => gecti(u.id)).length, siradaki = U.find(u => !gecti(u.id));
     const kutu = (git_, ik, ad) => `<button class="tecvid-kutu" data-git="${git_}"><span>${ik}</span>${ad}</button>`;
+    const beginnerTecvid = anaTur() === 'sifirdan' && !gecti('e1');   // complete beginners: tajweed sections stay folded until Elif-Ba is done
     app.innerHTML = `${ust(t('Tecvid'))}<main>
       <p class="soluk tecvid-ozet">${t('{0} / {1} bölüm geçildi', gecilen, U.length)}</p>
       <button class="ders-ince eb-giris" data-git="elifba"><span>${IKON.filiz} ${t('Elif-Ba odak modu: sıfırdan, adım adım')}</span><b>›</b></button>
-      ${window.KARTLAR ? `<button class="ders-ince eb-giris" data-git="kartlar"><span>${IKON.kart} ${t('Hap bilgi kartları · durak kartı, kontrol modu')}</span><b>›</b></button>` : ''}
       <nav class="tecvid-kutular">
         ${window.HARFKART ? kutu('harfKartlari', '<b class="ar">ب</b>', t('Harf kartları')) : ''}
         ${window.KARTLAR ? kutu('kartlar', IKON.kart, t('Hap kartlar')) : ''}
@@ -332,10 +332,11 @@
         ${kutu('sureTecvidSec', IKON.pusula, t('Sûre sûre tecvid'))}
         ${kutu('kuralAra', IKON.ara, t('Kural ara'))}
       </nav>
+      ${beginnerTecvid ? `<details class="kart tecvid-hepsi"><summary><b>${t('Tüm tecvid bölümleri')}</b> <small class="soluk">${t('Elif-Ba\'dan sonra')}</small></summary>` : ''}
       ${GRUPLAR.map(([ad, idler]) => { const l = idler.map(unitById).filter(Boolean), g = l.filter(u => gecti(u.id)).length, simdi = siradaki && idler.includes(siradaki.id);
         return `<details class="kart bolum-grup ${simdi ? 'simdi' : ''}" data-grup-ad="${esc(ad)}" ${(EKRAN.tecvid._acik ? EKRAN.tecvid._acik.has(ad) : simdi) ? 'open' : ''}><summary><span class="bad"><b>${ad}</b>${simdi ? `<small>${t('Şu an buradasın')}</small>` : ''}</span><span class="${g === l.length ? 'yesil' : 'soluk'} kucukyazi">${g} / ${l.length}${g === l.length ? ' ✓' : ''}</span></summary>
           ${idler.includes('m1') ? hkGiris() : ''}<div class="bolumler">${bolumListesi(l)}</div></details>`; }).join('')}
-      <p class="soluk kucukyazi">${t('🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, {0} alınca bölüm açılır.', yuzdeStr(GECME))}</p>
+      <p class="soluk kucukyazi">${t('🔒 Kilitli bölümleri de açabilirsin: konuyu biliyorsan doğrudan testine gir, {0} alınca bölüm açılır.', yuzdeStr(GECME))}</p>${beginnerTecvid ? '</details>' : ''}
     </main>`;
     app.querySelectorAll('details.bolum-grup').forEach(d => d.addEventListener('toggle', () => {
       if (!EKRAN.tecvid._acik) EKRAN.tecvid._acik = new Set(Array.from(app.querySelectorAll('details.bolum-grup[open]')).map(x => x.dataset.grupAd));
@@ -370,9 +371,10 @@
     const hesapUyari = B() && B().hazir && !k && !S.hesapUyariKapali;
     app.innerHTML = `${ust(t('Kur\'an Yolum'), false, `<button class="hesapbtn ${k ? 'resimli' : ''}" data-git="hesap" aria-label="${t('Hesap')}">${k ? hesapResmi(k, ((AKTIF().ad || k.displayName || k.email || '?')[0] || '?').toUpperCase()) : t('Giriş')}</button>`)}
       <main>
-        <p class="selam"><b>${AKTIF().ad ? t('Selâmün aleyküm, {0}', esc(AKTIF().ad)) : t('Selâmün aleyküm')}</b><small>${new Date().toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}</small></p>
+        <p class="selam"><b>${AKTIF().ad ? t('Selâmün aleyküm, {0}', esc(AKTIF().ad)) : t('Selâmün aleyküm')}</b><small>${greetingByTime()} · ${new Date().toLocaleDateString(DIL === 'en' ? 'en-GB' : 'tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}</small></p>
         ${tanitimKarti()}${yukleKarti()}${hatirlatmaKarti()}${haftaOzetKarti()}
         <div id="odevYer"></div>
+        ${homeStreakCard()}
         ${anaKartlari({ gecilen, toplam, siradaki, vade })}
         ${hesapUyari ? `<section class="kart hesap-uyari" style="margin-top:14px"><div><h2>${t('☁️ İlerlemen kaybolmasın')}</h2><p>${t('Giriş yap; puanların, geçmişin ve kilitler hesabında saklansın, başka telefonda da devam et.')}</p></div>
           <div class="satir sola"><button class="btn" data-git="hesap">${t('Giriş yap / Hesap aç')}</button><button class="btn ikincil" id="uyariKapat">${t('Sonra')}</button></div></section>` : ''}

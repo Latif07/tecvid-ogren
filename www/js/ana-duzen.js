@@ -71,6 +71,7 @@ function anaKartlari(c) {
   return d.sira.filter(id => !d.gizli.includes(id)).map(id => anaKartHTML(id, c)).join('') + `<p class="ana-duzenle-satir"><button class="link" data-git="anaDuzenle">⚙️ ${t('Ana sayfayı düzenle')}</button></p>`;
 }
 function anaKartBagla() {
+  homeStreakBind();
   app.querySelectorAll('.ana-hizli-ayar [data-ha]').forEach(b => b.onclick = () => {
     const a = b.dataset.ha, v = +b.dataset.v;
     if (a === 'hedef') { S.ayar.hedefDk = v; gunlukPlan(true); } else if (a === 'arYazi') { S.ayar.arYazi = v; temaUygula(); } else if (a === 'renkli') S.ayar.renkli = v === 1; else if (a === 'durakIsik') S.ayar.durakIsik = v === 1;
@@ -102,3 +103,13 @@ EKRAN.anaDuzenle = function () {
   });
   $('#anaSifirla').onclick = () => { delete S.ayar.anaTur; delete S.ayar.anaSira; delete S.ayar.anaGizli; delete S.ayar.hizli; yaz(); };
 };
+
+// Time-of-day greeting and a gentle streak celebration on the home page
+function greetingByTime() { const h = new Date().getHours(); return h < 5 ? t('Hayırlı geceler') : h < 12 ? t('Hayırlı sabahlar') : h < 18 ? t('Hayırlı günler') : t('Hayırlı akşamlar'); }
+const STREAK_MILESTONES = [3, 7, 14, 21, 30, 50, 100, 200, 365];
+function homeStreakCard() {
+  const days = (S.seri && S.seri.gun) || 0;
+  if (!STREAK_MILESTONES.includes(days) || S.ayar.seriKutlama === days) return '';
+  return `<section class="kart seri-kart" id="seriKart"><div><b>${t('Maşallah! {0} gündür aralıksız çalışıyorsun.', days)}</b><p class="soluk kucukyazi">${t('Küçük adımlar büyük yol alır. Devam et.')}</p></div><button class="btn kucuk ikincil" id="seriKapat">${t('Teşekkürler')}</button></section>`;
+}
+function homeStreakBind() { const b = $('#seriKapat'); if (b) b.onclick = () => { S.ayar.seriKutlama = (S.seri && S.seri.gun) || 0; kaydet(); ciz(); }; }
