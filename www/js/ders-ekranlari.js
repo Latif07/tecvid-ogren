@@ -656,10 +656,19 @@
       <button class="btn genis ikincil" data-git="kartYazdir">${IKON.yazdir} ${t('Hepsini yazdır / PDF')}</button>
       ${TEST_SURUM ? `<p class="soluk kucukyazi">${t('Kartların içeriği ders metinlerinden alınmıştır; hoca onayı bekliyor.')}</p>` : ''}</main>`;
   };
+  // Dinamik kartlar harf kartı verisinden (HARFKART) üretilir: mahreçler ve karıştırılan harfler
+  function kartSatirListesi(k) {
+    const H = window.HARFKART; if (k.dinamik && H) {
+      if (k.dinamik === 'mahrec') return H.MAHRECLER.map(m => ({ ad: `${m.no}. ${m.ad}`, harf: m.harfler.join(' '), kisa: m.aciklama }));
+      if (k.dinamik === 'karisan') return H.CIFTLER.map(c => ({ ad: c.map(h => H.AD[h] || h).join(' – '), harf: c.join(' '), kisa: '' }));
+    }
+    return k.satirlar || [];
+  }
   function kartSatirlari(k, kontrol) {
     const gz = (m, sinif = '') => m ? `<span class="${kontrol ? 'kk-gizli ' : ''}${sinif}" ${kontrol ? 'tabindex="0"' : ''}>${m}</span>` : '';
-    return (k.satirlar || []).map(s => { const r = R[s.k] || {}, ad = r.ad || s.k, kisa = s.kisa || r.ozet || '', miktar = s.miktar || r.elif || '';
-      return `<tr><th>${esc(t(ad))}</th><td>${s.harf ? `<div class="ar kk-harf">${gz(s.harf)}</div>` : ''}<div class="kk-kisa">${esc(t(kisa))}</div>${s.ne ? `<div class="kk-ne">${gz(esc(t(s.ne)))}</div>` : ''}${miktar ? `<div class="kk-miktar">${gz('⏱ ' + esc(miktar))}</div>` : ''}</td><td class="ar kk-ornek">${s.ornek ? esc(s.ornek) : ''}</td></tr>`; }).join('');
+    return kartSatirListesi(k).map(s => { const r = R[s.k] || {}, ad = s.ad || r.ad || s.k, kisa = s.kisa || r.ozet || '', miktar = s.miktar || r.elif || '';
+      const ornekVar = !!s.ornek;
+      return `<tr><th>${esc(t(ad))}</th><td${ornekVar ? '' : ' colspan="2"'}>${s.harf ? `<div class="ar kk-harf">${gz(s.harf)}</div>` : ''}<div class="kk-kisa">${esc(t(kisa))}</div>${s.ne ? `<div class="kk-ne">${gz(esc(t(s.ne)))}</div>` : ''}${miktar ? `<div class="kk-miktar">${gz('⏱ ' + esc(miktar))}</div>` : ''}</td>${ornekVar ? `<td class="ar kk-ornek">${esc(s.ornek)}</td>` : ''}</tr>`; }).join('');
   }
   function kartIsikTablo(baslik, l, kontrol) {
     return `<h3>${esc(t(baslik))}</h3><table class="kk-tablo kk-isik"><tbody>${l.map(s => `<tr><td class="kk-isaret"><i class="dm-nokta dm-${s.isik}"></i><b class="ar">${esc(s.isaret)}</b></td><th>${esc(t(s.ad))}</th><td><span class="${kontrol ? 'kk-gizli' : ''}" ${kontrol ? 'tabindex="0"' : ''}>${esc(t(s.ac))}</span></td></tr>`).join('')}</tbody></table>`;
@@ -667,9 +676,13 @@
   function kartGovde(k, kontrol) {
     const ust_ = k.ust ? `<p class="kk-ust"><b>${esc(t(k.ust.ad))}</b>${k.ust.harf ? ` <span class="ar">${esc(k.ust.harf)}</span>` : ''}${k.ust.not ? `<br><small class="soluk">${esc(t(k.ust.not))}</small>` : ''}</p>` : '';
     if (k.isik) return `<h2>${k.ik} ${esc(t(k.ad))}</h2>${kartIsikTablo('Medine mushafı (Hafs)', k.medine, kontrol)}${kartIsikTablo('Türk mushafı', k.turk, kontrol)}`;
+    if (k.dinamik) {   // mahreçler / karıştırılan harfler: dar telefonda tablo yerine satır listesi
+      const gz = m => m ? `<span class="${kontrol ? 'kk-gizli' : ''}" ${kontrol ? 'tabindex="0"' : ''}>${m}</span>` : '';
+      return `<h2>${k.ik} ${esc(t(k.ad))}</h2>${ust_}<div class="kk-liste">${kartSatirListesi(k).map(s => `<div class="kk-satir"><div class="kk-sat-ust"><b>${esc(t(s.ad))}</b><span class="ar kk-harf">${gz(s.harf)}</span></div>${s.kisa ? `<p class="kk-kisa">${esc(t(s.kisa))}</p>` : ''}</div>`).join('')}</div>`;
+    }
     return `<h2>${k.ik} ${esc(t(k.ad))}</h2>${ust_}<table class="kk-tablo"><tbody>${kartSatirlari(k, kontrol)}</tbody></table>`;
   }
-  const kartMetin = k => k.isik ? `${k.ad}\n` + k.medine.map(s => `${s.isaret} ${s.ad}: ${s.ac}`).join('\n') : `${k.ad}\n` + (k.satirlar || []).map(s => { const r = R[s.k] || {}; return `• ${r.ad || s.k}${s.harf ? ' [' + s.harf + ']' : ''}: ${s.kisa || r.ozet || ''}${s.ornek ? ' (' + s.ornek + ')' : ''}`; }).join('\n');
+  const kartMetin = k => k.isik ? `${k.ad}\n` + k.medine.map(s => `${s.isaret} ${s.ad}: ${s.ac}`).join('\n') : `${k.ad}\n` + kartSatirListesi(k).map(s => { const r = R[s.k] || {}; return `• ${s.ad || r.ad || s.k}${s.harf ? ' [' + s.harf + ']' : ''}: ${s.kisa || r.ozet || ''}${s.ornek ? ' (' + s.ornek + ')' : ''}`; }).join('\n');
   EKRAN.kart = function (id) {
     const k = kartBul(id); if (!k) return EKRAN.kartlar();
     const kontrol = !!EKRAN.kart._kontrol;

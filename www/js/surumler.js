@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.67';
+  const SURUM = '1.0.68';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.68', t: '2026-11-26', durum: 'Web', l: [
+      'Üç yeni hap kart: Harekeler ve işaretler, Mahreçler (17 mahreç ve harfleri), Karıştırılan harfler; kontrol modu, yazdır ve paylaş hepsinde; ilgili derslerin sayfasında "Bu konunun kartı"',
+      'Çizgi ikonlar: günlük ders kartı, Tecvid kısayolları, Kur\'an sekmesi, ezber, kartlar, notlar ve paylaş/yazdır düğmelerinde emoji yerine sade ikon',
+    ] },
     { s: '1.0.67', t: '2026-11-26', durum: 'Web', l: [
       'Ayet ara: Kur\'an sekmesinde 🔎 Ayet ara. Arapça (harekesiz) yazarsan kelimeyle, Türkçe yazarsan meal içinde arar; sonuca dokununca o ayetin sayfasına gidersin (ilk aramada ~1,6 MB dizin indirilir)',
       'Ezber: bugünkü plan Sabak (yeni ders), Sabakî (yakın tekrar), Münzil (uzak tekrar) adlarıyla; "Ezber raporu" ile ilerlemeni hocana paylaş ya da kopyala',

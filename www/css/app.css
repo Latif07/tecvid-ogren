@@ -1653,3 +1653,14 @@ select#adet { min-height: 44px; }
 .gunluk-ikon svg.ik { width: 28px; height: 28px; }
 .gunluk-kart.tamam .gunluk-ikon { color: #fff; }
 .not-git small svg.ik, .ko-menu-dugmeler svg.ik { width: 14px; height: 14px; vertical-align: -2px; margin-inline-end: 4px; }
+
+.kk-kisa, .kk-ne, .kk-miktar { overflow-wrap: anywhere; }
+.kk-tablo td { min-width: 0; }
+
+.kk-liste { display: flex; flex-direction: column; }
+.kk-satir { padding: 8px 0; border-bottom: 1px solid var(--cizgi, #ddd); }
+.kk-sat-ust { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.kk-sat-ust b { font-size: .95rem; }
+.kk-sat-ust .kk-harf { font-size: 1.4rem; direction: rtl; }
+.kk-satir .kk-kisa { margin: 2px 0 0; font-size: .85rem; color: var(--soluk, #666); }
+@media print { .kk-satir { break-inside: avoid; } }

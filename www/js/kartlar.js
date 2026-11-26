@@ -65,4 +65,17 @@ window.KARTLAR = [
       { isaret: 'ص', ad: 'Murahhas', ac: 'Nefes yetmezse durulabilir.', isik: 'ge' },
       { isaret: 'لا', ad: 'Durulmaz', ac: 'Orada durulmaz.', isik: 'la' },
     ] },
+  { id: 'harekeler', ad: 'Harekeler ve işaretler', ik: 'بَ', grup: 'temel', unit: ['u0'],
+    ust: { ad: 'Harflerin sesini harekeler verir', harf: '', not: 'Üstün e/a, esre i, ötre u gibi okunur (örnek: بَ be, بِ bi, بُ bu)' },
+    satirlar: [
+      { ad: 'Üstün (fetha)', harf: 'بَ', kisa: '"be"', ornek: 'بَ' },
+      { ad: 'Esre (kesra)', harf: 'بِ', kisa: '"bi"', ornek: 'بِ' },
+      { ad: 'Ötre (damme)', harf: 'بُ', kisa: '"bu"', ornek: 'بُ' },
+      { ad: 'Cezm (sükûn)', harf: 'ـۡ', kisa: 'Harf harekesizdir, kendinden önceki harfe bağlanır', ne: 'Medine mushafında küçük bir baş gibi görünür', ornek: 'قُلۡ' },
+      { ad: 'Şedde', harf: 'ـّ', kisa: 'Harf iki kez okunur: ilki sakin, ikincisi harekeli gibi', ornek: 'رَبِّ' },
+      { ad: 'Tenvin', harf: 'بًا بٍ بٌ', kisa: 'Harekenin çift yazılmasıdır; sonuna gizli bir "n" sesi ekler (ben, bin, bun)', ornek: 'بًا' },
+      { ad: 'Med harfleri', harf: 'ا و ي', kisa: 'Üç uzatma harfi: elif (üstün sonrası), vav (ötre sonrası), ye (esre sonrası)', ornek: 'قَالَ نُوحٌ فِيهِ' },
+    ] },
+  { id: 'mahrec', ad: 'Mahreçler (harflerin çıkış yerleri)', ik: 'ع', grup: 'mahrec', unit: ['m1', 'm2', 'm3'], dinamik: 'mahrec', ust: { ad: '17 mahreç', harf: '', not: 'Her mahreçten çıkan harfler; harf kartlarındaki şemayla aynı' } },
+  { id: 'karisan', ad: 'Karıştırılan harfler', ik: '≈', grup: 'karisan', unit: ['e1'], dinamik: 'karisan', ust: { ad: 'Birbirine karıştırılan harf çiftleri', harf: '', not: 'Harf kartlarındaki "Şununla karıştırma" listesiyle aynı. Kontrol modunda harfleri gizleyip tahmin et' } },
 ];
