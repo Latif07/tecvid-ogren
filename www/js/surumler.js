@@ -1,9 +1,13 @@
 // Sürüm ve yenilikler. Yeni sürümde: SURUM'u artır, LISTE'nin başına ekle.
 // APK derlemesi versionName'i ve Releases notunu buradan alır; web yayını YAYIN_YER'i yayın numarasıyla değiştirir.
 (function () {
-  const SURUM = '1.0.77';
+  const SURUM = '1.0.78';
   const YAYIN = 'YAYIN_YER';
   const LISTE = [
+    { s: '1.0.78', t: '2026-11-28', sa: '14:25', l: [
+      'Çocuk modu: çocuk kendi ekranından 🎨 düğmesiyle ekran rengini (açık/koyu), yazı boyunu ve yıldızının rengini değiştirebilir; ebeveyn kilidi gerekmez',
+      'Çocuk modu: ebeveyn, çocuğun Harf, Hareke ve Okuma adalarını tek tek kapatabilir (çocuk Elif-Ba harflerini zaten biliyorsa); kapalı bölüm yolculukta görünmez, sonrakiler açılır',
+    ] },
     { s: '1.0.77', t: '2026-11-26', sa: '18:50', l: [
       'Müfredat ekranı Tecvid sayfasıyla aynı düzene geçti: kısayol kutuları (Harf kartları, Hap kartlar, Testler…), açılır bölüm grupları ve "Şu an buradasın" işareti',
     ] },

@@ -316,6 +316,28 @@
     const sessiz = () => !!S().ayar.sessiz;
     const sesAyarla = () => { window.__sessiz = sessiz(); Sesli.acik = !sessiz() && S().ayar.sesliYonerge !== false; };
     const sessizDugme = () => `<button class="c-sessiz ${sessiz() ? 'kapali' : ''}" data-sessiz aria-pressed="${sessiz()}" aria-label="${sessiz() ? t('Sesi aç') : t('Sessize al')}">${sessiz() ? '🔇' : '🔊'}</button>`;
+    // Appearance panel for the child: theme, text size, star colour (no parent gate needed)
+    const gorunumDugme = () => `<button class="c-sessiz c-gorunum" data-c-gorunum aria-label="${t('Görünüm')}">🎨</button>`;
+    const gorunumPaneli = () => {
+      document.querySelectorAll('.c-gorunum-arka').forEach(x => x.remove());
+      const d = document.createElement('div'); d.className = 'modal-arka c-gorunum-arka'; document.body.appendChild(d);
+      const kapat = () => { d.remove(); api.ciz(); };
+      const ciz_ = () => {
+        const tema = S().ayar.tema || 'sistem', yazi = S().ayar.yazi || 1, top = toplamYildiz();
+        d.innerHTML = `<div class="modal kart c-gorunum-panel" role="dialog" aria-modal="true"><h2>🎨 ${t('Görünüm')}</h2>
+          <p class="kucukyazi soluk">${t('Ekran rengi')}</p><div class="c-gor-satir">${[['acik', '☀️', t('Açık')], ['koyu', '🌙', t('Koyu')], ['sistem', '📱', t('Telefona göre')]].map(([v, ik, ad]) => `<button class="c-gor-btn ${tema === v ? 'secili' : ''}" data-c-tema="${v}"><span>${ik}</span>${ad}</button>`).join('')}</div>
+          <p class="kucukyazi soluk">${t('Yazı boyu')}</p><div class="c-gor-satir">${[[1, 'A'], [1.15, 'A+'], [1.3, 'A++']].map(([v, ad]) => `<button class="c-gor-btn ${yazi === v ? 'secili' : ''}" data-c-yazi="${v}">${ad}</button>`).join('')}</div>
+          <p class="kucukyazi soluk">${t('Yıldızımın rengi')}</p><div class="c-renkler">${Object.entries(MASKOT_RENK).map(([k, r]) => { const ac = top >= r[4]; return `<button class="c-renk ${C().renk === k || (!C().renk && k === 'altin') ? 'secili' : ''}" data-c-renk="${k}" ${ac ? '' : 'disabled'} aria-label="${k}">${MASKOT(36, '', k)}${ac ? '' : `<small>🔒 ${r[4]}★</small>`}</button>`; }).join('')}</div>
+          <div class="satir"><button class="btn genis" id="cGorKapat">${t('Tamam')}</button></div></div>`;
+        d.querySelectorAll('[data-c-tema]').forEach(b => b.onclick = () => { S().ayar.tema = b.dataset.cTema; if (typeof temaUygula === 'function') temaUygula(); kaydet(); ciz_(); });
+        d.querySelectorAll('[data-c-yazi]').forEach(b => b.onclick = () => { S().ayar.yazi = +b.dataset.cYazi; if (typeof temaUygula === 'function') temaUygula(); kaydet(); ciz_(); });
+        d.querySelectorAll('[data-c-renk]').forEach(b => b.onclick = () => { C().renk = b.dataset.cRenk; maskotRenk = C().renk; kaydet(); ciz_(); });
+        d.querySelector('#cGorKapat').onclick = kapat;
+      };
+      d.onclick = e => { if (e.target === d) kapat(); };
+      ciz_();
+    };
+    document.addEventListener('click', e => { if (e.target.closest('[data-c-gorunum]')) gorunumPaneli(); });
     document.addEventListener('click', e => {
       const b = e.target.closest('[data-sessiz]'); if (!b) return;
       S().ayar.sessiz = !sessiz(); kaydet(); sesAyarla();
@@ -364,7 +386,8 @@
     const yildiz = id => (C().d[id] && C().d[id].y) || 0;
     // Sûreler Adası baştan açıktır (kısa sûreleri bilen çocuk harf yolculuğunu beklemez)
     // Yoklamayla geçilen adalar: C().gec = { harf: ts, hareke: ts, okuma: ts }. Duraklar açılır, yıldız verilmez.
-    const gecildi = ada => !!(C().gec && C().gec[ada]);
+    const adaKapali = ada => !!(C().kapali && C().kapali[ada]);   // switched off by the parent (child-guard.js)
+    const gecildi = ada => !!(C().gec && C().gec[ada]) || adaKapali(ada);
     const tamam = d => yildiz(d.id) > 0 || gecildi(d.ada);
     const acik = d => { const i = DURAK.indexOf(d); return i === 0 || d.ada === 'sure' || tamam(DURAK[i - 1]) || tamam(d); };
     // Yoklama yıldızları (c.yk[ada] = en iyi doğru sayısı) da toplamda sayılır: bildiğini gösteren çocuk da ödüllenir
@@ -1008,6 +1031,7 @@
       const p = profil(), yarim = yarimDurak(), s = yarim ? durakBul(yarim.id) : siradaki(), bugunY = C().gun[bugun()] || 0;
       let harita = '', k = 0;
       ADALAR.forEach(a => {
+        if (adaKapali(a.id)) return;
         const l = DURAK.filter(d => d.ada === a.id), bitti = l.filter(d => yildiz(d.id)).length;
         const gec = gecildi(a.id), yoklamaVar = YOKLAMA_ADA.includes(a.id) && !gec && bitti < l.length;
         harita += `<div class="c-ada" style="--ada:${a.renk}"><span>${a.ikon}</span><b>${a.ad}</b><small>${gec ? t('✓ geçti') : bitti + '/' + l.length}</small></div>
@@ -1023,7 +1047,7 @@
       });
       const app = document.getElementById('app');
       const ad = p.ad ? esc(p.ad) : '';
-      app.innerHTML = `${ust(t('Harf Yolculuğu'), false, `${sessizDugme()}<span class="c-ust-yildiz">★ ${toplamYildiz()}</span>`)}<main class="cocuk-ekran">
+      app.innerHTML = `${ust(t('Harf Yolculuğu'), false, `${sessizDugme()}${gorunumDugme()}<span class="c-ust-yildiz">★ ${toplamYildiz()}</span>`)}<main class="cocuk-ekran">
         <section class="c-kahraman">${MASKOT(86, 'zipla')}<div><p class="c-selam">${ad ? t('Selâmün aleyküm {0}!', ad) : t('Selâmün aleyküm!')}</p>
           <p>${s ? t('Sıradaki durak: <b>{0}</b>', esc(s.ad)) : t('Bütün durakları bitirdin! Maşallah! 🎉')}</p>
           <div class="c-hedef"><span>${bugunY ? '✅' : '🎯'}</span>${bugunY ? t('Bugünkü hedef tamam! Yarın görüşürüz.') : t('Bugünkü hedef: 1 durak')}</div></div></section>
@@ -1066,7 +1090,7 @@
       const top = toplamYildiz(), c = C(), cikSay = Math.floor(top / CIKARTMA_ADIM);
       const sonraki = CIKARTMA_ADIM - top % CIKARTMA_ADIM;
       const gunler = [...Array(7)].map((_, i) => { const g = new Date(Date.now() - (6 - i) * 86400000); const k = g.toISOString().slice(0, 10); return { k, ad: g.toLocaleDateString(EN ? 'en-GB' : 'tr-TR', { weekday: 'short' }), y: c.gun[k] || 0 }; });
-      const adalar = ADALAR.map(a => { const l = DURAK.filter(d => d.ada === a.id); const b = l.filter(d => yildiz(d.id)).length; const y = l.reduce((x, d) => x + yildiz(d.id), 0); return { a, b, n: l.length, y, max: l.length * 3 }; });
+      const adalar = ADALAR.filter(a => !adaKapali(a.id)).map(a => { const l = DURAK.filter(d => d.ada === a.id); const b = l.filter(d => yildiz(d.id)).length; const y = l.reduce((x, d) => x + yildiz(d.id), 0); return { a, b, n: l.length, y, max: l.length * 3 }; });
       const ogrenilen = gecildi('harf') ? HARF.length : HARF.filter((h, i) => yildiz('h' + i)).length;
       const app = document.getElementById('app');
       app.innerHTML = `${ust(t('Yıldızlarım'), false, sessizDugme())}<main class="cocuk-ekran">
@@ -1129,7 +1153,7 @@
     // Yalnız yerel testte: soru üreticileri doğrudan denensin (seçeneklerde "false/undefined" var mı, doğru cevap seçenekte mi)
     if (location.hostname === 'localhost') window.__cocukY = () => Y;
     if (location.hostname === 'localhost') window.__cocukTest = { sureYukle: api.sureYukle, SR, yoklamaBaslat, sorularHazirla, yoklamaSorulari, DURAK, harekeSorusu, okumaSorusu, isaretSorusu, harfSorusu };
-    return { Y: () => Y, gecildi, yoklamaBaslat, molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
+    return { Y: () => Y, adaKapali, gecildi, yoklamaBaslat, molaTest: dk => api.molaTest(dk), HarfSesSayi: () => HarfSes.sayi('h:'), DURAK, toplamYildiz, siradaki, ebeveynKilidi, MASKOT, yildiz, D: () => D, okunus };
   };
   window.ebeveynKilidi = ebeveynKilidi;
   window.ebeveynPin = { var: () => !!pinAl(), degistir: pinDegistir, kilitle: () => { acikKadar = 0; } };
