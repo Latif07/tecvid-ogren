@@ -3,6 +3,7 @@
 'use strict';
 const PARENT_GATE = { until: 0, a: 0, b: 0 };   // until: timestamp until which the gate stays open
 const PARENT_GATE_MINUTES = 5;
+const CHILD_ISLANDS = [['harf', 'Harf Adası'], ['hareke', 'Hareke Adası'], ['okuma', 'Okuma Adası']];   // can be switched off by the parent
 const CHILD_LIMITS = [0, 15, 30, 45, 60];       // minutes per day, 0 = unlimited
 const parentGateOpen = () => Date.now() < PARENT_GATE.until;
 function newParentQuestion() { PARENT_GATE.a = 6 + Math.floor(Math.random() * 4); PARENT_GATE.b = 6 + Math.floor(Math.random() * 4); }
@@ -32,7 +33,10 @@ function childLimitSection() {
   const main = app.querySelector('main'); if (!main) return;
   const cur = S.ayar.cocukLimit || 0;
   main.insertAdjacentHTML('afterbegin', `<section class="kart child-limit"><h3>${t('Çocuk için günlük süre')}</h3><p class="soluk kucukyazi">${t('Bugün kullanılan: {0} dk', Math.round(childUsedSeconds() / 60))}</p>
-    <div class="satir sola">${CHILD_LIMITS.map(m => `<button class="cip ${cur === m ? 'aktif' : ''}" data-child-limit="${m}">${m ? t('{0} dk', m) : t('Sınırsız')}</button>`).join('')}</div></section>`);
+    <div class="satir sola">${CHILD_LIMITS.map(m => `<button class="cip ${cur === m ? 'aktif' : ''}" data-child-limit="${m}">${m ? t('{0} dk', m) : t('Sınırsız')}</button>`).join('')}</div>
+    <h3 style="margin-top:16px">${t('Harf yolculuğu bölümleri')}</h3><p class="soluk kucukyazi">${t('Çocuk bir bölümü zaten biliyorsa kapat; yolculukta görünmez ve sonraki bölümler açılır.')}</p>
+    <div class="satir sola">${CHILD_ISLANDS.map(([id, ad]) => { const off = !!((S.cocuk || {}).kapali || {})[id]; return `<button class="cip ${off ? '' : 'aktif'}" data-child-island="${id}" aria-pressed="${!off}">${off ? '✗' : '✓'} ${t(ad)}</button>`; }).join('')}</div></section>`);
+  main.querySelectorAll('[data-child-island]').forEach(b => b.onclick = () => { S.cocuk = S.cocuk || { d: {}, gun: {} }; S.cocuk.kapali = S.cocuk.kapali || {}; const id = b.dataset.childIsland; if (S.cocuk.kapali[id]) delete S.cocuk.kapali[id]; else S.cocuk.kapali[id] = true; kaydet(); ciz(); });
   main.querySelectorAll('[data-child-limit]').forEach(b => b.onclick = () => { S.ayar.cocukLimit = +b.dataset.childLimit; kaydet(); childLimitCheck(); ciz(); });
 }
 // Time accounting: counts only while the child profile is active and the page is visible; saved once a minute

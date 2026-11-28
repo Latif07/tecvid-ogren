@@ -1782,3 +1782,11 @@ details.ko-hata > summary { min-height: 44px; display: flex; align-items: center
 .ez-arac .cip, .ez-tekrar-sec .cip, .tk-hizli .cip { min-height: 40px; font-size: .9rem; }
 
 .ez-mik.ez-ileri.caliyor { background: var(--kotu); border-color: var(--kotu); }
+
+/* Child appearance panel and parent island switches */
+.c-gorunum-panel { max-width: 420px; width: calc(100% - 24px); }
+.c-gor-satir { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.c-gor-btn { flex: 1; min-width: 88px; min-height: 64px; border-radius: 16px; border: 2px solid var(--cizgi); background: var(--bg); color: inherit; font: inherit; font-weight: 700; cursor: pointer; display: grid; place-items: center; gap: 2px; padding: 6px; }
+.c-gor-btn span { font-size: 1.5rem; }
+.c-gor-btn.secili { border-color: var(--ana); background: var(--iyi-bg); }
+.c-gorunum-panel .c-renkler { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }

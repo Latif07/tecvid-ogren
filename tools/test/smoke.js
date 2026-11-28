@@ -893,6 +893,21 @@ const EKRANLAR = [
         return { var1, var2, var3 };
       });
       kontrol('çocuk modu: günlük süre dolunca kilit ekranı çıkar; ebeveyn sorusu 10 dk ekler; sınırsızda çıkmaz', lim.var1 === true && lim.var2 === false && lim.var3 === false, JSON.stringify(lim));
+      const cg = await sayfa.evaluate(async () => {
+        const T = window.__TECVID, S = T.S(), p = T.PR().liste.find(x => x.id === T.PR().aktif) || T.PR().liste[0], eski = p.yas, w = ms => new Promise(r => setTimeout(r, ms)), tema0 = S.ayar.tema;
+        p.yas = 'cocuk'; T.git('cocuk'); await w(600);
+        const adaVar = () => [...document.querySelectorAll('.c-ada b')].map(b => b.textContent.trim());
+        const once = adaVar(), dugme = !!document.querySelector('[data-c-gorunum]');
+        document.querySelector('[data-c-gorunum]').click(); await w(150);
+        document.querySelector('[data-c-tema="koyu"]').click(); await w(150);
+        const tema = document.documentElement.dataset.tema, kilit = document.body.classList.contains('modal-acik');
+        document.querySelector('#cGorKapat').click(); await w(300);
+        S.cocuk = S.cocuk || { d: {}, gun: {} }; S.cocuk.kapali = { harf: true }; T.git('cocuk'); await w(600);
+        const sonra = adaVar();
+        delete S.cocuk.kapali; S.ayar.tema = tema0; document.documentElement.dataset.tema = tema0 || 'sistem'; p.yas = eski;
+        return { dugme, tema, kilit, once, sonra };
+      });
+      kontrol('çocuk modu: çocuk 🎨 panelinden temayı değiştirebiliyor; ebeveyn Harf Adası\'nı kapatınca yolculukta görünmüyor', cg.dugme && cg.tema === 'koyu' && cg.kilit && cg.once.some(x => /Harf Ada|Letter Island/.test(x)) && !cg.sonra.some(x => /Harf Ada|Letter Island/.test(x)) && cg.sonra.length === cg.once.length - 1, JSON.stringify(cg));
       await sayfa.evaluate(async () => { const T = window.__TECVID; T.KAYIT['mz-deneme'] = URL.createObjectURL(new Blob([new Uint8Array(120)], { type: 'audio/webm' })); navigator.canShare = () => false; delete window.__sharedRecording; await T.shareRecording('mz-deneme'); });
       kontrol('kendi okuyuşunu paylaş: kayıt dosyası hazırlanıyor (paylaşım yoksa indirme)', await sayfa.evaluate(() => !!window.__sharedRecording && window.__sharedRecording.size === 120 && /okuyusum\.webm/.test(window.__sharedRecording.name)));
       const sp = await sayfa.evaluate(() => { window.__TECVID.git('ana'); return getComputedStyle(document.querySelector('.kart')).marginBottom; });
